@@ -1,0 +1,13 @@
+//
+//  PostInfoCollectionViewCellViewModel.swift
+//  Link
+//
+//  Created by Gabriella Fawaz on 2021/07/22.
+//
+
+import Foundation
+
+struct PostInfoCollectionViewCellViewModel {
+    let username: String
+    let info: String
+}
