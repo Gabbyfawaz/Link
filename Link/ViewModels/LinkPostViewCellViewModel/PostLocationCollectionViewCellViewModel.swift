@@ -11,4 +11,6 @@ import Foundation
 struct PostLocationCollectionViewCellViewModel {
     let location: String?
     let isPrivate: Bool
+    let coordinates: Coordinates
+    let user: String
 }

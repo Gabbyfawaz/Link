@@ -11,6 +11,8 @@ import FirebaseDatabase
 import MessageKit
 import CoreLocation
 
+
+
 /// Object to manage database interactions
 final class DatabaseManager {
     /// Shared instance
@@ -33,47 +35,35 @@ final class DatabaseManager {
     }
     
     
-    /// Create Link
+    public func savePins(pinDrop: Pin, completion: @escaping (Bool) -> Void) {
+ 
+        let reference = database.document("pins/\(pinDrop)")
+        guard let data = pinDrop.asDictionary() else {
+            completion(false)
+            return
+        }
+        reference.setData(data) { error in
+            completion(error == nil)
+        }
+    
+        
+    }
     
     
-//    public func setLocationInfo(locationModel: LocationModel, completion: @escaping(Bool)-> Void) {
-//        guard let username = UserDefaults.standard.string(forKey: "username") else {
-//            completion(false)
-//            return
-//        }
-//
-//        let reference = database.document("users/\(username)/locationInfo/\(locationModel.linkId)")
-//        guard let data = locationModel.asDictionary() else {
-//            completion(false)
-//            return
-//        }
-//        reference.setData(data) { error in
-//            completion(error == nil)
-//        }
-//
-//    }
-//
-//
-//
-//    public func getLocationInfo(
-//        linkId: String,
-//        username: String,
-//        completion: @escaping (LocationModel?) -> Void
-//    ) {
-//        let ref = database.collection("users")
-//            .document(username)
-//            .collection("locationInfo")
-//            .document(linkId)
-//        ref.getDocument { snapshot, error in
-//            guard let data = snapshot?.data(),
-//                  error == nil else {
-//                completion(nil)
-//                return
-//            }
-//
-//            completion(LocationModel(with: data))
-//        }
-//    }
+    public func getAllPins(
+        completion: @escaping (Result<[Pin], Error>) -> Void
+    ) {
+        let ref = database.collection("pins")
+        ref.getDocuments { snapshot, error in
+            guard let pins = snapshot?.documents.compactMap({
+                Pin(with: $0.data())
+            }),
+            error == nil else {
+                return
+            }
+            completion(.success(pins))
+        }
+    }
     
     
     public func createLink(newLink: LinkModel, completion: @escaping (Bool) -> Void) {
@@ -134,6 +124,66 @@ final class DatabaseManager {
 
             completion(LinkModel(with: data))
         }
+    }
+    
+    
+    
+    public func findLinks(
+        with linkPrefix: String,
+        completion: @escaping ([LinkModel]) -> Void
+    ) {
+  
+        let ref = database.collection("users")
+        ref.getDocuments { snapshot, error in
+            
+            guard let users = snapshot?.documents.compactMap({ User(with: $0.data()) }),
+                  error == nil else {
+                completion([])
+                return
+            }
+
+            var allLinks = [LinkModel]()
+            let group = DispatchGroup()
+
+            users.forEach { user in
+                group.enter()
+
+                let username = user.username
+                let postsRef = self.database.collection("users/\(username)/links")
+
+                postsRef.getDocuments { snapshot, error in
+
+                    defer {
+                        group.leave()
+                    }
+
+                    guard let links = snapshot?.documents.compactMap({ LinkModel(with: $0.data()) }),
+                          error == nil else {
+                        return
+                    }
+                    
+                    allLinks.append(contentsOf: links.compactMap({$0}))
+//                    print("all links: \(allLinks)")
+
+                }
+        
+            }
+            
+            print("all links: \(allLinks)")
+            
+            let filteredPosts = allLinks.filter({
+                $0.linkTypeName.lowercased().hasPrefix(linkPrefix.lowercased())
+//                $0.linkTypeName.lowercased().hasPrefix(linkPrefix.lowercased())
+            })
+            
+            print("filtered posts: \(filteredPosts)")
+            
+            group.notify(queue: .main) {
+                completion(filteredPosts)
+            }
+        }
+
+        
     }
 
     
@@ -262,7 +312,7 @@ final class DatabaseManager {
 
     /// Gets posts for explore page
     /// - Parameter completion: Result callback
-    public func explorePosts(completion: @escaping ([(post: Post, user: User)]) -> Void) {
+    public func explorePosts(completion: @escaping ([(link: LinkModel, user: User)]) -> Void) {
         let ref = database.collection("users")
         ref.getDocuments { snapshot, error in
             guard let users = snapshot?.documents.compactMap({ User(with: $0.data()) }),
@@ -272,13 +322,13 @@ final class DatabaseManager {
             }
 
             let group = DispatchGroup()
-            var aggregatePosts = [(post: Post, user: User)]()
+            var aggregatePosts = [(link: LinkModel, user: User)]()
 
             users.forEach { user in
                 group.enter()
 
                 let username = user.username
-                let postsRef = self.database.collection("users/\(username)/posts")
+                let postsRef = self.database.collection("users/\(username)/links")
 
                 postsRef.getDocuments { snapshot, error in
 
@@ -286,13 +336,13 @@ final class DatabaseManager {
                         group.leave()
                     }
 
-                    guard let posts = snapshot?.documents.compactMap({ Post(with: $0.data()) }),
+                    guard let links = snapshot?.documents.compactMap({ LinkModel(with: $0.data()) }),
                           error == nil else {
                         return
                     }
 
-                    aggregatePosts.append(contentsOf: posts.compactMap({
-                        (post: $0, user: user)
+                    aggregatePosts.append(contentsOf: links.compactMap({
+                        (link: $0, user: user)
                     }))
                 }
             }

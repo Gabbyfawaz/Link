@@ -129,13 +129,13 @@ class ProfileHeaderCountView: UIView {
     func configure(with viewModel: ProfileHeaderCountViewViewModel) {
         followerCountButton.setTitle("\(viewModel.followerCount)\nFollowers", for: .normal)
         followingCountButton.setTitle("\(viewModel.followingCount)\nFollowing", for: .normal)
-        postCountButton.setTitle("\(viewModel.postsCount)\nPosts", for: .normal)
+        postCountButton.setTitle("\(viewModel.postsCount)\nLinks", for: .normal)
 
         self.action = viewModel.actioonType
 
         switch viewModel.actioonType {
         case .edit:
-            actionButton.backgroundColor = .purple
+            actionButton.backgroundColor = .black
             actionButton.setTitle("Edit Profile", for: .normal)
             actionButton.setTitleColor(.white, for: .normal)
             actionButton.layer.borderWidth = 0.5

@@ -14,30 +14,117 @@ class MapViewController: UIViewController,UICollectionViewDelegate, UICollection
 
     //MARK: - Properties
     private var collectionView: UICollectionView?
+    
+    private var  stackView: UIStackView = {
+        let stack = UIStackView()
+        stack.layer.masksToBounds = true
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.distribution = .fillEqually
+//        stack.layer.cornerRadius = 17.5
+        return stack
+    }()
 
+ 
     //MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .purple
-        title = "LINK"
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationController?.navigationBar.isHidden = false
+
+        configureNavigationBar()
         collectionView?.delegate = self
         collectionView?.dataSource = self
         configureCollectionView()
         
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didSwipeRight))
+        swipeRight.direction = .right
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(didSwipeLeft))
+        swipeLeft.direction = .left
+        view.addGestureRecognizer(swipeRight)
+        view.addGestureRecognizer(swipeLeft)
+        
 
     }
+    
+    //MARK: - Init
+    
+
     
     //MARK: - LayoutSubviews
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        collectionView?.frame = view.bounds
+        collectionView?.frame = CGRect(x: 0, y: view.safeAreaInsets.top, width: view.width, height: view.height)
+    }
+
+    //MARK: - ConfigureNavigationBar
+    
+    private func configureNavigationBar() {
+        let titleLabel = UILabel()
+        titleLabel.text = "LINK"
+        titleLabel.textColor = UIColor.black
+        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
+        let leftItem = UIBarButtonItem(customView: titleLabel)
+        self.navigationItem.leftBarButtonItem = leftItem
+        
+        navigationController?.navigationBar.prefersLargeTitles = false
+        view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.isHidden = false
+        view.backgroundColor = .systemBackground
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default) //UIImage.init(named: "transparent.png")
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.view.backgroundColor = .clear
+        
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(image: UIImage(systemName: "paperplane.fill"), style: .done, target: self, action: #selector(didTapMessage)),
+            UIBarButtonItem(image: UIImage(systemName: "mappin.and.ellipse"), style: .done, target: self, action: #selector(didTapLocation)),
+            UIBarButtonItem(image: UIImage(systemName: "plus", withConfiguration: UIImage.SymbolConfiguration(pointSize: 21)), style: .done, target: self, action: #selector(didTapAdd))]
+    }
+  
+    //MARK: - BarButtonactions
+    
+    @objc func didTapMessage() {
+        tabBarController?.tabBar.isHidden = true
+        let vc = ConversationsViewController()
+        navigationController?.pushViewController(vc, animated: true)
     }
     
+    @objc func didTapAdd() {
+        tabBarController?.tabBar.isHidden = true
+        let vc = LinkCameraViewController()
+        navigationController?.pushViewController(vc, animated: true)
+        
+    }
     
+    @objc func didTapLocation() {
+        
+    }
+
+    
+    //MARK: - SwipeAction
+
+    
+    @objc func didSwipeRight() {
+        print("Print swipe right")
+        tabBarController?.tabBar.isHidden = true
+        let vc = LinkCameraViewController()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    @objc func didSwipeLeft() {
+        print("Print swipe left")
+//        let vc = LinkNotificationViewController()
+//        navigationController?.pushViewController(vc, animated: true)
+        
+        guard let user = UserDefaults.standard.string(forKey: "username"), let email = UserDefaults.standard.string(forKey: "email") else {return}
+        
+        tabBarController?.tabBar.isHidden = true
+        let vc = ProfileViewController(user: User(username: user, email: email))
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+ 
    //MARK: -  Create collectionView
     
     private func configureCollectionView() {
@@ -51,7 +138,9 @@ class MapViewController: UIViewController,UICollectionViewDelegate, UICollection
                 let group = NSCollectionLayoutGroup.vertical(
                     layoutSize: NSCollectionLayoutSize(
                         widthDimension: .fractionalWidth(1),
-                        heightDimension: .fractionalHeight(1)),subitem: mapItem, count: 1
+                        heightDimension: .fractionalHeight(1)),
+                    subitem: mapItem,
+                    count: 1
                 )
 
                 // Section
@@ -62,7 +151,7 @@ class MapViewController: UIViewController,UICollectionViewDelegate, UICollection
                         NSCollectionLayoutBoundarySupplementaryItem(
                             layoutSize: NSCollectionLayoutSize(
                                 widthDimension: .fractionalWidth(1),
-                                heightDimension: .fractionalWidth(0.3)
+                                heightDimension: .fractionalWidth(0.28)
                             ),
                             elementKind: UICollectionView.elementKindSectionHeader,
                             alignment: .top
@@ -150,20 +239,31 @@ class MapViewController: UIViewController,UICollectionViewDelegate, UICollection
 //MARK: - HomeContainerProtocols
 extension MapViewController: HomeMapViewContainerProtocols {
     
+    func homeMapViewContainerDidTapExplore(_ container: HomeMapViewContainer) {
+        let vc = ExploreViewController()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    
+    func homeMapViewContainerDidTapPinLocation(_ container: HomeMapViewContainer) {
+        // pin something on the map!
+    }
+    
+    
+    func homeMapViewContainerDidTapProfile(_ container: HomeMapViewContainer) {
+        
+        guard let user = UserDefaults.standard.string(forKey: "username"), let email = UserDefaults.standard.string(forKey: "email") else {return}
+        
+        let vc = ProfileViewController(user: User(username: user, email: email))
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    
     func homeMapViewContainerDidTapMessages(_ container: HomeMapViewContainer) {
         let vc = ConversationsViewController()
         navigationController?.pushViewController(vc, animated: true)
     }
     
-    func homeMapViewContainerDidTapCreateLink(_ container: HomeMapViewContainer) {
-        let vc = LinkCameraViewController()
-        navigationController?.pushViewController(vc, animated: true)
-    }
-    
-    func homeMapViewContainerDidTapLinkNotifications(_ container: HomeMapViewContainer) {
-        let vc = LinkNotificationViewController()
-        navigationController?.pushViewController(vc, animated: true)
-    }
     
     func homeMapViewContainerDidTapNotifications(_ container: HomeMapViewContainer) {
         let vc = NotificationsViewController()
@@ -176,7 +276,7 @@ extension MapViewController: HomeMapViewContainerProtocols {
 
 extension MapViewController: MapCollectionViewCellDelegate {
     func mapCollectionViewCellDidTapInfoOnAnnotation(_ vc: MapCollectionViewCell, post: LinkModel, owner: String) {
-        let vc = PostLinkViewController(post: post, owner: owner)
+        let vc = PostLinkViewController(link: post, owner: owner)
         vc.modalPresentationStyle = .formSheet
         present(vc, animated: true, completion: nil)
     }

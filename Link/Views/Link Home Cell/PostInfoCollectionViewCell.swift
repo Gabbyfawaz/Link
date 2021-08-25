@@ -10,13 +10,15 @@ import SDWebImage
 
 protocol PostInfoCollectionViewCellDelegate: AnyObject {
     func postInfoCollectionViewCellDidTapInfo(_ cell: PostInfoCollectionViewCell)
+    func postInfoCollectionViewCellHeight(_ cell: PostInfoCollectionViewCell, size: CGFloat)
+    
 //    func postInfoCollectionViewCellDidTapMoreButton(_ cell: PostInfoCollectionViewCell, index: Int)
 }
 
 final class PostInfoCollectionViewCell: UICollectionViewCell {
     static let identifier = "PostInfoCollectionViewCell"
-    
     private var index = 0
+    private var cellHeight: CGFloat = 50
     weak var delegate: PostInfoCollectionViewCellDelegate?
     private var profileURL: URL?
 
@@ -38,14 +40,7 @@ final class PostInfoCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
-//    private let moreButton: UIButton = {
-//        let button = UIButton()
-//        button.tintColor = .label
-//        let image = UIImage(systemName: "ellipsis",
-//                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
-//        button.setImage(image, for: .normal)
-//        return button
-//    }()
+
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -57,6 +52,7 @@ final class PostInfoCollectionViewCell: UICollectionViewCell {
         let tap = UITapGestureRecognizer(target: self,
                                          action: #selector(didTapInfo))
         label.addGestureRecognizer(tap)
+        delegate?.postInfoCollectionViewCellHeight(self, size: cellHeight)
         
 //        moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
     }
@@ -77,6 +73,7 @@ final class PostInfoCollectionViewCell: UICollectionViewCell {
         super.layoutSubviews()
         let size = label.sizeThatFits(CGSize(width: contentView.bounds.size.width-12,
                                              height: contentView.bounds.size.height))
+        
 //
 //        let imagePadding: CGFloat = 4
 //        let imageSize: CGFloat = contentView.height - (imagePadding * 5)
@@ -94,6 +91,9 @@ final class PostInfoCollectionViewCell: UICollectionViewCell {
         
         label.frame = CGRect(x: 15
                              , y: 20, width: size.width, height: size.height)
+        
+        
+        cellHeight = label.height+10
 //        moreButton.frame = CGRect(x: contentView.width-moreButton.width-10, y: 10, width: 50, height: 50)
     }
 
@@ -102,9 +102,10 @@ final class PostInfoCollectionViewCell: UICollectionViewCell {
         label.text = nil
     }
 
-    func configure(with viewModel: PostInfoCollectionViewCellViewModel, index: Int) {
+
+    func configure(with viewModel: PostLinkExtraInfoCollectionCellViewModel, index: Int) {
         self.index = index
-        label.text = "\(viewModel.username): \(viewModel.info ?? "")"
+        label.text = "\(viewModel.username): \(viewModel.extraInfomation ?? "")"
         
 //        StorageManager.shared.profilePictureURL(for: viewModel.username) { [weak self] url in
 //            guard  let profileURL = url else {

@@ -7,26 +7,32 @@
 
 import UIKit
 
-class LinkNotificationViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class LinkNotificationViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchResultsUpdating, SearchResultsLinkViewControllerDelegate {
+
     
     //MARK: - Properties
+    
+    private var searchVC = UISearchController(searchResultsController: SearchResultsLinkViewController())
 
     private let LinkPostCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.minimumInteritemSpacing = 3
-        layout.minimumLineSpacing = 0
-        layout.itemSize = CGSize(width: 400, height: 100)
-        layout.sectionInset = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
+        layout.minimumInteritemSpacing = 10
+        layout.minimumLineSpacing = 20
+        layout.itemSize = CGSize(width: 400, height: 250)
+        layout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .systemBackground
+        collectionView.backgroundColor = .white
         collectionView.showsHorizontalScrollIndicator = false
-        collectionView.register(NameofLinkCollectionViewCell.self,
-                                forCellWithReuseIdentifier: NameofLinkCollectionViewCell.identifier)
-        collectionView.register(PostLocationCollectionViewCell.self,
-                                forCellWithReuseIdentifier: PostLocationCollectionViewCell.identifier)
-        collectionView.register(PostInviteCollectionViewCell.self,
-                                forCellWithReuseIdentifier: PostInviteCollectionViewCell.identifier)
+        
+        collectionView.register(PostFeedCollectionViewCell.self,
+                                        forCellWithReuseIdentifier: PostFeedCollectionViewCell.identifier)
+//        collectionView.register(NameofLinkCollectionViewCell.self,
+//                                forCellWithReuseIdentifier: NameofLinkCollectionViewCell.identifier)
+//        collectionView.register(PostLocationCollectionViewCell.self,
+//                                forCellWithReuseIdentifier: PostLocationCollectionViewCell.identifier)
+//        collectionView.register(PostInviteCollectionViewCell.self,
+//                                forCellWithReuseIdentifier: PostInviteCollectionViewCell.identifier)
         return collectionView
     }()
     
@@ -43,12 +49,26 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
     
         override func viewDidLoad() {
             super.viewDidLoad()
-            title = "LINK"
+            title = "Feed"
             
-            view.backgroundColor = .systemBackground
-    
-            navigationController?.navigationBar.prefersLargeTitles = true
 
+//            let textAttributes = [NSAttributedString.Key.foregroundColor:UIColor.white]
+//            navigationController?.navigationBar.titleTextAttributes = textAttributes
+            
+            (searchVC.searchResultsController as? SearchResultsLinkViewController)?.delegate = self
+            searchVC.searchBar.placeholder = "Search..."
+            searchVC.searchResultsUpdater = self
+            navigationItem.searchController = searchVC
+//
+            navigationController?.navigationBar.prefersLargeTitles = false
+            navigationController?.navigationBar.isHidden = false
+            view.backgroundColor = .systemBackground
+            self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+            //UIImage.init(named: "transparent.png")
+            self.navigationController?.navigationBar.shadowImage = UIImage()
+            self.navigationController?.navigationBar.isTranslucent = true
+            self.navigationController?.view.backgroundColor = .clear
+            
             fetchLinkPosts()
             view.addSubview(LinkPostCollectionView)
             LinkPostCollectionView.delegate = self
@@ -158,10 +178,22 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
                 let isLiked = model.likers.contains(currentUsername)
     
     
+                guard let stringDate = String.date(from: model.date) else {return}
                 let postLinkData: [SingleLinkFeedCellViewModelType] = [
-                    .nameOfLink(viewModel: NameOfCollectionViewViewModel(linkType: model.linkTypeName, linkTypeImage: profileLinkTypeImage, username: model.user)),
-                    .location(viewModel: PostLocationCollectionViewCellViewModel(location: model.locationTitle, isPrivate: model.isPrivate)),
-                    .invites(viewModel: PostInviteCollectionViewCellViewModel(invites: model.invites))
+                    
+                    .nameOfLink(viewModel: PostOfFeedCollectionViewModel(
+                                    linkType: model.linkTypeName,
+                                    linkTypeImage: profileLinkTypeImage,
+                                    mainImage: postUrl,
+                                    username: model.user,
+                                    location: model.locationTitle,
+                                    invite: model.invites,
+                                    isPrivate: model.isPrivate,
+                                    coordinates: model.location,
+                                    date: stringDate))
+//                    .nameOfLink(viewModel: NameOfCollectionViewViewModel(linkType: model.linkTypeName, linkTypeImage: profileLinkTypeImage, username: model.user)),
+//                    .location(viewModel: PostLocationCollectionViewCellViewModel(location: model.locationTitle, isPrivate: model.isPrivate)),
+//                    .invites(viewModel: PostInviteCollectionViewCellViewModel(invites: model.invites))
                 ]
                 
                 print("Link Type Name: \(model.linkTypeName)")
@@ -186,20 +218,67 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
             
             let cellLinkType = linkPostViewModels[indexPath.section][indexPath.row]
             switch cellLinkType {
-            case .nameOfLink(let viewModel):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NameofLinkCollectionViewCell.identifier, for: indexPath) as? NameofLinkCollectionViewCell else {fatalError()}
-                cell.configure(with: viewModel, index: indexPath.section)
-                return cell
-            case .location(let viewModel):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLocationCollectionViewCell.identifier, for: indexPath) as? PostLocationCollectionViewCell else {fatalError()}
-                cell.configure(with: viewModel, index: indexPath.section)
-                return cell
-            case .invites(let viewModel):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostInviteCollectionViewCell.identifier, for: indexPath) as? PostInviteCollectionViewCell else {fatalError()}
+//            case .nameOfLink(let viewModel):
+//                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NameofLinkCollectionViewCell.identifier, for: indexPath) as? NameofLinkCollectionViewCell else {fatalError()}
+//                cell.configure(with: viewModel, index: indexPath.section)
+//                return cell
+//            case .location(let viewModel):
+//                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLocationCollectionViewCell.identifier, for: indexPath) as? PostLocationCollectionViewCell else {fatalError()}
+//                cell.configure(with: viewModel, index: indexPath.section)
+//                return cell
+//            case .invites(let viewModel):
+//                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostInviteCollectionViewCell.identifier, for: indexPath) as? PostInviteCollectionViewCell else {fatalError()}
+//                cell.configure(with: viewModel)
+//                return cell
+            case .nameOfLink(viewModel: let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostFeedCollectionViewCell.identifier, for: indexPath) as? PostFeedCollectionViewCell else {fatalError()}
                 cell.configure(with: viewModel)
                 return cell
             }
             
         }
+    
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print("IndexPath: \(indexPath.section)")
+        
+        let link = allLinks[indexPath.section].link
+        let user = allLinks[indexPath.section].owner
+        
+        let vc = PostLinkViewController(link: link, owner: user)
+        vc.modalPresentationStyle = .automatic
+        present(vc, animated: true, completion: nil)
+        
+    }
+    
+    
+    //MARK: - Delegate Functions
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        
+               guard let resultsVC = searchController.searchResultsController as? SearchResultsLinkViewController,
+                     let query = searchController.searchBar.text,
+                     !query.trimmingCharacters(in: .whitespaces).isEmpty else {
+                   return
+               }
+
+               DatabaseManager.shared.findLinks(with: query) { results in
+                print("Results: \(results)")
+                
+                resultsVC.update(with: results)
+//                   DispatchQueue.main.async {
+//                       resultsVC.update(with: results)
+//                   }
+    }
+    }
+    
+    func searchResultsViewController(_ vc: SearchResultsLinkViewController, didSelectResultWith links: LinkModel) {
+        let vc = PostLinkViewController(link: links, owner: links.user)
+        vc.modalPresentationStyle = .automatic
+        present(vc, animated: true, completion: nil)
+    }
+    
+    
+    
     
 }

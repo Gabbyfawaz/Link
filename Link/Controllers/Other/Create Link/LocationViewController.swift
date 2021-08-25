@@ -26,13 +26,26 @@ class LocationViewController: UIViewController, SearchMapViewControllerDelegate 
 //
     private var coordinates: CLLocationCoordinate2D?
     private var locationTitle: String?
-    private let image: UIImage
+    private let arrayOfImage: [UIImage]
+    private let typeOfLink: String
+    private let iconImage: UIImage
+    private var resultsArray = [SearchResult]()
+    private let caption: String
 
     //MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Link Location"
+        
+        
+        title = "Location"
+        navigationController?.navigationBar.prefersLargeTitles = false
+        navigationController?.navigationBar.isHidden = false
+        view.backgroundColor = .systemBackground
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default) //UIImage.init(named: "transparent.png")
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.view.backgroundColor = .clear
         view.addSubview(mapView)
         
         let searchVC = SearchMapViewController()
@@ -41,14 +54,18 @@ class LocationViewController: UIViewController, SearchMapViewControllerDelegate 
         panel.set(contentViewController: searchVC)
         panel.addPanel(toParent: self)
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(didTapDone))
-
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapDone))
+            
     }
     
     //MARK: - Init
     
-    init(image: UIImage) {
-        self.image = image
+    init(arrayOfImage: [UIImage], typeOfLink:String, iconImage: UIImage, caption:String) {
+        self.arrayOfImage = arrayOfImage
+        self.typeOfLink = typeOfLink
+        self.iconImage = iconImage
+        self.caption = caption
+        
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -65,8 +82,15 @@ class LocationViewController: UIViewController, SearchMapViewControllerDelegate 
     //MARK: - Actions
     @objc private func didTapDone() {
         
-//        guard let coordinates = self.coordinates, let locationTitle = self.locationTitle else {return}
-        navigationController?.pushViewController(CreateLinkViewController(image: image, locationTitle: locationTitle, coordinates: coordinates), animated: true)
+
+        let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: self.typeOfLink, iconImage: iconImage, caption: self.caption)
+        vc.completion = { [weak self] result in
+            guard let strongSelf = self else {return}
+            strongSelf.resultsArray.append(contentsOf: result)
+            print("results array: \(strongSelf.resultsArray)")
+    }
+        navigationController?.pushViewController(vc, animated: true)
+
     }
     
     //MARK: - SearchMapViewControllerDelegate

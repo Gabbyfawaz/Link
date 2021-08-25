@@ -18,10 +18,18 @@ class PhotoCollectionViewCell: UICollectionViewCell {
         imageView.layer.cornerRadius = 10
         return imageView
     }()
+    
+    private let label: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.textAlignment = .center
+        return label
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(imageView)
+        contentView.insertSubview(label, at: 1)
     }
 
     required init?(coder: NSCoder) {
@@ -31,6 +39,7 @@ class PhotoCollectionViewCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         imageView.frame = contentView.bounds
+        label.frame = contentView.bounds
     }
 
     override func prepareForReuse() {
@@ -39,11 +48,16 @@ class PhotoCollectionViewCell: UICollectionViewCell {
     }
 
     func configure(with image: UIImage?) {
-        imageView.image = image
+        imageView.image = image?.addFilter(filter: .Mono)
+        
     }
-
+    
     func configure(with url: URL?) {
         imageView.sd_setImage(with: url, completed: nil)
+        
     }
+    
+    
+    
 }
 

@@ -72,17 +72,18 @@ final class ProfileViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
+        self.navigationItem.setHidesBackButton(true, animated: true)
         navigationController?.navigationBar.isHidden = false
         view.backgroundColor = .systemBackground
-        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default) //UIImage.init(named: "transparent.png")
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
         self.navigationController?.navigationBar.shadowImage = UIImage()
         self.navigationController?.navigationBar.isTranslucent = true
         self.navigationController?.view.backgroundColor = .clear
-//        title = user.username.uppercased()
         view.backgroundColor = .systemBackground
+        
+        
+        
         configureNavBar()
-//        configureCollectionView()
         fetchProfileInfo()
         
         collectionView.delegate = self
@@ -95,6 +96,12 @@ final class ProfileViewController: UIViewController {
         view.insertSubview(collectionView, at: 2)
         userInfoContainerView.countContainerView.delegate = self
         userInfoContainerView.delegate = self
+        
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didSwipeRight))
+        swipeRight.direction = .right
+        view.addGestureRecognizer(swipeRight)
+        
+        
        guard let viewModel = headerViewModel else {
             return
         }
@@ -124,6 +131,11 @@ final class ProfileViewController: UIViewController {
         collectionView.frame = CGRect(x: 0, y: view.height-view.height/4.5-100, width: view.width, height: view.height/4.5)
     }
     
+    @objc private func didSwipeRight() {
+        
+        tabBarController?.tabBar.isHidden = false
+        navigationController?.popToRootViewController(animated: true)
+    }
     @objc private func didTapImage() {
         print("Image has been tapped")
         guard isCurrentUser else {
@@ -305,8 +317,15 @@ extension ProfileViewController: UICollectionViewDelegate, UICollectionViewDataS
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         let link = links[indexPath.row]
-        let vc = PostLinkViewController(post: link, owner: user.username)
-        navigationController?.pushViewController(vc, animated: true)
+//        let vc = PostLinkViewController(post: link, owner: user.username)
+//        navigationController?.pushViewController(vc, animated: true)
+        
+        let vc = PostLinkViewController(link: link, owner: user.username)
+        vc.modalPresentationStyle = .formSheet
+        present(vc, animated: true, completion: nil)
+        
+        
+      
     }
     
 //    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

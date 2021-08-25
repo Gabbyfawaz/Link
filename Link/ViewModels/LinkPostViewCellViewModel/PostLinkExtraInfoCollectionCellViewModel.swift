@@ -9,6 +9,7 @@ import Foundation
 
 struct PostLinkExtraInfoCollectionCellViewModel {
     let extraInfomation: String?
+    let username: String
 }
 
 struct PostLinkDateCollectionCellViewModel {

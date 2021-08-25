@@ -6,13 +6,13 @@
 //
 
 import UIKit
+import Cosmos
+import TinyConstraints
 
 protocol PostLinkActionsCollectionViewCellDelegate: AnyObject {
     
     func postLinkActionsCollectionViewCellDidTapLike(_ cell: PostLinkActionCollectionViewCell, isLiked: Bool, index: Int)
     func postLinkActionsCollectionViewCellDidTapComment(_ cell: PostLinkActionCollectionViewCell, index: Int)
-    func postLinkActionsCollectionViewCellDidTapMore(_ cell: PostLinkActionCollectionViewCell, index: Int)
-    //new
     func postLinkLikesCollectionViewCellDidTapLikeCount(_ cell: PostLinkActionCollectionViewCell, index: Int)
     func posterLinkCollectionViewCellDidTapRequest(_ cell: PostLinkActionCollectionViewCell, index: Int)
 }
@@ -29,7 +29,12 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
     private let likeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.systemFont(ofSize: 20)
+        label.font = UIFont.systemFont(ofSize: 15)
+        label.layer.masksToBounds = true
+        label.layer.cornerRadius = 7.5
+        label.backgroundColor = .black
+        label.textColor = .white
+        label.textAlignment = .center
         label.isUserInteractionEnabled = true
         return label
     }()
@@ -38,8 +43,12 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
     private let commentLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.text = "1"
-        label.font = UIFont.systemFont(ofSize: 20)
+        label.font = UIFont.systemFont(ofSize: 15)
+        label.layer.masksToBounds = true
+        label.layer.cornerRadius = 7.5
+        label.backgroundColor = .black
+        label.textColor = .white
+        label.textAlignment = .center
         label.isUserInteractionEnabled = true
         return label
     }()
@@ -49,44 +58,37 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         let button = UIButton()
         button.tintColor = .systemRed
         let image = UIImage(systemName: "suit.heart",
-                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 35))
+                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
         button.setImage(image, for: .normal)
         return button
     }()
 
     private let commentButton: UIButton = {
         let button = UIButton()
-        button.tintColor = .systemPurple
+        button.tintColor = .black
         let image = UIImage(systemName: "message",
-                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 35))
+                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
         button.setImage(image, for: .normal)
         return button
     }()
     
-    lazy private var requestButtom: UIButton = {
-        let button = UIButton()
-        button.backgroundColor = .black
-        button.setTitle("Request", for: .normal)
-//        if  Auth.auth().currentUser?.email == UserDefaults.standard.string(forKey: "email") {
-//            button.setTitle("Repost", for: .normal)
-//            button.backgroundColor = .systemBlue
-//            button.addTarget(self, action: #selector(didTapRepost), for: .touchUpInside)
-//            }
-        button.setTitleColor(.white, for: .normal)
-//        button.layer.borderColor = UIColor.systemGreen.cgColor
-        button.layer.cornerRadius = 8
-        return button
+    private let commentsLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .left
+        label.textColor = .darkGray
+        label.font = .systemFont(ofSize: 15, weight: .light)
+        label.layer.masksToBounds = true
+        label.layer.cornerRadius = 8
+        return label
     }()
     
-        private let moreButton: UIButton = {
-            let button = UIButton()
-            button.tintColor = .label
-            let image = UIImage(systemName: "ellipsis",
-                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
-            button.setImage(image, for: .normal)
-            return button
-        }()
-
+    lazy var cosmosView: CosmosView = {
+        let view = CosmosView()
+        view.settings.starSize = 20
+        view.settings.updateOnTouch = true
+        return view
+    }()
+    
 //    private let starRatingButton: UIButton = {
 //        let button = UIButton()
 //        button.tintColor = .systemYellow
@@ -107,12 +109,11 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         contentView.clipsToBounds = true
         contentView.addSubview(likeButton)
         contentView.addSubview(commentButton)
-//        contentView.addSubview(starRatingButton)
-//        contentView.addSubview(starRatingLabel)
-        contentView.addSubview(moreButton)
         contentView.addSubview(commentLabel)
         contentView.addSubview(likeLabel)
-//        contentView.addSubview(requestButtom)
+        contentView.addSubview(commentsLabel)
+        contentView.addSubview(cosmosView)
+//        cosmosView.leftToSuperview()
         
         // Gestures
         let tap = UITapGestureRecognizer(target: self,
@@ -122,44 +123,15 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         // Actions
         likeButton.addTarget(self, action: #selector(didTapLike), for: .touchUpInside)
         commentButton.addTarget(self, action: #selector(didTapComment), for: .touchUpInside)
-//        starRatingButton.addTarget(self, action: #selector(didTapStar), for: .touchUpInside)
-//        moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
-        
-        requestButtom.addTarget(self, action: #selector(didTapRequest), for: .touchUpInside)
+
     }
 
 
     required init?(coder: NSCoder) {
         fatalError()
     }
-    //new
     
-    @objc private func didTapRequest() {
-       
-       isRequested = !isRequested
-       
-//        if  Auth.auth().currentUser?.email == UserDefaults.standard.string(forKey: "email") {
-//            requestButtom.setTitle("Repost", for: .normal)
-//            requestButtom.backgroundColor = .systemBlue
-//            requestButtom.addTarget(self, action: #selector(didTapRepost), for: .touchUpInside)
-//        } else {
-           if isRequested {
-               requestButtom.setTitle("Requesting", for: .normal)
-               requestButtom.backgroundColor = .darkGray
-               requestButtom.layer.borderColor = UIColor.secondarySystemBackground.cgColor
-//                requestButtom.layer.borderWidth = 3
-               print(isRequested)
-           } else {
-               requestButtom.setTitle("Request", for: .normal)
-               requestButtom.backgroundColor = .black
-               print(isRequested)
-           }
-           
-//        }
-       
-       
-       delegate?.posterLinkCollectionViewCellDidTapRequest(self, index: index)
-   }
+    
     
     @objc func didTapLabel() {
         delegate?.postLinkLikesCollectionViewCellDidTapLikeCount(self, index: index)
@@ -168,13 +140,13 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
     @objc func didTapLike() {
         if self.isLiked {
             let image = UIImage(systemName: "suit.heart",
-                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 40))
+                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
             likeButton.setImage(image, for: .normal)
-            likeButton.tintColor = .label
+            likeButton.tintColor = .systemRed
         }
         else {
             let image = UIImage(systemName: "suit.heart.fill",
-                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 40))
+                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
             likeButton.setImage(image, for: .normal)
             likeButton.tintColor = .systemRed
         }
@@ -189,10 +161,6 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         delegate?.postLinkActionsCollectionViewCellDidTapComment(self, index: index)
     }
 
-    @objc func didTapMore() {
-        delegate?.postLinkActionsCollectionViewCellDidTapMore(self, index: index)
-    }
-    
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -200,21 +168,22 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         // newnew
         
        
-        let size: CGFloat = contentView.height/1.15
-        likeButton.frame = CGRect(x: 15, y: (contentView.height-size), width: size, height: size)
+        likeButton.frame = CGRect(x: contentView.width-140, y: 0, width: 40, height: 40)
         
-        likeLabel.frame = CGRect(x: likeButton.right+10, y: 0, width: 12, height: contentView.height)
+        likeLabel.frame = CGRect(x: likeButton.right-10, y: 5, width: 15, height:15)
         commentButton.frame = CGRect(x: likeLabel.right+20,
-                                     y: (contentView.height-size), width: size, height: size)
-        commentLabel.frame = CGRect(x: commentButton.right+10, y: 0, width: 12, height: contentView.height)
-        requestButtom.frame = CGRect(x: contentView.width-120-20, y: (contentView.height-30)/2, width: 120, height: 30)
+                                     y: 0, width: 40, height: 40)
+        commentLabel.frame = CGRect(x: commentButton.right-10, y: 5, width: 15, height: 15)
         
-        moreButton.frame = CGRect(x: contentView.width-moreButton.width-60,
-                                  y: (contentView.height-30)/2,
-                                  width: 50,
-                                  height: 30)
-//        starRatingButton.frame = CGRect(x: contentView.width-10-likeButton.right, y: (contentView.height-size), width: size, height: size)
-//        starRatingLabel.frame =  CGRect(x:contentView.width-likeLabel.right-10, y: (contentView.height-size)+8, width: size-10, height: size-10)
+        
+        commentsLabel.sizeToFit()
+        
+        commentsLabel.frame = CGRect(x: likeButton.left,
+                                     y: 40+7,
+                                     width: commentsLabel.width,
+                                     height: commentsLabel.height)
+    
+        cosmosView.frame = CGRect(x: 15, y: 10, width: 10, height: 40)
         
     }
 
@@ -238,6 +207,8 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
             likeButton.tintColor = .systemRed
         
         }
+        commentLabel.text = "1"
+        commentsLabel.text = "View Comments"
     }
 
 }

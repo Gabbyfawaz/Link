@@ -16,6 +16,7 @@ final class TabBarViewController: UITabBarController {
         super.viewDidLoad()
 
         setUpControllers()
+
     }
 
     /// Sets up tab bar controllers
@@ -33,31 +34,31 @@ final class TabBarViewController: UITabBarController {
         // Define VCs
 //        let home = HomeViewController()
         let explore = ExploreViewController()
-        let camera = CameraViewController()
-        let maps = MapViewController()
-        let profile = ProfileViewController(user: currentUser)
-        let linkPage = LinkNotificationViewController()
+        let notifications = NotificationsViewController()
+        let maps = MapsViewController()
+        let feed = LinkNotificationViewController()
+//        let linkPage = LinkNotificationViewController()
 
-        let nav1 = UINavigationController(rootViewController: linkPage)
+//        let nav1 = UINavigationController(rootViewController: linkPage)
         let nav2 = UINavigationController(rootViewController: explore)
-        let nav3 = UINavigationController(rootViewController: camera)
+        let nav3 = UINavigationController(rootViewController: notifications)
         let nav4 = UINavigationController(rootViewController: maps)
-        let nav5 = UINavigationController(rootViewController: profile)
+        let nav5 = UINavigationController(rootViewController: feed)
 
-        nav1.navigationBar.tintColor = .label
+//        nav1.navigationBar.tintColor = .label
         nav2.navigationBar.tintColor = .label
         nav3.navigationBar.tintColor = .label
         nav4.navigationBar.tintColor = .label
         nav5.navigationBar.tintColor = .label
 
         if #available(iOS 14.0, *) {
-            linkPage.navigationItem.backButtonDisplayMode = .minimal
+//            linkPage.navigationItem.backButtonDisplayMode = .minimal
             explore.navigationItem.backButtonDisplayMode = .minimal
-            camera.navigationItem.backButtonDisplayMode = .minimal
+            notifications.navigationItem.backButtonDisplayMode = .minimal
             maps.navigationItem.backButtonDisplayMode = .minimal
-            profile.navigationItem.backButtonDisplayMode = .minimal
+            feed.navigationItem.backButtonDisplayMode = .minimal
         } else {
-            nav1.navigationItem.backButtonTitle = ""
+//            nav1.navigationItem.backButtonTitle = ""
             nav2.navigationItem.backButtonTitle = ""
             nav3.navigationItem.backButtonTitle = ""
             nav4.navigationItem.backButtonTitle = ""
@@ -65,15 +66,15 @@ final class TabBarViewController: UITabBarController {
         }
 
         // Define tab items
-        nav1.tabBarItem = UITabBarItem(title: "Link", image: UIImage(systemName: "link"), tag: 1)
+//        nav1.tabBarItem = UITabBarItem(title: "Link", image: UIImage(systemName: "link"), tag: 1)
         nav2.tabBarItem = UITabBarItem(title: "Explore", image: UIImage(systemName: "magnifyingglass"), tag: 1)
-        nav3.tabBarItem = UITabBarItem(title: "Camera", image: UIImage(systemName: "circle"), tag: 1)
+        nav3.tabBarItem = UITabBarItem(title: "Notifications", image: UIImage(systemName: "suit.heart"), tag: 1)
         nav4.tabBarItem = UITabBarItem(title: "Map", image: UIImage(systemName: "location.fill"), tag: 1)
-        nav5.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person.fill"), tag: 1)
+        nav5.tabBarItem = UITabBarItem(title: "Feed", image: UIImage(systemName: "link"), tag: 1)
 
         // Set controllers
         self.setViewControllers(
-            [nav4, nav2, nav3, nav1, nav5],
+            [nav4, nav2, nav3, nav5],
             animated: false
         )
     }

@@ -7,6 +7,7 @@
 
 import UIKit
 import JGProgressHUD
+import CoreLocation
 
 final class AddNewPeopleToLinkViewController: UIViewController {
 
@@ -16,6 +17,13 @@ final class AddNewPeopleToLinkViewController: UIViewController {
     private var users = [[String: String]]()
     private var results = [SearchResult]()
     private var targetUserDataArray = [SearchResult]()
+    private var coordinates: CLLocationCoordinate2D?
+    private var locationTitle: String?
+    private let arrayOfImage: [UIImage]
+    private let typeOfLink: String
+    private let iconImage: UIImage
+    private let caption: String
+
 
     private var hasFetched = false
 
@@ -45,26 +53,62 @@ final class AddNewPeopleToLinkViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.backgroundColor = .systemBackground
+        title = "Add Friends"
+        navigationController?.navigationBar.prefersLargeTitles = false
+        navigationController?.navigationBar.isHidden = false
+        view.backgroundColor = .systemBackground
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        //UIImage.init(named: "transparent.png")
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.view.backgroundColor = .clear
+        
+    
+        view.addSubview(searchBar)
         view.addSubview(noResultsLabel)
         view.addSubview(tableView)
+//        view.backgroundColor = .systemBackground
 
         tableView.delegate = self
         tableView.dataSource = self
 
         searchBar.delegate = self
-        navigationController?.navigationBar.isHidden = false
-        view.backgroundColor = .systemBackground
-        navigationController?.navigationBar.topItem?.titleView = searchBar
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done",
+        
+//        navigationController?.navigationBar.topItem?.titleView = searchBar
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next",
                                                             style: .done,
                                                             target: self,
-                                                            action: #selector(dismissSelf))
+                                                         action: #selector(dismissSelf))
         searchBar.becomeFirstResponder()
     }
-
+    
+    init(arrayOfImage: [UIImage], locationTitle: String?, coordinates: CLLocationCoordinate2D?, typeOfLink: String, iconImage: UIImage, caption:String) {
+        
+        self.arrayOfImage = arrayOfImage
+        self.locationTitle = locationTitle
+        self.coordinates = coordinates
+        self.typeOfLink = typeOfLink
+        self.iconImage = iconImage
+        self.caption = caption
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.frame = view.bounds
+        searchBar.frame = CGRect(x: 0,
+                                 y: 100,
+                                 width: view.width,
+                                 height: 50)
+        tableView.frame = CGRect(x: 0,
+                                 y: searchBar.bottom,
+                                 width: view.width,
+                                 height: view.height-150)
         noResultsLabel.frame = CGRect(x: view.width/4,
                                       y: (view.height-200)/2,
                                       width: view.width/2,
@@ -73,12 +117,20 @@ final class AddNewPeopleToLinkViewController: UIViewController {
 
     @objc private func dismissSelf() {
    
-        dismiss(animated: true, completion: { [weak self] in
 
-            // be super careful here
-            self?.completion?(self!.targetUserDataArray)
-        })
-//        dismiss(animated: true, completion: nil)
+        completion?(self.targetUserDataArray)
+        
+
+        if targetUserDataArray.count == 0 {
+            let alert = UIAlertController(title: "Select More People", message: "Select Link Icon Please", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Try Again!", style: .cancel, handler: nil))
+            present(alert, animated: true, completion: nil)
+        } else {
+            let vc = CreateLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, results: targetUserDataArray, typeOfLink: typeOfLink, iconImage: iconImage, caption: self.caption)
+            navigationController?.pushViewController(vc, animated: true)
+        }
+        
+        
     }
 
 }

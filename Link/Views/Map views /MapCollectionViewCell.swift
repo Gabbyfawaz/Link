@@ -11,12 +11,14 @@ import UIKit
 import MapKit
 import CoreLocation
 import SDWebImage
-import GeoFire
+//import GeoFire
 
 
 protocol MapCollectionViewCellDelegate: AnyObject {
     func mapCollectionViewCellDidTapInfoOnAnnotation(_ vc: MapCollectionViewCell, post: LinkModel, owner: String )
 }
+
+
 
 class MapCollectionViewCell: UICollectionViewCell, CLLocationManagerDelegate, MKMapViewDelegate {
     
@@ -29,6 +31,16 @@ class MapCollectionViewCell: UICollectionViewCell, CLLocationManagerDelegate, MK
     private var observer: NSObjectProtocol?
     private var index = 0
     
+    
+    private let imageView: UIImageView = {
+        let image = UIImageView()
+        image.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+        image.layer.masksToBounds = true
+        image.layer.cornerRadius = 20
+        image.layer.borderWidth = 2
+        image.layer.borderColor = UIColor.white.cgColor
+        return image
+    }()
 
     private var currentLocation: CLLocationCoordinate2D?
 //    private var linkType: String?
@@ -37,10 +49,6 @@ class MapCollectionViewCell: UICollectionViewCell, CLLocationManagerDelegate, MK
 //    private var coordinates: CLLocationCoordinate2D?
     
     
-    private let imageView: UIImageView = {
-        let image = UIImageView()
-        return image
-    }()
 
     
     private let mapView: MKMapView = {
@@ -246,6 +254,24 @@ class MapCollectionViewCell: UICollectionViewCell, CLLocationManagerDelegate, MK
 
     // customising now
     
+    func maskRoundedImage(image: UIImage, radius: Float) -> UIImage {
+        let imageView: UIImageView = UIImageView(image: image)
+        var layer: CALayer = CALayer()
+        layer = imageView.layer
+
+        layer.masksToBounds = true
+        layer.cornerRadius = CGFloat(radius)
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.white.cgColor
+
+        UIGraphicsBeginImageContext(imageView.bounds.size)
+        layer.render(in: UIGraphicsGetCurrentContext()!)
+        guard let roundedImage = UIGraphicsGetImageFromCurrentImageContext() else { return UIImage() }
+        UIGraphicsEndImageContext()
+
+        return roundedImage
+    }
+    
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         guard !(annotation is MKUserLocation) else {
             return nil
@@ -266,14 +292,25 @@ class MapCollectionViewCell: UICollectionViewCell, CLLocationManagerDelegate, MK
         }
         
    
+    
+        imageView.sd_setImage(with: URL(string: allLinks[0].link.linkTypeImage), completed: nil)
         
-//        let index = annotationView?.index(ofAccessibilityElement: annotation)
-//
-//        print("print index: \(index)")
-        
+        annotationView?.canShowCallout = true
+        guard let imageViewImage = imageView.image else {return MKAnnotationView()}
+        let image = maskRoundedImage(image: imageViewImage, radius: 20)
 
-        annotationView?.image = UIImage(named: "ball")
-        annotationView?.frame = CGRect(x: 0, y: 0, width: 50, height: 60)
+      
+        annotationView?.image = image
+        annotationView?.contentMode = .scaleAspectFill
+        annotationView?.frame.size = CGSize(width: 45, height: 45)
+            
+
+//        annotationView?.addSubview(imageView)
+    
+//        annotationView?.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+//        annotationView?.layer.masksToBounds = true
+//        annotationView?.layer.cornerRadius = 25
+        
         return annotationView
     }
 
@@ -282,9 +319,10 @@ class MapCollectionViewCell: UICollectionViewCell, CLLocationManagerDelegate, MK
     @objc private func didTapButton() {
         
         let tuple = allLinks[index]
+        
         delegate?.mapCollectionViewCellDidTapInfoOnAnnotation(self, post: tuple.link, owner: tuple.owner)
         
-//        print("didTapButton")
+        //        print("didTapButton")
 //        let tuple = allLinks[index]
 //        HapticManager.shared.vibrateForSelection()
 //        let vc = PostViewController(post: tuple.post, owner: tuple.owner)

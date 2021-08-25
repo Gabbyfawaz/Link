@@ -8,6 +8,7 @@
 import Firebase
 import UIKit
 import Appirater
+import GooglePlaces
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -19,6 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Appirater.setDebug(false)
         Appirater.setDaysUntilPrompt(3)
 
+        GMSPlacesClient.provideAPIKey("AIzaSyC7B4xchyzZzmT0i6ymUE8AVBrgQ795vzk")
         FirebaseApp.configure()
 
         return true

@@ -23,8 +23,13 @@ class ProfileHeaderUserInfoView: UIView {
     private let bioLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 0
+        label.textAlignment = .left
         label.textColor = .white
         label.font = .systemFont(ofSize: 18)
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowRadius = 3.0
+        label.layer.shadowOpacity = 1.0
+        label.layer.shadowOffset = CGSize(width: 2, height: 2)
         return label
     }()
     
@@ -32,26 +37,30 @@ class ProfileHeaderUserInfoView: UIView {
         let label = UILabel()
         label.numberOfLines = 0
         label.textColor = .white
-        label.font = UIFont.systemFont(ofSize: 30, weight: .bold)
+        label.font = UIFont.systemFont(ofSize: 40, weight: .bold)
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowRadius = 3.0
+        label.layer.shadowOpacity = 1.0
+        label.layer.shadowOffset = CGSize(width: 4, height: 4)
         return label
     }()
     
-    private let imageView: UIImageView = {
-        let iv = UIImageView()
-        iv.isUserInteractionEnabled = true
-        iv.layer.masksToBounds = true
-        iv.contentMode = .scaleAspectFill
-        iv.layer.cornerRadius = 40
-        iv.backgroundColor = .white
-        return iv
-    }()
-    
-    private var maskImageView: UIImageView = {
-        let maskImageView = UIImageView()
-        maskImageView.contentMode = .scaleAspectFit
-        maskImageView.image = #imageLiteral(resourceName: "mask")
-        return maskImageView
-    }()
+//    private let imageView: UIImageView = {
+//        let iv = UIImageView()
+//        iv.isUserInteractionEnabled = true
+//        iv.layer.masksToBounds = true
+//        iv.contentMode = .scaleAspectFill
+//        iv.layer.cornerRadius = 40
+//        iv.backgroundColor = .white
+//        return iv
+//    }()
+//
+//    private var maskImageView: UIImageView = {
+//        let maskImageView = UIImageView()
+//        maskImageView.contentMode = .scaleAspectFit
+//        maskImageView.image = #imageLiteral(resourceName: "mask")
+//        return maskImageView
+//    }()
 
 
     // Count Buttons
@@ -66,7 +75,7 @@ class ProfileHeaderUserInfoView: UIView {
         
         addSubview(nameLabel)
         addSubview(bioLabel)
-        addSubview(imageView)
+//        addSubview(imageView)
         addSubview(countContainerView)
         
        
@@ -87,18 +96,18 @@ class ProfileHeaderUserInfoView: UIView {
         super.layoutSubviews()
 //        let buttonWidth: CGFloat = (width-15)/3
         
+//        bioLabel.sizeToFit()
+//        imageView.frame = CGRect(x: 10, y: 10, width: 80, height: 80)
+        nameLabel.frame = CGRect(x: 15, y: 20, width: width-20, height: 40)
+        bioLabel.frame = CGRect(x: 15, y: nameLabel.bottom, width: width, height: 100)
+        countContainerView.frame = CGRect(x: 0, y: bioLabel.bottom, width: width, height: 100)
         
-        imageView.frame = CGRect(x: 10, y: 10, width: 80, height: 80)
-        nameLabel.frame = CGRect(x: imageView.right+10, y: 10+30, width: width-imageView.width-10, height: 30)
-        bioLabel.frame = CGRect(x: 10, y: nameLabel.bottom, width: width, height: 100)
-        countContainerView.frame = CGRect(x: 10, y: bioLabel.bottom, width: width-10, height: 100)
-        
-        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapProfilePhoto))
-        imageView.addGestureRecognizer(tap)
-        
-        maskImageView.frame = imageView.bounds
-        imageView.mask = maskImageView
-        
+//        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapProfilePhoto))
+//        imageView.addGestureRecognizer(tap)
+//
+//        maskImageView.frame = imageView.bounds
+//        imageView.mask = maskImageView
+//
        
     }
     

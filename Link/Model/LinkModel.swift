@@ -18,6 +18,7 @@ struct LinkModel: Codable {
     let linkTypeName: String
     var invites: [SearchResult]
     let postedDate: String
+    let linkDate: String
     let postUrlString: String
     var likers: [String]
     var isPrivate: Bool

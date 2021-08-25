@@ -7,14 +7,19 @@
 
 import UIKit
 import AVFoundation
+import Photos
+import BSImagePicker
 
 class LinkCameraViewController: UIViewController {
 
     private var output = AVCapturePhotoOutput()
     private var captureSession: AVCaptureSession?
     private let previewLayer = AVCaptureVideoPreviewLayer()
-
     private let cameraView = UIView()
+    
+   private var SelectedAssets = [PHAsset]()
+    private var PhotoArray = [UIImage]()
+    
 
     private let shutterButton: UIButton = {
         let button = UIButton()
@@ -28,7 +33,7 @@ class LinkCameraViewController: UIViewController {
     private let photoPickerButton: UIButton = {
         let button = UIButton()
         button.tintColor = .label
-        button.setImage(UIImage(systemName: "photo", withConfiguration: UIImage.SymbolConfiguration(pointSize: 40)),
+        button.setImage(UIImage(systemName: "photo", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30)),
                         for: .normal)
         return button
     }()
@@ -36,14 +41,14 @@ class LinkCameraViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .secondarySystemBackground
-        title = "Create Link"
+//        title = "Create Link"
         view.addSubview(cameraView)
         view.addSubview(shutterButton)
         view.addSubview(photoPickerButton)
         setUpNavBar()
         checkCameraPermission()
         shutterButton.addTarget(self, action: #selector(didTapTakePhoto), for: .touchUpInside)
-        photoPickerButton.addTarget(self, action: #selector(didTapPickPhoto), for: .touchUpInside)
+        photoPickerButton.addTarget(self, action: #selector(addImagesClicked), for: .touchUpInside)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -83,6 +88,74 @@ class LinkCameraViewController: UIViewController {
                                          width: buttonSize/1.5,
                                          height: buttonSize/1.5)
     }
+    
+    @objc func addImagesClicked() {
+    
+        
+        // create an instance
+//        let vc = BSImagePickerViewController()
+        
+       let imagePicker = ImagePickerController()
+        
+
+        presentImagePicker(imagePicker, select: { (asset) in
+            // User selected an asset. Do something with it. Perhaps begin processing/upload?
+        }, deselect: { (asset) in
+            // User deselected an asset. Cancel whatever you did when asset was selected.
+        }, cancel: { (assets) in
+            // User canceled selection.
+        }, finish: { (assets) in
+            // User finished selection assets.
+            for i in 0..<assets.count
+            {
+                self.SelectedAssets.append(assets[i])
+            
+            }
+            
+            self.convertAssetToImages()
+        })
+    
+        
+    }
+    
+    func convertAssetToImages() -> Void {
+            
+            if SelectedAssets.count != 0{
+                
+                
+                for i in 0..<SelectedAssets.count{
+                    
+                    let manager = PHImageManager.default()
+                    let option = PHImageRequestOptions()
+                    var thumbnail = UIImage()
+                    option.isSynchronous = true
+                    
+                   
+                    manager.requestImage(for: SelectedAssets[i], targetSize: CGSize(width: 200, height: 200), contentMode: .aspectFill, options: option, resultHandler: {(result, info)->Void in
+                        thumbnail = result!
+                        
+                    })
+                    
+                    let data = thumbnail.jpegData(compressionQuality: 0.7)
+                    let newImage = UIImage(data: data!)
+                  
+                    
+                    self.PhotoArray.append(newImage! as UIImage)
+                    
+                }
+               
+               // add images to collection view
+                
+                dismiss(animated: true, completion: {
+                    let vc = PostEditViewController(arrayOfImage: self.PhotoArray)
+                    self.navigationController?.pushViewController(vc, animated: true)
+                })
+                
+            }
+            
+            
+            print("complete photo array \(self.PhotoArray)")
+        }
 
     @objc func didTapPickPhoto() {
         let picker = UIImagePickerController()
@@ -145,9 +218,9 @@ class LinkCameraViewController: UIViewController {
     }
 
     @objc func didTapClose() {
+        navigationController?.popViewController(animated: true)
         tabBarController?.selectedIndex = 0
         tabBarController?.tabBar.isHidden = false
-
     }
 
     private func setUpNavBar() {
@@ -184,18 +257,18 @@ extension LinkCameraViewController: AVCapturePhotoCaptureDelegate {
     }
 
     private func showEditPhoto(image: UIImage) {
-        guard let resizedImage = image.sd_resizedImage(
-            with: CGSize(width: 640, height: 640),
-            scaleMode: .aspectFill
-        ) else {
-            return
-        }
-
-        let vc = PostEditViewController(image: resizedImage)
-        if #available(iOS 14.0, *) {
-            vc.navigationItem.backButtonDisplayMode = .minimal
-        }
-        navigationController?.pushViewController(vc, animated: false)
+//        guard let resizedImage = image.sd_resizedImage(
+//            with: CGSize(width: 640, height: 640),
+//            scaleMode: .aspectFill
+//        ) else {
+//            return
+//        }
+//
+//        let vc = PostEditViewController(image: resizedImage)
+//        if #available(iOS 14.0, *) {
+//            vc.navigationItem.backButtonDisplayMode = .minimal
+//        }
+//        navigationController?.pushViewController(vc, animated: false)
 
     }
 }

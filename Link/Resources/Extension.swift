@@ -8,6 +8,10 @@
 import Foundation
 import UIKit
 
+
+public  var myPurple: UIColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+
+
 extension UIView {
     var top: CGFloat {
         frame.origin.y
@@ -99,3 +103,33 @@ extension Notification.Name {
     
 }
 
+
+extension UIImage {
+    
+func addFilter(filter : FilterTypes) -> UIImage {
+let filter = CIFilter(name: filter.rawValue)
+// convert UIImage to CIImage and set as input
+let ciInput = CIImage(image: self)
+filter?.setValue(ciInput, forKey: "inputImage")
+// get output CIImage, render as CGImage first to retain proper UIImage scale
+let ciOutput = filter?.outputImage
+let ciContext = CIContext()
+let cgImage = ciContext.createCGImage(ciOutput!, from: (ciOutput?.extent)!)
+//Return the image
+return UIImage(cgImage: cgImage!)
+}
+    
+    
+}
+
+
+public enum FilterTypes: String {
+    case Chrome = "CIPhotoEffectChrome"
+    case Fade = "CIPhotoEffectFade"
+    case Instant = "CIPhotoEffectInstant"
+    case Mono = "CIPhotoEffectMono"
+    case Noir = "CIPhotoEffectNoir"
+    case Process = "CIPhotoEffectProcess"
+    case Tonal = "CIPhotoEffectTonal"
+    case Transfer =  "CIPhotoEffectTransfer"
+}  

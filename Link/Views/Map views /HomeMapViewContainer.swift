@@ -8,10 +8,10 @@
 import UIKit
 
 protocol HomeMapViewContainerProtocols: AnyObject {
-    func homeMapViewContainerDidTapCreateLink(_ container: HomeMapViewContainer)
-    func homeMapViewContainerDidTapLinkNotifications(_ container: HomeMapViewContainer)
+    func homeMapViewContainerDidTapProfile(_ container: HomeMapViewContainer)
     func homeMapViewContainerDidTapNotifications(_ container: HomeMapViewContainer)
-    func homeMapViewContainerDidTapMessages(_ container: HomeMapViewContainer)
+    func homeMapViewContainerDidTapPinLocation(_ container: HomeMapViewContainer)
+    func homeMapViewContainerDidTapExplore(_ container: HomeMapViewContainer)
 }
 
 class HomeMapViewContainer: UIView {
@@ -19,6 +19,16 @@ class HomeMapViewContainer: UIView {
     //MARK: - Properties
     
     weak var delegate: HomeMapViewContainerProtocols?
+    
+    private var  stackView: UIStackView = {
+        let stack = UIStackView()
+        stack.layer.masksToBounds = true
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.distribution = .fillEqually
+//        stack.layer.cornerRadius = 17.5
+        return stack
+    }()
 
     private let notificationsButton: UIButton = {
         let button = UIButton()
@@ -29,28 +39,37 @@ class HomeMapViewContainer: UIView {
         return button
     }()
 
-    private let linkNotificationsButton: UIButton = {
+    private let profileButton: UIButton = {
         let button = UIButton()
         button.tintColor = .label
-        let image = UIImage(systemName: "link",
+        let image = UIImage(systemName: "person.fill",
                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 44))
         button.setImage(image, for: .normal)
         return button
     }()
 
-    private let createLinkButton: UIButton = {
+//    private let createLinkButton: UIButton = {
+//        let button = UIButton()
+//        button.tintColor = .label
+//        let image = UIImage(systemName: "plus",
+//                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 44))
+//        button.setImage(image, for: .normal)
+//        return button
+//    }()
+    
+    private let exploreButton: UIButton = {
         let button = UIButton()
         button.tintColor = .label
-        let image = UIImage(systemName: "plus",
-                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 44))
+        let image = UIImage(systemName: "magnifyingglass",
+                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 40))
         button.setImage(image, for: .normal)
         return button
     }()
     
-    private let messageButton: UIButton = {
+    private let pinLocationButton: UIButton = {
         let button = UIButton()
         button.tintColor = .label
-        let image = UIImage(systemName: "paperplane.fill",
+        let image = UIImage(systemName: "mappin.and.ellipse",
                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 40))
         button.setImage(image, for: .normal)
         return button
@@ -63,15 +82,22 @@ class HomeMapViewContainer: UIView {
         backgroundColor = .systemBackground
         alpha = 0.3
         layer.cornerRadius = 8
-        addSubview(notificationsButton)
-        addSubview(createLinkButton)
-        addSubview(messageButton)
-        addSubview(linkNotificationsButton)
         
-        createLinkButton.addTarget(self, action: #selector(didTapCreateLink), for: .touchUpInside)
-        linkNotificationsButton.addTarget(self, action: #selector(didTapLinkNotifications), for: .touchUpInside)
+        stackView.backgroundColor = UIColor(white: 1, alpha: 0.3)
+        
+//        addSubview(stackView)
+        stackView.addArrangedSubview(exploreButton)
+        stackView.addArrangedSubview(profileButton)
+        stackView.addArrangedSubview(notificationsButton)
+        stackView.addArrangedSubview(pinLocationButton)
+//        addSubview(createLinkButton)
+        
+//        createLinkButton.addTarget(self, action: #selector(didTapCreateLink), for: .touchUpInside)
+        profileButton.addTarget(self, action: #selector(didTapProfile), for: .touchUpInside)
         notificationsButton.addTarget(self, action: #selector(didTapNotifications), for: .touchUpInside)
-        messageButton.addTarget(self, action: #selector(didTapRefresh), for: .touchUpInside)
+        pinLocationButton.addTarget(self, action: #selector(didTapPinLocation), for: .touchUpInside)
+        exploreButton.addTarget(self, action: #selector(didTapExplore), for: .touchUpInside)
+
 
         
     }
@@ -82,20 +108,22 @@ class HomeMapViewContainer: UIView {
 
     //MARK: - Actions
     
-    @objc func didTapCreateLink() {
-        delegate?.homeMapViewContainerDidTapCreateLink(self)
+//    @objc func didTapCreateLink() {
+//        delegate?.homeMapViewContainerDidTapCreateLink(self)
+//    }
+    @objc func didTapExplore() {
+        delegate?.homeMapViewContainerDidTapExplore(self)
     }
-    
-    @objc func didTapLinkNotifications() {
-        delegate?.homeMapViewContainerDidTapLinkNotifications(self)
+    @objc func didTapProfile() {
+        delegate?.homeMapViewContainerDidTapProfile(self)
     }
     
     @objc func didTapNotifications() {
         delegate?.homeMapViewContainerDidTapNotifications(self)
     }
     
-    @objc func didTapRefresh() {
-        delegate?.homeMapViewContainerDidTapMessages(self)
+    @objc func didTapPinLocation() {
+        delegate?.homeMapViewContainerDidTapPinLocation(self)
         
     }
     //MARK: - LayoutSubviews
@@ -103,20 +131,18 @@ class HomeMapViewContainer: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         
+        
         let sizeButton: CGFloat = (height/4.2)
-        
-        createLinkButton.frame = CGRect(x: 0, y: 1, width: sizeButton, height: sizeButton)
-        linkNotificationsButton.frame = CGRect(x: 0, y: createLinkButton.bottom+1, width: sizeButton, height: sizeButton)
-        notificationsButton.frame = CGRect(x: 0, y: linkNotificationsButton.bottom+1, width: sizeButton, height: sizeButton)
-        messageButton.frame = CGRect(x: 0, y: notificationsButton.bottom+1, width: sizeButton, height: sizeButton)
-        
+        stackView.frame = CGRect(x: 0, y: 0, width: sizeButton, height: height)
+//
+//        createLinkButton.frame = CGRect(x: 0, y: 1, width: sizeButton, height: sizeButton)
+//        profileButton.frame = CGRect(x: 0, y: createLinkButton.bottom+1, width: sizeButton, height: sizeButton)
+//        notificationsButton.frame = CGRect(x: 0, y: profileButton.bottom+1, width: sizeButton, height: sizeButton)
+//        pinLocationButton.frame = CGRect(x: 0, y: notificationsButton.bottom+1, width: sizeButton, height: sizeButton)
+//
   
     }
     
-    //MARK: - ConfigureUI
-    func configure() {
-      
-       
-    }
+ 
 
 }

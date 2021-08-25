@@ -39,11 +39,11 @@ final class ConversationsViewController: UIViewController {
         super.viewDidLoad()
         
         title = "Chats"
-//        navigationController?.navigationBar.isHidden = false
-        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.prefersLargeTitles = false
         view.backgroundColor = .systemBackground
         
-        navigationController?.navigationItem.backBarButtonItem? = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(didTapBackButton))
+        navigationItem.leftBarButtonItem =  UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .done, target: self, action: #selector(didTapBackButton))
+//       navigationItem.backBarButtonItem? = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(didTapBackButton))
 //
 //        tabBarController?.tabBar.isHidden = true
         
@@ -65,6 +65,7 @@ final class ConversationsViewController: UIViewController {
     }
     
     @objc private func didTapBackButton() {
+        navigationController?.popToRootViewController(animated: true)
         tabBarController?.tabBar.isHidden = false
         print("Has been tapped")
     }
@@ -219,7 +220,7 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 120
+        return 90
     }
 
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {

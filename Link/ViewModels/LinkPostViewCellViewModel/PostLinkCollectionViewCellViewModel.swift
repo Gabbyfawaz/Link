@@ -9,4 +9,5 @@ import Foundation
 
 struct PostLinkCollectionViewCellViewModel {
     let postUrl: URL
+    let user: String
 }

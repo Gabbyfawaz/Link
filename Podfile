@@ -15,12 +15,14 @@ target 'Link' do
   pod 'Firebase/Storage'
   pod 'SDWebImage'
   pod 'Firebase/Database'
-  
-  
   pod 'MessageKit'
   pod 'JGProgressHUD'
   pod 'FloatingPanel'
-  pod 'GeoFire/Utils'
+  pod 'GoogleMaps', '5.1.0'
+  pod 'Cosmos'
+  pod 'TinyConstraints'
+  pod 'GooglePlaces', '5.0.0'
+  pod "BSImagePicker"
 
 
 end

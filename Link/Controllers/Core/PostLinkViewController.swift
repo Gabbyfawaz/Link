@@ -7,13 +7,27 @@
 
 import UIKit
 import Appirater
+import SDWebImage
 
-class PostLinkViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class PostLinkViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
     private let linkModel: LinkModel
+    
     private let owner: String
+    
+    private var estimatedHeight: CGFloat?
 
     private var collectionView: UICollectionView?
+    
+    private var mainImageView: UIImageView = {
+        let iv = UIImageView()
+        return iv
+    }()
+    
+    private var iconImageView: UIImageView = {
+        let iv = UIImageView()
+        return iv
+    }()
 
     private var viewModels: [SingleLinkPostCellViewModelType] = []
 
@@ -25,11 +39,11 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
     // MARK: - Init
 
     init(
-        post: LinkModel,
+        link: LinkModel,
         owner: String
     ) {
         self.owner = owner
-        self.linkModel = post
+        self.linkModel = link
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -44,16 +58,35 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
         title = "Post"
         view.backgroundColor = .systemBackground
         configureCollectionView()
+        view.addSubview(mainImageView)
+        view.addSubview(iconImageView)
 //        view.addSubview(commentBarView)
 //        commentBarView.delegate = self
         fetchPost()
         observeKeyboardChange()
+         Appirater.tryToShowPrompt()
+        
+        
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didTapRight))
 
-        // Appirater.tryToShowPrompt()
+        swipeRight.direction = .right
+        
+        view.addGestureRecognizer(swipeRight)
+        
+    }
+    
+    
+    @objc func didTapRight() {
+        
+        
+        
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        
+//        mainImageView.frame = CGRect(x: 0, y: 0, width: view.width, height: view.width)
+//        iconImageView.frame = CGRect(x: 15, y: 15, width: 50, height: 50)
         collectionView?.frame = view.bounds
 //        commentBarView.frame = CGRect(
 //            x: 0,
@@ -135,7 +168,7 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
         StorageManager.shared.profilePictureURL(for: username) { [weak self] profilePictureURL in
             guard let strongSelf = self,
                   let postUrl = URL(string: model.postUrlString),
-                  let profilePhotoUrl = profilePictureURL,
+//                  let profilePhotoUrl = profilePictureURL,
                   let profileLinkTypeImage = URL(string: model.linkTypeImage) else {
                 completion(false)
                 return
@@ -147,43 +180,53 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
 //                postID: strongSelf.post.id,
 //                owner: strongSelf.owner
 //            ) { comments in
+            
+            
+            self?.mainImageView.sd_setImage(with: postUrl, completed: nil)
+            
+            
             let postLinkData: [SingleLinkPostCellViewModelType] = [
                 
+                .post(viewModel: PostLinkCollectionViewCellViewModel(postUrl: postUrl, user: model.user)),
                 .poster(viewModel: PosterLinkCollectionViewCellViewModel(linkType: model.linkTypeName, profilePictureURL: profileLinkTypeImage)),
-                .post(viewModel: PostLinkCollectionViewCellViewModel(postUrl: postUrl)),
                 .actions(viewModel: PostLinkActionCollectionViewCellViewModel(isLiked: isLiked, likers: model.likers)),
-                .info(viewModel: PostInfoCollectionViewCellViewModel(username: model.user, info: model.info)),
+                .info(viewModel: PostLinkExtraInfoCollectionCellViewModel(extraInfomation: model.extraInformation, username: model.user)),
+//                .extraInfo(viewModel: PostLinkExtraInfoCollectionCellViewModel(extraInfomation: model.extraInformation, username: model.user)),
                 .invite(viewModel: PostInviteCollectionViewCellViewModel(invites: model.invites)),
-                .location(viewModel: PostLocationCollectionViewCellViewModel(location: model.locationTitle, isPrivate: model.isPrivate)),
-                .date(viewModel: PostLinkDateCollectionCellViewModel(dateString: model.postedDate)),
-                .extraInfo(viewModel: PostLinkExtraInfoCollectionCellViewModel(extraInfomation: model.extraInformation)),
+                .location(viewModel: PostLocationCollectionViewCellViewModel(location: model.locationTitle, isPrivate: model.isPrivate, coordinates: model.location, user: model.user)),
+                .date(viewModel: PostLinkDateCollectionCellViewModel(dateString: model.linkDate)),
                 .logistic(viewModel: PostLogisticCollectionViewCellViewModel(date: model.date))
               
             ]
-                self?.viewModels = postLinkData
+            
+            
+                strongSelf.viewModels = postLinkData
                 completion(true)
             }
 //        }
     }
 
-    // CollectionView
+
+    
+    
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModels.count
     }
+
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cellType = viewModels[indexPath.row]
         switch cellType {
         case .poster(let viewModel):
             guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PosterlinkCollectionViewCell.identifier,
+                withReuseIdentifier: PosterLinkCollectionViewCell.identifier,
                 for: indexPath
-            ) as? PosterlinkCollectionViewCell else {
+            ) as? PosterLinkCollectionViewCell else {
                 fatalError()
             }
 //            cell.delegate = self
-            cell.configure(with: viewModel, index: indexPath.section)
+            cell.configure(with: viewModel)
             return cell
         case .post(let viewModel):
             guard let cell = collectionView.dequeueReusableCell(
@@ -202,7 +245,7 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
             ) as? PostLinkActionCollectionViewCell else {
                 fatalError()
             }
-            
+
 //            cell.delegate = self
             cell.configure(with: viewModel, index: indexPath.section)
             return cell
@@ -213,7 +256,7 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
             ) as? PostInfoCollectionViewCell else {
                 fatalError()
             }
-//                cell.delegate = self
+            cell.delegate = self
             cell.configure(with: viewModel, index: indexPath.section)
             return cell
         case .invite(let viewModel):
@@ -234,7 +277,7 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
                 fatalError()
             }
 //                cell.delegate = self
-            cell.configure(with: viewModel, index: indexPath.section)
+            cell.configure(with: viewModel)
             return cell
         case .logistic(let viewModel):
             guard let cell = collectionView.dequeueReusableCell(
@@ -246,15 +289,15 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
 //                cell.delegate = self
             cell.configure(with: viewModel)
             return cell
-            case .extraInfo(viewModel: let viewModel):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLinkExtraInfoCollectionViewCell.identifier,
-                for: indexPath
-            ) as? PostLinkExtraInfoCollectionViewCell else {
-                fatalError()
-            }
-//                cell.delegate = self
-            cell.configure(with: viewModel)
-            return cell
+//            case .extraInfo(viewModel: let viewModel):
+//                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLinkExtraInfoCollectionViewCell.identifier,
+//                for: indexPath
+//            ) as? PostLinkExtraInfoCollectionViewCell else {
+//                fatalError()
+//            }
+////                cell.delegate = self
+//            cell.configure(with: viewModel)
+//            return cell
         case .date(viewModel: let viewModel):
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLinkDateCollectionViewCell.identifier,
             for: indexPath
@@ -266,6 +309,7 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
         return cell
         }
     }
+
 }
 
 //extension PostLinkViewController: CommentBarViewDelegate {
@@ -407,53 +451,68 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
 
 extension PostLinkViewController {
     private func configureCollectionView() {
-            let sectionHeight: CGFloat = 420 + 150 + 100 + view.width
+        
+        let sectionHeight: CGFloat =  775 + view.width + 30
         
         // mark add 150 if adding back extra info
             let collectionView = UICollectionView(
                 frame: .zero,
                 collectionViewLayout: UICollectionViewCompositionalLayout(sectionProvider: { index, _ -> NSCollectionLayoutSection? in
 
+                    
+//                    guard let estimateHeight = self.estimatedHeight else {fatalError()}
+                    // Group
+                    
                     // Item
-                    let posterItem = NSCollectionLayoutItem(
-                        layoutSize: NSCollectionLayoutSize(
-                            widthDimension: .fractionalWidth(1),
-                            heightDimension: .absolute(80)
-                        )
-                    )
-
                     let postItem = NSCollectionLayoutItem(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
-                            heightDimension: .fractionalWidth(1)
+                            heightDimension: .absolute(self.view.width)
+                        
                         )
                     )
+                    
+                    let posterItem = NSCollectionLayoutItem(
+                        layoutSize: NSCollectionLayoutSize(
+                            widthDimension: .fractionalWidth(1),
+                            heightDimension: .absolute(40)
+                        )
+                    )
+
 
                     let actionsItem = NSCollectionLayoutItem(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
-                            heightDimension: .absolute(60)
+                            heightDimension: .absolute(65)
                         )
                     )
-
+                    
+                    
                     let infoItem = NSCollectionLayoutItem(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
-                            heightDimension: .absolute(60)
+                            heightDimension: .estimated(100)
                         )
-                    )
+                        )
+//
+//                    let extraInfomationItem = NSCollectionLayoutItem(
+//                        layoutSize: NSCollectionLayoutSize(
+//                            widthDimension: .fractionalWidth(1),
+//                            heightDimension: .absolute(170)
+//                        )
+//                    )
                     
                     let inviteItem = NSCollectionLayoutItem(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
-                            heightDimension: .absolute(100)
+                            heightDimension: .absolute(100+50+50)
                         )
                     )
 
                     let locationItem = NSCollectionLayoutItem(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
-                            heightDimension: .absolute(80)
+                            heightDimension: .absolute(100+160)
                         )
                     )
 
@@ -464,36 +523,29 @@ extension PostLinkViewController {
                         )
                     )
                     
-                    let extraInfomationItem = NSCollectionLayoutItem(
-                        layoutSize: NSCollectionLayoutSize(
-                            widthDimension: .fractionalWidth(1),
-                            heightDimension: .absolute(170)
-                        )
-                    )
                     
                     let dateItem = NSCollectionLayoutItem(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
-                            heightDimension: .absolute(60)
+                            heightDimension: .absolute(70+30)
                         )
                     )
 
-                    // Group
                     let group = NSCollectionLayoutGroup.vertical(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
                             heightDimension: .absolute(sectionHeight)
                         ),
                         subitems: [
-                            posterItem,
                             postItem,
+                            posterItem,
                             actionsItem,
                             infoItem,
+//                            extraInfomationItem,
                             inviteItem,
                             locationItem,
                             dateItem,
-                            extraInfomationItem,
-                            logisticItem,
+                            logisticItem
                         ]
                     )
 
@@ -531,8 +583,8 @@ extension PostLinkViewController {
             collectionView.dataSource = self
 
             collectionView.register(
-                PosterlinkCollectionViewCell.self,
-                forCellWithReuseIdentifier: PosterlinkCollectionViewCell.identifier
+                PosterLinkCollectionViewCell.self,
+                forCellWithReuseIdentifier: PosterLinkCollectionViewCell.identifier
             )
             collectionView.register(
                 PostLinkCollectionViewCell.self,
@@ -583,3 +635,19 @@ extension PostLinkViewController {
     
 }
 
+
+
+extension PostLinkViewController: PostInfoCollectionViewCellDelegate{
+    func postInfoCollectionViewCellHeight(_ cell: PostInfoCollectionViewCell, size: CGFloat) {
+        print("size: \(size)")
+        self.estimatedHeight = size
+    }
+    
+    func postInfoCollectionViewCellDidTapInfo(_ cell: PostInfoCollectionViewCell) {
+        //
+    }
+    
+
+    
+    
+}
