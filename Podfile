@@ -23,6 +23,8 @@ target 'Link' do
   pod 'TinyConstraints'
   pod 'GooglePlaces', '5.0.0'
   pod "BSImagePicker"
+  pod 'DateTimePicker'
+
 
 
 end

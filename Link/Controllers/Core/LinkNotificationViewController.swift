@@ -169,12 +169,12 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
         ) {
             guard let currentUsername = UserDefaults.standard.string(forKey: "username") else { return }
             StorageManager.shared.profilePictureURL(for: username) { [weak self] profilePictureURL in
-                guard let postUrl = URL(string: model.postUrlString),
-                      let profilePhotoUrl = profilePictureURL,
+                guard let profilePhotoUrl = profilePictureURL,
                       let profileLinkTypeImage = URL(string: model.linkTypeImage) else {
                     return
                 }
     
+                let postStringArray = model.postArrayString
                 let isLiked = model.likers.contains(currentUsername)
     
     
@@ -184,7 +184,7 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
                     .nameOfLink(viewModel: PostOfFeedCollectionViewModel(
                                     linkType: model.linkTypeName,
                                     linkTypeImage: profileLinkTypeImage,
-                                    mainImage: postUrl,
+                                    mainImage: postStringArray,
                                     username: model.user,
                                     location: model.locationTitle,
                                     invite: model.invites,

@@ -168,7 +168,11 @@ extension ExploreViewController: UICollectionViewDelegate, UICollectionViewDataS
             fatalError()
         }
         let model = links[indexPath.row]
-        cell.configure(postString: model.link.postUrlString, iconString: model.link.linkTypeImage, nameOfLink: model.link.linkTypeName)
+        
+        cell.configure(postString: model.link.postArrayString[0], iconString: model.link.linkTypeImage, nameOfLink: model.link.linkTypeName)
+        
+//        let image = model.link.postArrayString[0]
+//        cell.configure(postString: URL(string: image), iconString: model.link.linkTypeImage, nameOfLink: model.link.linkTypeName)
         return cell
     }
 

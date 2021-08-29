@@ -38,6 +38,55 @@ final class StorageManager {
     }
     
     
+    
+    public func uploadLinkPosts(
+        data: [Data]?,
+        id: String,
+        completion: @escaping ([URL]?) -> Void
+    ) {
+        
+        var urls = [URL]()
+        let group = DispatchGroup()
+        guard let username = UserDefaults.standard.string(forKey: "username"),
+              let data = data else {
+            return
+        }
+        
+
+        data.forEach({ dataItem in
+            group.enter()
+            
+        
+            let ref = storage.child("\(username)/linkPosts/\(dataItem)/\(id).png")
+            ref.putData(dataItem, metadata: nil) { _, error in
+                ref.downloadURL { url, _ in
+                    
+                    guard let postUrl = url else {
+                        return
+                    }
+                    
+                    defer {
+                        group.leave()
+                    }
+                 
+                    urls.append(postUrl)
+//                            print("postURL: \(postUrl)")
+                    
+                }
+            }
+        })
+        
+
+        
+        
+        group.notify(queue: .main) {
+            print("URLS: \(urls)")
+            completion(urls)
+        }
+
+    }
+    
+    
     public func uploadLinkPost(
         data: Data?,
         id: String,
@@ -71,6 +120,25 @@ final class StorageManager {
             }
         }
     }
+    
+    
+//    public func downloadURLS(for link: LinkModel, completion: @escaping ([URL]?) -> Void) {
+//        guard let ref = link.storageReferences else {
+//            completion(nil)
+//            return
+//        }
+//        var arrayURL = [URL]()
+//        ref.forEach({ refId in
+//            storage.child(refId).downloadURL { url, _ in
+//               guard let postURL = url else {
+//                    return
+//                }
+//                arrayURL.append(postURL)
+//            }
+//
+//        })
+//        completion(arrayURL)
+//    }
 
     public func downloadURL(for post: Post, completion: @escaping (URL?) -> Void) {
         guard let ref = post.storageReference else {

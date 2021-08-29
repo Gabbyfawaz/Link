@@ -221,6 +221,7 @@ PODS:
   - BoringSSL-GRPC/Interface (0.0.7)
   - BSImagePicker (3.3.1)
   - Cosmos (23.0.0)
+  - DateTimePicker (2.5.3)
   - Firebase/Analytics (7.10.0):
     - Firebase/Core
   - Firebase/Auth (7.10.0):
@@ -369,6 +370,7 @@ DEPENDENCIES:
   - Appirater
   - BSImagePicker
   - Cosmos
+  - DateTimePicker
   - Firebase/Analytics
   - Firebase/Auth
   - Firebase/Core
@@ -390,6 +392,7 @@ SPEC REPOS:
     - BoringSSL-GRPC
     - BSImagePicker
     - Cosmos
+    - DateTimePicker
     - Firebase
     - FirebaseAnalytics
     - FirebaseAuth
@@ -423,6 +426,7 @@ SPEC CHECKSUMS:
   BoringSSL-GRPC: 8edf627ee524575e2f8d19d56f068b448eea3879
   BSImagePicker: 0fe04b574d4d6b81093785d2af6c26227efc8428
   Cosmos: b5c6a9a637e28a061b54c8f8b1d8529d7d4db73f
+  DateTimePicker: 52701ddf656a50856d3510955933f767cd2c947c
   Firebase: fffddd0bab8677d07376538365faa93ff3889b39
   FirebaseAnalytics: 4641d7ae4220174f6ca5626163ffc5de2e90391e
   FirebaseAuth: 675f2c4eb4426e7c58a78a89965a6530e7863535
@@ -450,6 +454,6 @@ SPEC CHECKSUMS:
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   TinyConstraints: 8dd91295e56797648c7bc335dd20e1d91ec4c192
 
-PODFILE CHECKSUM: f0512ee52c7a0e022c2df93644b848ad34480596
+PODFILE CHECKSUM: 2a06aecfc16a2f8477b147ace6d7aa639b6a59e6
 
 COCOAPODS: 1.10.1

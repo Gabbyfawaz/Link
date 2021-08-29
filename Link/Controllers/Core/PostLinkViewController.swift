@@ -19,10 +19,14 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
 
     private var collectionView: UICollectionView?
     
+    private var postStrings = [String]()
+    
     private var mainImageView: UIImageView = {
         let iv = UIImageView()
         return iv
     }()
+    
+    
     
     private var iconImageView: UIImageView = {
         let iv = UIImageView()
@@ -60,6 +64,7 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
         configureCollectionView()
         view.addSubview(mainImageView)
         view.addSubview(iconImageView)
+//        view.addSubview(imageCollectionView)
 //        view.addSubview(commentBarView)
 //        commentBarView.delegate = self
         fetchPost()
@@ -87,7 +92,9 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
         
 //        mainImageView.frame = CGRect(x: 0, y: 0, width: view.width, height: view.width)
 //        iconImageView.frame = CGRect(x: 15, y: 15, width: 50, height: 50)
+    
         collectionView?.frame = view.bounds
+        
 //        commentBarView.frame = CGRect(
 //            x: 0,
 //            y: view.height-view.safeAreaInsets.bottom-70,
@@ -167,13 +174,14 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
         guard let currentUsername = UserDefaults.standard.string(forKey: "username") else { return }
         StorageManager.shared.profilePictureURL(for: username) { [weak self] profilePictureURL in
             guard let strongSelf = self,
-                  let postUrl = URL(string: model.postUrlString),
 //                  let profilePhotoUrl = profilePictureURL,
                   let profileLinkTypeImage = URL(string: model.linkTypeImage) else {
                 completion(false)
                 return
             }
-
+            
+         
+            self?.postStrings = model.postArrayString
             let isLiked = model.likers.contains(currentUsername)
 
 //            DatabaseManager.shared.getComments(
@@ -182,12 +190,12 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
 //            ) { comments in
             
             
-            self?.mainImageView.sd_setImage(with: postUrl, completed: nil)
+//            self?.mainImageView.sd_setImage(with: postUrl, completed: nil)
             
             
             let postLinkData: [SingleLinkPostCellViewModelType] = [
                 
-                .post(viewModel: PostLinkCollectionViewCellViewModel(postUrl: postUrl, user: model.user)),
+                .post(viewModel: PostLinkCollectionViewCellViewModel(postString: model.postArrayString, user: model.user)),
                 .poster(viewModel: PosterLinkCollectionViewCellViewModel(linkType: model.linkTypeName, profilePictureURL: profileLinkTypeImage)),
                 .actions(viewModel: PostLinkActionCollectionViewCellViewModel(isLiked: isLiked, likers: model.likers)),
                 .info(viewModel: PostLinkExtraInfoCollectionCellViewModel(extraInfomation: model.extraInformation, username: model.user)),
@@ -211,104 +219,111 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
     
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModels.count
+
+            return viewModels.count
+
+       
     }
 
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cellType = viewModels[indexPath.row]
-        switch cellType {
-        case .poster(let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PosterLinkCollectionViewCell.identifier,
-                for: indexPath
-            ) as? PosterLinkCollectionViewCell else {
-                fatalError()
-            }
-//            cell.delegate = self
-            cell.configure(with: viewModel)
-            return cell
-        case .post(let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PostLinkCollectionViewCell.identifier,
-                for: indexPath
-            ) as? PostLinkCollectionViewCell else {
-                fatalError()
-            }
-//            cell.delegate = self
-            cell.configure(with: viewModel, index: indexPath.section)
-            return cell
-        case .actions(let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PostLinkActionCollectionViewCell.identifier,
-                for: indexPath
-            ) as? PostLinkActionCollectionViewCell else {
-                fatalError()
-            }
+        
 
-//            cell.delegate = self
-            cell.configure(with: viewModel, index: indexPath.section)
-            return cell
-        case .info(let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PostInfoCollectionViewCell.identifier,
+            
+            let cellType = viewModels[indexPath.row]
+            switch cellType {
+            case .poster(let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PosterLinkCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? PosterLinkCollectionViewCell else {
+                    fatalError()
+                }
+    //            cell.delegate = self
+                cell.configure(with: viewModel)
+                return cell
+            case .post(let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PostLinkCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? PostLinkCollectionViewCell else {
+                    fatalError()
+                }
+    //            cell.delegate = self
+                cell.configure(with: viewModel, index: indexPath.section)
+                return cell
+            case .actions(let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PostLinkActionCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? PostLinkActionCollectionViewCell else {
+                    fatalError()
+                }
+
+    //            cell.delegate = self
+                cell.configure(with: viewModel, index: indexPath.section)
+                return cell
+            case .info(let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PostInfoCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? PostInfoCollectionViewCell else {
+                    fatalError()
+                }
+                cell.delegate = self
+                cell.configure(with: viewModel, index: indexPath.section)
+                return cell
+            case .invite(let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PostInviteCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? PostInviteCollectionViewCell else {
+                    fatalError()
+                }
+    //            cell.delegate = self
+                cell.configure(with: viewModel)
+                return cell
+            case .location(let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PostLocationCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? PostLocationCollectionViewCell else {
+                    fatalError()
+                }
+    //                cell.delegate = self
+                cell.configure(with: viewModel)
+                return cell
+            case .logistic(let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PostLogisticCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? PostLogisticCollectionViewCell else {
+                    fatalError()
+                }
+    //                cell.delegate = self
+                cell.configure(with: viewModel)
+                return cell
+    //            case .extraInfo(viewModel: let viewModel):
+    //                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLinkExtraInfoCollectionViewCell.identifier,
+    //                for: indexPath
+    //            ) as? PostLinkExtraInfoCollectionViewCell else {
+    //                fatalError()
+    //            }
+    ////                cell.delegate = self
+    //            cell.configure(with: viewModel)
+    //            return cell
+            case .date(viewModel: let viewModel):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLinkDateCollectionViewCell.identifier,
                 for: indexPath
-            ) as? PostInfoCollectionViewCell else {
+            ) as? PostLinkDateCollectionViewCell else {
                 fatalError()
             }
-            cell.delegate = self
-            cell.configure(with: viewModel, index: indexPath.section)
-            return cell
-        case .invite(let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PostInviteCollectionViewCell.identifier,
-                for: indexPath
-            ) as? PostInviteCollectionViewCell else {
-                fatalError()
-            }
-//            cell.delegate = self
+    //                cell.delegate = self
             cell.configure(with: viewModel)
             return cell
-        case .location(let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PostLocationCollectionViewCell.identifier,
-                for: indexPath
-            ) as? PostLocationCollectionViewCell else {
-                fatalError()
             }
-//                cell.delegate = self
-            cell.configure(with: viewModel)
-            return cell
-        case .logistic(let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PostLogisticCollectionViewCell.identifier,
-                for: indexPath
-            ) as? PostLogisticCollectionViewCell else {
-                fatalError()
-            }
-//                cell.delegate = self
-            cell.configure(with: viewModel)
-            return cell
-//            case .extraInfo(viewModel: let viewModel):
-//                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLinkExtraInfoCollectionViewCell.identifier,
-//                for: indexPath
-//            ) as? PostLinkExtraInfoCollectionViewCell else {
-//                fatalError()
-//            }
-////                cell.delegate = self
-//            cell.configure(with: viewModel)
-//            return cell
-        case .date(viewModel: let viewModel):
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostLinkDateCollectionViewCell.identifier,
-            for: indexPath
-        ) as? PostLinkDateCollectionViewCell else {
-            fatalError()
         }
-//                cell.delegate = self
-        cell.configure(with: viewModel)
-        return cell
-        }
-    }
+        
 
 }
 
@@ -452,7 +467,7 @@ class PostLinkViewController: UIViewController, UICollectionViewDelegate, UIColl
 extension PostLinkViewController {
     private func configureCollectionView() {
         
-        let sectionHeight: CGFloat =  775 + view.width + 30
+        let sectionHeight: CGFloat =  775 + 30 + view.width
         
         // mark add 150 if adding back extra info
             let collectionView = UICollectionView(
@@ -463,12 +478,12 @@ extension PostLinkViewController {
 //                    guard let estimateHeight = self.estimatedHeight else {fatalError()}
                     // Group
                     
-                    // Item
+                  
                     let postItem = NSCollectionLayoutItem(
                         layoutSize: NSCollectionLayoutSize(
                             widthDimension: .fractionalWidth(1),
                             heightDimension: .absolute(self.view.width)
-                        
+
                         )
                     )
                     
@@ -570,8 +585,10 @@ extension PostLinkViewController {
                 })
             )
 
-            view.addSubview(collectionView)
+        view.insertSubview(collectionView, at: 1)
         collectionView.isScrollEnabled = true
+        collectionView.layer.masksToBounds = true
+        collectionView.layer.cornerRadius = 20
         
 //        let layout = UICollectionViewFlowLayout()
 //        layout.scrollDirection = .horizontal

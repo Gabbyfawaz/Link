@@ -8,6 +8,6 @@
 import Foundation
 
 struct PostLinkCollectionViewCellViewModel {
-    let postUrl: URL
+    let postString: [String]
     let user: String
 }

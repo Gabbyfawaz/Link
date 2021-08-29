@@ -8,11 +8,17 @@
 import CoreImage
 import UIKit
 
+protocol PostEditViewControllerDelegate: AnyObject {
+    func postEditViewControllerImageArray(_ vc: PostEditViewController, array: [UIImage])
+}
+
 class PostEditViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     //MARK: - Properties
     
-     private var iconImageView: UIImageView = {
+    weak var delegate: PostEditViewControllerDelegate?
+    
+     public var iconImageView: UIImageView = {
         let image = UIImageView()
         image.isUserInteractionEnabled = true
         image.layer.masksToBounds = true
@@ -82,7 +88,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
     
     
-    private let caption: UITextField = {
+    public let caption: UITextField = {
         let tf = UITextField()
         tf.placeholder = "Caption"
         tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 50))
@@ -97,7 +103,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     }()
     
 
-    private var pickerImage: UIImage?
+    public var pickerImage: UIImage?
     private let arrayOfImage: [UIImage]
     private var index = 0
     private var imageCell: FiltersCollectionViewCell?
@@ -261,6 +267,16 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
             present(alert, animated: true, completion: nil)
         }
     }
+    
+    @objc func didTapDone() {
+        
+       
+        dismiss(animated: true) {
+            self.delegate?.postEditViewControllerImageArray(self, array: self.arrayOfImage)
+            
+        }
+    }
+
     
     @objc func didTapImage() {
         print("Did tap this icon button sis")

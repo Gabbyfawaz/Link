@@ -60,6 +60,11 @@ class FiltersCollectionViewCell: UICollectionViewCell {
         
     }
     
+    func configure(stringURL: String) {
+        imageView.sd_setImage(with: URL(string: stringURL), completed: nil)
+        
+    }
+    
     func configure(with image: UIImage) {
         imageView.image = image
         

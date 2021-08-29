@@ -12,6 +12,7 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
 
     //MARK: - Propetries
     
+    private var postStrings = [String]()
     private var index = 0
     private let imageView: UIImageView = {
         let imageView = UIImageView()
@@ -67,6 +68,20 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
         return button
     }()
     
+    private var imageCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 2
+        layout.itemSize = CGSize(width: 450, height: 450)
+        layout.sectionInset = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .none
+        collectionView.register(FiltersCollectionViewCell.self,
+                                forCellWithReuseIdentifier: FiltersCollectionViewCell.identifier)
+        return collectionView
+    }()
+    
     private let actionsView = PostActionForPostView()
     
     
@@ -78,6 +93,7 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
         contentView.backgroundColor = .systemBackground
         contentView.addSubview(heartImageView)
         contentView.insertSubview(imageView, at: 0)
+        contentView.insertSubview(imageCollectionView, at: 0)
         contentView.insertSubview(curveImageView, at: 1)
 //        contentView.addSubview(iconImageView)
         contentView.addSubview(moreButton)
@@ -86,6 +102,9 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(tap)
         moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
+        
+        imageCollectionView.delegate = self
+        imageCollectionView.dataSource = self
     }
     
     required init?(coder: NSCoder) {
@@ -119,8 +138,8 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
 //        imageView.frame = contentView.bounds
-        imageView.frame = CGRect(x: 0, y: -5, width: (contentView.width), height: contentView.height)
-        curveImageView.frame = CGRect(x: 0, y: imageView.bottom-20, width: (contentView.width), height: 100)
+        imageCollectionView.frame = CGRect(x: 0, y: -5, width: (contentView.width), height: contentView.height)
+        curveImageView.frame = CGRect(x: 0, y: imageCollectionView.bottom-20, width: (contentView.width), height: 100)
         curveImageView.layer.cornerRadius = 25
         curveImageView.layer.masksToBounds = true
         iconImageView.frame = CGRect(x: 15, y: 15, width: 80, height: 80)
@@ -128,6 +147,7 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
         
         iconImageView.mask = maskImageView
         maskImageView.frame = iconImageView.bounds
+        
         
 //        imageView.layer.cornerRadius = 30
         let size: CGFloat = contentView.width/5
@@ -146,7 +166,8 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
     func configure(with viewModel: PostLinkCollectionViewCellViewModel, index: Int) {
 //         remember to add index parameter
         self.index = index
-        imageView.sd_setImage(with: viewModel.postUrl, completed: nil)
+        self.postStrings = viewModel.postString
+//        imageView.sd_setImage(with: viewModel.postUrl, completed: nil)
         
         
         StorageManager.shared.profilePictureURL(for: viewModel.user) { (url) in
@@ -158,3 +179,20 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
     
 }
 
+
+extension PostLinkCollectionViewCell: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return postStrings.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let modelString = postStrings[indexPath.row]
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FiltersCollectionViewCell.identifier, for: indexPath) as? FiltersCollectionViewCell else {
+            fatalError()
+        }
+        cell.configure(stringURL: modelString)
+        return cell
+    }
+    
+    
+}

@@ -12,6 +12,9 @@
 		CE030C8E26B5A9E20082BF39 /* LocationViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE030C8D26B5A9E20082BF39 /* LocationViewContainer.swift */; };
 		CE030C9126B5B40C0082BF39 /* InvitesCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE030C9026B5B40C0082BF39 /* InvitesCollectionView.swift */; };
 		CE030C9426B8855D0082BF39 /* PostActionForPostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE030C9326B8855D0082BF39 /* PostActionForPostView.swift */; };
+		CE53BE8A26D682C400F1E8BF /* CaptionTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE53BE8926D682C400F1E8BF /* CaptionTableView.swift */; };
+		CE53BE8E26D69D1500F1E8BF /* CreateLinkTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE53BE8D26D69D1400F1E8BF /* CreateLinkTableViewCell.swift */; };
+		CE53BF2126D902AD00F1E8BF /* FinalPageCreateLinkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE53BF2026D902AC00F1E8BF /* FinalPageCreateLinkViewController.swift */; };
 		CE8114F026AA006000EF1DF5 /* Asset.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE8114EF26AA006000EF1DF5 /* Asset.xcassets */; };
 		CE8114F426AA0B1E00EF1DF5 /* NameOfCollectionViewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8114F326AA0B1E00EF1DF5 /* NameOfCollectionViewViewModel.swift */; };
 		CE8114F726AA0B4A00EF1DF5 /* LocationCollectionViewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8114F626AA0B4A00EF1DF5 /* LocationCollectionViewViewModel.swift */; };
@@ -138,6 +141,9 @@
 		CE030C8D26B5A9E20082BF39 /* LocationViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationViewContainer.swift; sourceTree = "<group>"; };
 		CE030C9026B5B40C0082BF39 /* InvitesCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitesCollectionView.swift; sourceTree = "<group>"; };
 		CE030C9326B8855D0082BF39 /* PostActionForPostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostActionForPostView.swift; sourceTree = "<group>"; };
+		CE53BE8926D682C400F1E8BF /* CaptionTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptionTableView.swift; path = "/Users/user/Desktop/Link/Link/Controllers/Other/Create Link/CaptionTableView.swift"; sourceTree = "<absolute>"; };
+		CE53BE8D26D69D1400F1E8BF /* CreateLinkTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateLinkTableViewCell.swift; sourceTree = "<group>"; };
+		CE53BF2026D902AC00F1E8BF /* FinalPageCreateLinkViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalPageCreateLinkViewController.swift; sourceTree = "<group>"; };
 		CE8114EF26AA006000EF1DF5 /* Asset.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Asset.xcassets; sourceTree = "<group>"; };
 		CE8114F326AA0B1E00EF1DF5 /* NameOfCollectionViewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameOfCollectionViewViewModel.swift; sourceTree = "<group>"; };
 		CE8114F626AA0B4A00EF1DF5 /* LocationCollectionViewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationCollectionViewViewModel.swift; sourceTree = "<group>"; };
@@ -287,6 +293,15 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		CE53BE8726D681BE00F1E8BF /* CreateLinkViews */ = {
+			isa = PBXGroup;
+			children = (
+				CE53BE8926D682C400F1E8BF /* CaptionTableView.swift */,
+				CE53BE8D26D69D1400F1E8BF /* CreateLinkTableViewCell.swift */,
+			);
+			path = CreateLinkViews;
+			sourceTree = "<group>";
+		};
 		CE82A2F126A9B40300146B6C = {
 			isa = PBXGroup;
 			children = (
@@ -421,6 +436,7 @@
 				CE82A43D26A9DB8300146B6C /* CommentCollectionViewCell.swift */,
 				CE82A44026A9DBA200146B6C /* CommentBarView.swift */,
 				CE82A30826A9B41200146B6C /* LaunchScreen.storyboard */,
+				CE53BE8726D681BE00F1E8BF /* CreateLinkViews */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -555,8 +571,9 @@
 				CE82A49926A9DF6500146B6C /* LocationViewController.swift */,
 				CE82A49C26A9DF8500146B6C /* SearchMapViewController.swift */,
 				CE82A49F26A9DF9900146B6C /* CreateLinkViewController.swift */,
-				CE82A48926A9DEDD00146B6C /* PostEditViewController.swift */,
 				CE8B040326C31ECD007DC164 /* CategoryViewController.swift */,
+				CE53BF2026D902AC00F1E8BF /* FinalPageCreateLinkViewController.swift */,
+				CE82A48926A9DEDD00146B6C /* PostEditViewController.swift */,
 			);
 			path = "Create Link";
 			sourceTree = "<group>";
@@ -750,6 +767,7 @@
 				CE82A3CE26A9D31400146B6C /* LocationMaps.swift in Sources */,
 				CE82A46526A9DD8500146B6C /* SignInViewController.swift in Sources */,
 				CE82A37C26A9BE9200146B6C /* LocationManager.swift in Sources */,
+				CE53BE8E26D69D1500F1E8BF /* CreateLinkTableViewCell.swift in Sources */,
 				CE030C8B26B5A3090082BF39 /* NameofLinkCollectionView.swift in Sources */,
 				CE92819826CFED01005C6310 /* FiltersCollectionViewCell.swift in Sources */,
 				CE82A49726A9DF4800146B6C /* AddNewPeopleToLinkViewController.swift in Sources */,
@@ -766,6 +784,7 @@
 				CE82A3FD26A9D8EA00146B6C /* PostInviteCollectionViewCell.swift in Sources */,
 				CE82A30026A9B40300146B6C /* SceneDelegate.swift in Sources */,
 				CE82A36526A9BD6000146B6C /* Extension.swift in Sources */,
+				CE53BF2126D902AD00F1E8BF /* FinalPageCreateLinkViewController.swift in Sources */,
 				CE82A48726A9DEC800146B6C /* SettingsViewController.swift in Sources */,
 				CE82A42B26A9DAD300146B6C /* PhotoCollectionViewCell.swift in Sources */,
 				CE92819526CFC55C005C6310 /* SearchResultsLinkViewController.swift in Sources */,
@@ -782,6 +801,7 @@
 				CE030C9126B5B40C0082BF39 /* InvitesCollectionView.swift in Sources */,
 				CE82A45B26A9DCCF00146B6C /* MapViewController.swift in Sources */,
 				CE82A43226A9DB1B00146B6C /* ProfileHeaderCollectionReusableView.swift in Sources */,
+				CE53BE8A26D682C400F1E8BF /* CaptionTableView.swift in Sources */,
 				CE82A47E26A9DE5800146B6C /* CaptionViewController.swift in Sources */,
 				CE82A37926A9BE7500146B6C /* NotificationsManager.swift in Sources */,
 				CE92816626CBDF31005C6310 /* PinLocationViewController.swift in Sources */,

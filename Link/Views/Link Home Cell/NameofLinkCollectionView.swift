@@ -161,10 +161,13 @@ final class NameofLinkCollectionView: UIView {
         // add index parameter
         typeOfLink.text = viewModel.linkType
 
+        guard let image = viewModel.mainImage?[0] else {
+            return
+        }
         
         DispatchQueue.main.async {
             self.imageView.sd_setImage(with: viewModel.linkTypeImage, completed: nil)
-            self.backgroundImageView.sd_setImage(with: viewModel.mainImage, completed: nil)
+            self.backgroundImageView.sd_setImage(with: URL(string: image), completed: nil)
         }
             
     }

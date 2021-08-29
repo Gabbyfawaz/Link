@@ -5,6 +5,9 @@
       location = "group:Link.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:/Users/user/Desktop/Link/Link/Controllers/Other/Create Link/CaptionCollectionViewCell.swift">
+   </FileRef>
+   <FileRef
       location = "group:Pods/Pods.xcodeproj">
    </FileRef>
 </Workspace>

@@ -126,7 +126,7 @@ final class AddNewPeopleToLinkViewController: UIViewController {
             alert.addAction(UIAlertAction(title: "Try Again!", style: .cancel, handler: nil))
             present(alert, animated: true, completion: nil)
         } else {
-            let vc = CreateLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, results: targetUserDataArray, typeOfLink: typeOfLink, iconImage: iconImage, caption: self.caption)
+            let vc = FinalPageCreateLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, results: targetUserDataArray, typeOfLink: typeOfLink, iconImage: iconImage, caption: self.caption)
             navigationController?.pushViewController(vc, animated: true)
         }
         

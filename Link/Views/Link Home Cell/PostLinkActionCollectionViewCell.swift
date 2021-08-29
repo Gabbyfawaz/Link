@@ -113,7 +113,8 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(likeLabel)
         contentView.addSubview(commentsLabel)
         contentView.addSubview(cosmosView)
-//        cosmosView.leftToSuperview()
+
+       
         
         // Gestures
         let tap = UITapGestureRecognizer(target: self,
@@ -184,7 +185,7 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
                                      height: commentsLabel.height)
     
         cosmosView.frame = CGRect(x: 15, y: 10, width: 10, height: 40)
-        
+        cosmosView.leftToSuperview(nil, offset: 20, relation: ConstraintRelation.equal, priority: LayoutPriority.defaultHigh, isActive: true, usingSafeArea: false)
     }
 
     override func prepareForReuse() {

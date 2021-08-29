@@ -200,43 +200,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
             
     }
 
-    // Table
-
-//    private func createTableFooter() {
-//        let footer = UIView(frame: CGRect(x: 0, y: 0, width: view.width, height: 50))
-//        footer.clipsToBounds = true
-//
-//        let button = UIButton(frame: footer.bounds)
-//        footer.addSubview(button)
-//        button.setTitle("Sign Out",
-//                        for: .normal)
-//        button.setTitleColor(.systemRed, for: .normal)
-//        button.addTarget(self, action: #selector(didTapSignOut), for: .touchUpInside)
-//
-//        tableView.tableFooterView = footer
-//    }
-
-//    @objc func didTapSignOut() {
-//        let actionSheet = UIAlertController(
-//            title: "Sign Out",
-//            message: "Are you sure?",
-//            preferredStyle: .actionSheet
-//        )
-//        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-//        actionSheet.addAction(UIAlertAction(title: "Sign Out", style: .destructive, handler: { [weak self] _ in
-//            AuthManager.shared.signOut { success in
-//                if success {
-//                    DispatchQueue.main.async {
-//                        let vc = SignInViewController()
-//                        let navVC = UINavigationController(rootViewController: vc)
-//                        navVC.modalPresentationStyle = .fullScreen
-//                        self?.present(navVC, animated: true)
-//                    }
-//                }
-//            }
-//        }))
-//        present(actionSheet, animated: true)
-//    }
+    
 
     func numberOfSections(in tableView: UITableView) -> Int {
         return sections.count

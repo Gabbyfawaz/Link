@@ -287,13 +287,14 @@ extension ProfileViewController: UICollectionViewDelegate, UICollectionViewDataS
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let postString = links[indexPath.row].postArrayString[0]
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: PhotoCollectionViewCell.identifier,
             for: indexPath
         ) as? PhotoCollectionViewCell else {
             fatalError()
         }
-        cell.configure(with: URL(string: links[indexPath.row].postUrlString))
+        cell.configure(with: URL(string: postString))
         return cell
     }
 

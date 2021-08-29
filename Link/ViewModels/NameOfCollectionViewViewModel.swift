@@ -17,7 +17,7 @@ struct NameOfCollectionViewViewModel {
 struct PostOfFeedCollectionViewModel {
     let linkType: String
     let linkTypeImage: URL?
-    let mainImage: URL?
+    let mainImage: [String]?
     let username: String
     let location: String?
     let invite: [SearchResult]

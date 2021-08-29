@@ -19,7 +19,7 @@ struct LinkModel: Codable {
     var invites: [SearchResult]
     let postedDate: String
     let linkDate: String
-    let postUrlString: String
+    let postArrayString: [String]
     var likers: [String]
     var isPrivate: Bool
     var linkTypeImage: String
@@ -35,6 +35,19 @@ struct LinkModel: Codable {
         guard let username = UserDefaults.standard.string(forKey: "username") else { return nil }
         return "\(username)/link/\(id).png"
     }
+    
+//    var storageReferences: [String]? {
+//        var idArray = [String]()
+//        ids.forEach({ idItem in
+//            guard let username = UserDefaults.standard.string(forKey: "username") else { return }
+//            
+//            let startId =  "\(username)/link/\(idItem).png"
+//            idArray.append(startId)
+//        })
+//        
+//        return idArray
+//       
+//    }
 
 }
 

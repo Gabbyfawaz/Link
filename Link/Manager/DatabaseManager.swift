@@ -147,12 +147,12 @@ final class DatabaseManager {
 
             users.forEach { user in
                 group.enter()
-
+                
                 let username = user.username
                 let postsRef = self.database.collection("users/\(username)/links")
 
                 postsRef.getDocuments { snapshot, error in
-
+                    
                     defer {
                         group.leave()
                     }
@@ -162,9 +162,8 @@ final class DatabaseManager {
                         return
                     }
                     
-                    allLinks.append(contentsOf: links.compactMap({$0}))
-//                    print("all links: \(allLinks)")
-
+                    allLinks = links
+                    
                 }
         
             }
