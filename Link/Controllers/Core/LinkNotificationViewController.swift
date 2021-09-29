@@ -14,61 +14,43 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
     
     private var searchVC = UISearchController(searchResultsController: SearchResultsLinkViewController())
 
-    private let LinkPostCollectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        layout.minimumInteritemSpacing = 10
-        layout.minimumLineSpacing = 20
-        layout.itemSize = CGSize(width: 400, height: 250)
-        layout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .white
-        collectionView.showsHorizontalScrollIndicator = false
-        
-        collectionView.register(PostFeedCollectionViewCell.self,
-                                        forCellWithReuseIdentifier: PostFeedCollectionViewCell.identifier)
-//        collectionView.register(NameofLinkCollectionViewCell.self,
-//                                forCellWithReuseIdentifier: NameofLinkCollectionViewCell.identifier)
-//        collectionView.register(PostLocationCollectionViewCell.self,
-//                                forCellWithReuseIdentifier: PostLocationCollectionViewCell.identifier)
-//        collectionView.register(PostInviteCollectionViewCell.self,
-//                                forCellWithReuseIdentifier: PostInviteCollectionViewCell.identifier)
-        return collectionView
-    }()
-    
-    
+
         /// Feed viewModels
         private var linkPostViewModels = [[SingleLinkFeedCellViewModelType]]()
         /// Notification observer
         private var observer: NSObjectProtocol?
         /// All post models
         private var allLinks: [(link: LinkModel, owner: String)] = []
-    
+   
+        private var LinkPostCollectionView: UICollectionView?
     
         // MARK: - Lifecycle
     
         override func viewDidLoad() {
             super.viewDidLoad()
-            title = "Feed"
             
+            configureNavBar()
+    
 
-//            let textAttributes = [NSAttributedString.Key.foregroundColor:UIColor.white]
-//            navigationController?.navigationBar.titleTextAttributes = textAttributes
+            let LinkPostCollectionView: UICollectionView = {
+                let layout = UICollectionViewFlowLayout()
+                layout.scrollDirection = .vertical
+                layout.minimumInteritemSpacing = 10
+                layout.minimumLineSpacing = 20
+                layout.itemSize = CGSize(width: view.width-30, height: 250)
+                layout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+                let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+                collectionView.backgroundColor = .white
+                collectionView.showsHorizontalScrollIndicator = false
+                
+                collectionView.register(PostFeedCollectionViewCell.self,
+                                                forCellWithReuseIdentifier: PostFeedCollectionViewCell.identifier)
+                return collectionView
+            }()
             
-            (searchVC.searchResultsController as? SearchResultsLinkViewController)?.delegate = self
-            searchVC.searchBar.placeholder = "Search..."
-            searchVC.searchResultsUpdater = self
-            navigationItem.searchController = searchVC
-//
-            navigationController?.navigationBar.prefersLargeTitles = false
-            navigationController?.navigationBar.isHidden = false
-            view.backgroundColor = .systemBackground
-            self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-            //UIImage.init(named: "transparent.png")
-            self.navigationController?.navigationBar.shadowImage = UIImage()
-            self.navigationController?.navigationBar.isTranslucent = true
-            self.navigationController?.view.backgroundColor = .clear
             
+            self.LinkPostCollectionView = LinkPostCollectionView
+
             fetchLinkPosts()
             view.addSubview(LinkPostCollectionView)
             LinkPostCollectionView.delegate = self
@@ -84,11 +66,32 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
             }
         }
     
+    //MARK: - ConfigureUI
+    
+    private func configureNavBar() {
+        
+        title = "Feed"
+        (searchVC.searchResultsController as? SearchResultsLinkViewController)?.delegate = self
+        searchVC.searchBar.placeholder = "Search..."
+        searchVC.searchResultsUpdater = self
+        navigationItem.searchController = searchVC
+       
+        navigationController?.navigationBar.isHidden = false
+        navigationController?.navigationBar.prefersLargeTitles = false
+        view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        navigationController?.navigationBar.isTranslucent = true
+        navigationController?.view.backgroundColor = .clear
+        
+        
+    }
+    
         //MARK: - LayoutSubviews
         override func viewDidLayoutSubviews() {
             super.viewDidLayoutSubviews()
     
-            LinkPostCollectionView.frame = view.bounds
+            LinkPostCollectionView?.frame = view.bounds
         }
     
     
@@ -153,7 +156,7 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
                 }
     
                 group.notify(queue: .main) {
-                    self.LinkPostCollectionView.reloadData()
+                    self.LinkPostCollectionView?.reloadData()
                 }
             }
         }
@@ -177,8 +180,6 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
                 let postStringArray = model.postArrayString
                 let isLiked = model.likers.contains(currentUsername)
     
-    
-                guard let stringDate = String.date(from: model.date) else {return}
                 let postLinkData: [SingleLinkFeedCellViewModelType] = [
                     
                     .nameOfLink(viewModel: PostOfFeedCollectionViewModel(
@@ -190,7 +191,7 @@ class LinkNotificationViewController: UIViewController, UICollectionViewDelegate
                                     invite: model.invites,
                                     isPrivate: model.isPrivate,
                                     coordinates: model.location,
-                                    date: stringDate))
+                                    date: model.linkDate))
 //                    .nameOfLink(viewModel: NameOfCollectionViewViewModel(linkType: model.linkTypeName, linkTypeImage: profileLinkTypeImage, username: model.user)),
 //                    .location(viewModel: PostLocationCollectionViewCellViewModel(location: model.locationTitle, isPrivate: model.isPrivate)),
 //                    .invites(viewModel: PostInviteCollectionViewCellViewModel(invites: model.invites))

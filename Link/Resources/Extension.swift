@@ -12,6 +12,7 @@ import UIKit
 public  var myPurple: UIColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
 
 
+
 extension UIView {
     var top: CGFloat {
         frame.origin.y
@@ -133,3 +134,12 @@ public enum FilterTypes: String {
     case Tonal = "CIPhotoEffectTonal"
     case Transfer =  "CIPhotoEffectTransfer"
 }  
+
+extension UIView {
+    func roundCorners(corners:UIRectCorner, radius: CGFloat) {
+        let path = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        let mask = CAShapeLayer()
+        mask.path = path.cgPath
+        layer.mask = mask
+    }
+}

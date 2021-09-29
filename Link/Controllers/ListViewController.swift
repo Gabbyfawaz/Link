@@ -114,10 +114,16 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
         tableView.deselectRow(at: indexPath, animated: true)
         let username = viewModels[indexPath.row].username
         DatabaseManager.shared.findUser(username: username) { [weak self] user in
+            
+            print("Is this user nil: \(user)")
             if let user = user {
                 DispatchQueue.main.async {
+                    
                     let vc = ProfileViewController(user: user)
-                    self?.navigationController?.pushViewController(vc, animated: true)
+                    let navVC = UINavigationController(rootViewController: vc)
+                    navVC.modalPresentationStyle = .automatic
+                    self?.present(navVC, animated: true, completion: nil)
+//                    self?.navigationController?.pushViewController(vc, animated: true)
                 }
             }
         }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SearchResult: Codable {
+public struct SearchResult: Codable {
     let name: String
     let email: String
 }

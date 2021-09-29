@@ -14,7 +14,7 @@ protocol PostLinkActionsCollectionViewCellDelegate: AnyObject {
     func postLinkActionsCollectionViewCellDidTapLike(_ cell: PostLinkActionCollectionViewCell, isLiked: Bool, index: Int)
     func postLinkActionsCollectionViewCellDidTapComment(_ cell: PostLinkActionCollectionViewCell, index: Int)
     func postLinkLikesCollectionViewCellDidTapLikeCount(_ cell: PostLinkActionCollectionViewCell, index: Int)
-    func posterLinkCollectionViewCellDidTapRequest(_ cell: PostLinkActionCollectionViewCell, index: Int)
+    func postLinkLikesCollectionViewCellDidTapLikeViewComments(_ cell: PostLinkActionCollectionViewCell, index: Int)
 }
 
 
@@ -65,20 +65,21 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
 
     private let commentButton: UIButton = {
         let button = UIButton()
-        button.tintColor = .black
         let image = UIImage(systemName: "message",
                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
         button.setImage(image, for: .normal)
+        button.tintColor = .black
         return button
     }()
     
-    private let commentsLabel: UILabel = {
+    private let viewCommentsLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .left
         label.textColor = .darkGray
         label.font = .systemFont(ofSize: 15, weight: .light)
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 8
+        label.isUserInteractionEnabled = true
         return label
     }()
     
@@ -89,30 +90,30 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         return view
     }()
     
-//    private let starRatingButton: UIButton = {
-//        let button = UIButton()
-//        button.tintColor = .systemYellow
-//        let image = UIImage(systemName: "star.fill",
-//                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 35))
-//        button.setImage(image, for: .normal)
-//        return button
-//    }()
-//
-//    private let starRatingLabel: UILabel = {
-//        let label = UILabel()
-//        label.text = "5"
-//        label.font = .systemFont(ofSize: 25)
-//        return label
-//    }()
+
+    private var daysLeftLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.backgroundColor = .red
+        label.font = .systemFont(ofSize: 12, weight: .bold)
+        label.layer.masksToBounds = true
+        label.layer.cornerRadius = 5
+        label.text = "1 Day left"
+        label.textAlignment = .center
+        return label
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.clipsToBounds = true
+        contentView.backgroundColor = .systemBackground
         contentView.addSubview(likeButton)
         contentView.addSubview(commentButton)
         contentView.addSubview(commentLabel)
         contentView.addSubview(likeLabel)
-        contentView.addSubview(commentsLabel)
+        contentView.addSubview(viewCommentsLabel)
         contentView.addSubview(cosmosView)
+        contentView.addSubview(daysLeftLabel)
 
        
         
@@ -121,6 +122,10 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
                                          action: #selector(didTapLabel))
         likeLabel.addGestureRecognizer(tap)
         
+        
+        let tap2 = UITapGestureRecognizer(target: self, action: #selector(didTapViewAllComments))
+        
+        viewCommentsLabel.addGestureRecognizer(tap2)
         // Actions
         likeButton.addTarget(self, action: #selector(didTapLike), for: .touchUpInside)
         commentButton.addTarget(self, action: #selector(didTapComment), for: .touchUpInside)
@@ -132,6 +137,11 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         fatalError()
     }
     
+    
+    @objc func didTapViewAllComments() {
+        delegate?.postLinkLikesCollectionViewCellDidTapLikeViewComments(self, index: index)
+        
+    }
     
     
     @objc func didTapLabel() {
@@ -177,15 +187,19 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         commentLabel.frame = CGRect(x: commentButton.right-10, y: 5, width: 15, height: 15)
         
         
-        commentsLabel.sizeToFit()
+        viewCommentsLabel.sizeToFit()
         
-        commentsLabel.frame = CGRect(x: likeButton.left,
+        viewCommentsLabel.frame = CGRect(x: likeButton.left,
                                      y: 40+7,
-                                     width: commentsLabel.width,
-                                     height: commentsLabel.height)
+                                     width: viewCommentsLabel.width,
+                                     height: viewCommentsLabel.height)
     
-        cosmosView.frame = CGRect(x: 15, y: 10, width: 10, height: 40)
         cosmosView.leftToSuperview(nil, offset: 20, relation: ConstraintRelation.equal, priority: LayoutPriority.defaultHigh, isActive: true, usingSafeArea: false)
+        
+        daysLeftLabel.frame = CGRect(x: 20,
+                                     y: cosmosView.bottom+10,
+                                     width: 90,
+                                     height: 20)
     }
 
     override func prepareForReuse() {
@@ -195,12 +209,15 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
 
     func configure(
         with viewModel: PostLinkActionCollectionViewCellViewModel, index: Int) {
+        
+        
         self.index = index
         isLiked = viewModel.isLiked
         
         //new
         let users = viewModel.likers
         likeLabel.text = "\(users.count)"
+        commentLabel.text = "\(viewModel.comments)"
         if viewModel.isLiked {
             let image = UIImage(systemName: "suit.heart.fill",
                                 withConfiguration: UIImage.SymbolConfiguration(pointSize: 44))
@@ -208,8 +225,35 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
             likeButton.tintColor = .systemRed
         
         }
-        commentLabel.text = "1"
-        commentsLabel.text = "View Comments"
+        viewCommentsLabel.text = "View Comments"
+        
+        
+        let dateRangeStart = Date()
+        guard let dateRangeEnd = DateFormatter.formatter.date(from: viewModel.dateOfLink) else {return}
+        print("The date is:\(dateRangeEnd)")
+        let components = Calendar.current.dateComponents([.year, .weekOfYear, .month, .day], from: dateRangeStart, to: dateRangeEnd)
+
+//        let months = components.month ?? 0
+//        let weeks = components.weekOfYear ?? 0
+        let year = components.year ?? 0
+        let months = components.month ?? 0
+        let weeks = components.weekOfYear ?? 0
+        let days = components.day ?? 0
+        let daysInWeeks = weeks*7
+        let totalDays = days + daysInWeeks
+        
+        if year >= 1 {
+            daysLeftLabel.text = "\(year) Year Left"
+        } else if months >= 1 {
+            daysLeftLabel.text = "\(months) Months Left"
+        } else if totalDays >= 0 {
+            daysLeftLabel.text = "\(totalDays) Days Left"
+        } else {
+            daysLeftLabel.text = "Complete"
+        }
+        
+        
+        
     }
 
 }

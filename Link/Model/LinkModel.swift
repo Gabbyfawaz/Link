@@ -51,7 +51,7 @@ struct LinkModel: Codable {
 
 }
 
-struct Coordinates: Codable {
+public struct Coordinates: Codable {
     let latitude: CLLocationDegrees?
     let longitude: CLLocationDegrees?
 }

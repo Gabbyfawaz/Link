@@ -37,6 +37,23 @@ final class StorageManager {
         }
     }
     
+    public func uploadStories(
+        data: Data?,
+        id: String,
+        completion: @escaping (URL?) -> Void
+    ) {
+        guard let username = UserDefaults.standard.string(forKey: "username"),
+              let data = data else {
+            return
+        }
+        let ref = storage.child("\(username)/stories/\(id).png")
+        ref.putData(data, metadata: nil) { _, error in
+            ref.downloadURL { url, _ in
+                completion(url)
+            }
+        }
+    }
+    
     
     
     public func uploadLinkPosts(

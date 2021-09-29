@@ -9,5 +9,5 @@ import Foundation
 
 
 struct PostLogisticCollectionViewCellViewModel {
-    let date: Date
+    let date: String
 }

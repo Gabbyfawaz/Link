@@ -22,18 +22,9 @@ class MapsViewController: UIViewController, GMSMapViewDelegate, UICollectionView
     private var index = -1
     private var postIndex = 0
     private var allPins = [Pin]()
+    private var viewModel = [LinkStory]()
     
-    
-//    private let imageView: UIImageView = {
-//        let image = UIImageView()
-//        image.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
-//        image.layer.masksToBounds = true
-//        image.layer.cornerRadius = 20
-//        image.layer.borderWidth = 2
-//        image.layer.borderColor = UIColor.white.cgColor
-//        return image
-//    }()
-//
+
     private let infoButton: UIButton = {
         let buttonButton = UIButton()
         buttonButton.setImage(UIImage(systemName: "info.circle"), for: .normal)
@@ -103,7 +94,7 @@ class MapsViewController: UIViewController, GMSMapViewDelegate, UICollectionView
         collectionView.delegate = self
         collectionView.dataSource = self
         fetchPinFromDatabase()
-        
+        fetchStories()
     
         
         fetchAllLinks()
@@ -195,10 +186,7 @@ class MapsViewController: UIViewController, GMSMapViewDelegate, UICollectionView
             }
 
         }
-        
-     
-        
-        
+
     }
     
     
@@ -215,6 +203,57 @@ class MapsViewController: UIViewController, GMSMapViewDelegate, UICollectionView
             marker.map = self.mapView
 //            }
         }
+    }
+    
+    
+    //MARK: - Fetch All Stories
+    
+    
+    private func fetchStories() {
+        
+        var allStories: [LinkStory] = []
+        
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+            
+        }
+        
+        let group = DispatchGroup()
+        
+        DatabaseManager.shared.following(for: username) { usernames  in
+       
+            let users = usernames + [username]
+            
+            for current in users {
+                group.enter()
+                DatabaseManager.shared.getAllStories(for: current) { result in
+                    DispatchQueue.main.async {
+                        defer {
+                            group.leave()
+                        }
+
+                        switch result {
+                        case .success(let stories):
+                            allStories.append(contentsOf: stories)
+                        case .failure:
+                            break
+                        }
+                    }
+                }
+   
+            }
+            
+        }
+            group.notify(queue: .main) {
+                self.viewModel = allStories
+                print("all stories: \(self.viewModel)")
+                self.collectionView.reloadData()
+        }
+         
+            
+
+            
+            
     }
     
     
@@ -363,12 +402,14 @@ class MapsViewController: UIViewController, GMSMapViewDelegate, UICollectionView
         navigationController?.navigationBar.prefersLargeTitles = false
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.isHidden = false
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .white
         self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default) //UIImage.init(named: "transparent.png")
         self.navigationController?.navigationBar.shadowImage = UIImage()
         self.navigationController?.navigationBar.isTranslucent = true
         self.navigationController?.view.backgroundColor = .clear
         
+    
+        navigationController?.navigationBar.tintColor = .black
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(systemName: "paperplane.fill"), style: .done, target: self, action: #selector(didTapMessage)),
             UIBarButtonItem(image: UIImage(systemName: "mappin.and.ellipse"), style: .done, target: self, action: #selector(didTapLocation)),
@@ -378,7 +419,11 @@ class MapsViewController: UIViewController, GMSMapViewDelegate, UICollectionView
     }
   
     
+    
+    //MARK: - NavigationBarActions
+    
     @objc func didTapMessage() {
+        
         tabBarController?.tabBar.isHidden = true
         let vc = ConversationsViewController()
         navigationController?.pushViewController(vc, animated: true)

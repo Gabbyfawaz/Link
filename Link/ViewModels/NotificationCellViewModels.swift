@@ -26,4 +26,33 @@ struct CommentNotificationCellViewModel: Equatable {
     let profilePictureUrl: URL
     let postUrl: URL
     let date: String
+    
+}
+/// add requestViewModel
+    
+struct AcceptNotificationCellViewModel: Equatable {
+    let username: String
+    let linkIconPictureUrl: URL
+    let isCurrentInGuestInvited: Bool
+    let postUrl: URL
+    let date: String
+    let postId: String
+}
+
+struct RequestNotificationCellViewModel: Equatable {
+    let username: String
+    let linkIconPictureUrl: URL
+    let isRequested: Bool
+    let postUrl: URL
+    let date: String
+    let postId: String
+}
+
+struct AcceptedRequestNotificationCellViewModel: Equatable {
+    let username: String
+    let linkIconPictureUrl: URL
+    let isCurrentInGuestInvited: Bool
+    let postUrl: URL
+    let date: String
+    let postId: String
 }

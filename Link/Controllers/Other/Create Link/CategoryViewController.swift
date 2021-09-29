@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreLocation
 
 class CategoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
@@ -34,7 +35,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
     private var sections: [CategorySection] = []
     
     private var filteredSections = [CategorySection]()
-    private var titleOfLink: String?
+    public var titleOfLink: String?
     private var arrayOfImage: [UIImage]
     private var iconImage: UIImage
     private var caption: String
@@ -55,16 +56,18 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapDone))
         
         
-        
 //        createTableFooter()
     }
     
     //MARK: - Init
     
-    init(arrayOfImage: [UIImage], iconImage: UIImage, caption: String) {
+    init(arrayOfImage: [UIImage], iconImage: UIImage, caption: String, locationTitle: String?, coordinates: CLLocationCoordinate2D?, guestInvited: [SearchResult] ) {
         self.arrayOfImage = arrayOfImage
         self.iconImage = iconImage
         self.caption = caption
+        publicLocationTitle = locationTitle ?? ""
+        publicCoordinates = coordinates ?? CLLocationCoordinate2D()
+        publicGuestsInvited = guestInvited
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -94,7 +97,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
 //        dismiss(animated: true, completion: nil)
         
         guard let titleOfLink = self.titleOfLink else {return}
-        let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: titleOfLink, iconImage: iconImage, caption: self.caption)
+        let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: titleOfLink, iconImage: iconImage, caption: self.caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
         navigationController?.pushViewController(vc, animated: true)
     }
 
@@ -233,6 +236,8 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         let titleOfLink = sections[indexPath.section].options[indexPath.row].title
         self.titleOfLink = titleOfLink
         
+        publicCategoryString = titleOfLink
+        
         if titleOfLink == "Name Link" {
             let alert = UIAlertController(title: "Name your link", message: "Make it interesting!", preferredStyle: .alert)
             
@@ -247,7 +252,6 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
                 let textField = alert?.textFields![0]
                 // get text from alert action
                 // dismiss and segue to locationViewController
-                print("Text field: \(textField?.text)")
                 
                 guard let typeOfLink = textField?.text else {return}
                 
@@ -258,9 +262,11 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
                     return
                 }
                 
-                let vc = LocationViewController(arrayOfImage: self.arrayOfImage, typeOfLink: typeOfLink, iconImage: self.iconImage, caption: self.caption)
+                let vc = LocationViewController(arrayOfImage: self.arrayOfImage, typeOfLink: typeOfLink, iconImage: self.iconImage, caption: self.caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates,guestInvited: publicGuestsInvited)
                 self.navigationController?.pushViewController(vc, animated: true)
 //                self.uniqueNameOfLink = textField?.text
+                
+                publicCategoryString = titleOfLink
             }))
 
             // 4. Present the alert.

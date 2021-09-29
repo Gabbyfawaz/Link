@@ -43,14 +43,14 @@ final class PostLinkDateCollectionViewCell: UICollectionViewCell {
     
     private let dateLabel: UILabel = {
         let label = UILabel()
-        label.textColor = myPurple
+        label.textColor = .black
         label.backgroundColor = .systemBackground
         label.numberOfLines = 0
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 10
-        label.layer.borderColor = myPurple.cgColor
-        label.layer.borderWidth = 2
-        label.font = .systemFont(ofSize: 17, weight: .bold)
+        label.layer.borderColor =  UIColor.black.cgColor
+        label.layer.borderWidth = 1
+        label.font = .systemFont(ofSize: 15, weight: .medium)
         label.textAlignment = .center
         return label
     }()
@@ -58,13 +58,13 @@ final class PostLinkDateCollectionViewCell: UICollectionViewCell {
     private let countDownLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.textColor = myPurple
+        label.textColor = .black
         label.backgroundColor = .systemBackground
-        label.font = .systemFont(ofSize: 17, weight: .bold)
+        label.font = .systemFont(ofSize: 15, weight: .medium)
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 10
-        label.layer.borderColor = myPurple.cgColor
-        label.layer.borderWidth = 2
+        label.layer.borderColor = UIColor.black.cgColor
+        label.layer.borderWidth = 1
 
         return label
     }()
@@ -114,18 +114,58 @@ final class PostLinkDateCollectionViewCell: UICollectionViewCell {
 //        dateLabel.sizeToFit()
         mainLabel.sizeToFit()
         mainLabel.frame = CGRect(x: 17, y: 10, width: mainLabel.width, height: mainLabel.height)
-        horizontalStack.frame = CGRect(x: 15, y: mainLabel.bottom+5, width: contentView.width-30, height: 50)
+        horizontalStack.frame = CGRect(x: 15, y: mainLabel.bottom+5, width: contentView.width-30, height: 30)
 
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
         countDownLabel.text = nil
+        dateLabel.text = nil
     }
 
     func configure(with viewModel: PostLinkDateCollectionCellViewModel) {
-        dateLabel.text = (viewModel.dateString)
-        countDownLabel.text = "10 Days Left"
+        
+        dateLabel.text = viewModel.dateString
+        
+        guard let dateString = viewModel.dateString else {
+             return
+         }
+        
+           
+        let formatter = DateFormatter()
+        guard let date = DateFormatter.formatter.date(from: dateString) else {
+            return
+        }
+       
+        formatter.dateFormat = "dd.MM.yyyy"
+           formatter.dateFormat = "dd"
+           let day = formatter.string(from: date)
+           print(day)
+        
+   
+        
+         let formatter2 = DateFormatter()
+         formatter2.dateFormat = "dd.MM.yyyy"
+            formatter2.dateFormat = "dd"
+            let day2 = formatter.string(from: Date())
+            print(day2)
+        
+        
+        guard let numberDay2 = Int(day2), let numberDay1 = Int(day) else {
+            return
+        }
+        
+        let numberOfDaysLeft = numberDay2-numberDay1
+     
+        if numberOfDaysLeft >= 0 {
+            countDownLabel.text = "\(numberOfDaysLeft) Days Left"
+        } else {
+            countDownLabel.text = "LINK Completed"
+        }
+        
+        
+
     }
 }
 

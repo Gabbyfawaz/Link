@@ -13,4 +13,5 @@ struct PostLocationCollectionViewCellViewModel {
     let isPrivate: Bool
     let coordinates: Coordinates
     let user: String
+    let postLinkIcon: String
 }

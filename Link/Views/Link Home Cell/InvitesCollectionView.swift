@@ -51,7 +51,7 @@ class InvitesCollectionView: UIView, UICollectionViewDelegate, UICollectionViewD
 //        label.backgroundColor = .black
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 8
-        label.backgroundColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+        label.backgroundColor = .black
       
         return label
     }()
@@ -67,7 +67,7 @@ class InvitesCollectionView: UIView, UICollectionViewDelegate, UICollectionViewD
 //        label.backgroundColor = .black
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 8
-        label.backgroundColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+        label.backgroundColor = .black
         label.layer.shadowColor = UIColor.black.cgColor
        
         return label
@@ -140,7 +140,7 @@ class InvitesCollectionView: UIView, UICollectionViewDelegate, UICollectionViewD
         stack.spacing = 1
         stack.layer.masksToBounds = true
         stack.layer.cornerRadius = 8
-        stack.backgroundColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+        stack.backgroundColor = .black
         return stack
     }()
     

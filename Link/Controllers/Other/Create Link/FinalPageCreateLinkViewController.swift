@@ -138,7 +138,7 @@ class FinalPageCreateLinkViewController: UIViewController {
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapView))
         blurEffectView.addGestureRecognizer(tap)
         
-        print("IDS: \(self.id)")
+        print("resultsArray: \(publicGuestsInvited)")
      
 
     }
@@ -209,7 +209,6 @@ class FinalPageCreateLinkViewController: UIViewController {
               let coordinates = self.coordinates,
               let dateOfLink = self.postDateString,
               let newPostID = createNewPostID(),
-              let newPostIDS = createNewPostIDS(),
               let stringDate = String.date(from: Date())
         else {
             return
@@ -225,8 +224,6 @@ class FinalPageCreateLinkViewController: UIViewController {
             }
             dataImageArray.append(dataImage)
         })
-        print("Data: \(dataImageArray)")
-        print("ids: \(newPostIDS)")
         // Upload Post
         StorageManager.shared.uploadLinkPosts(
             data:  dataImageArray,
@@ -273,6 +270,12 @@ class FinalPageCreateLinkViewController: UIViewController {
                 linkTypeImage: linkTypeImageDownloadURL.absoluteString,
                 extraInformation: extraInfo)
 
+                /// sending a notification to each user!
+    
+                let id = NotificationsManager.newIdentifier()
+                
+               
+                
             // Update Database
             DatabaseManager.shared.createLink(newLink: newLink) { [weak self] finished in
                 guard finished else {
@@ -286,6 +289,19 @@ class FinalPageCreateLinkViewController: UIViewController {
                     NotificationCenter.default.post(name: .didPostNotification,
                                                     object: nil)
                 }
+                
+                
+                // send out all the users notifications!
+                self?.resultsArray.forEach { users in
+                    let user = users.name
+                    
+                    let inviteNotification = LinkNotification(identifer: id, notificationType: 4, profilePictureUrl: "", postLinkIconImage: linkTypeImageDownloadURL.absoluteString, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: false, isAccepted: false, postId: newPostID, postUrl: "")
+                    
+                    NotificationsManager.shared.create(notification: inviteNotification, for: user)
+                    
+                    print("Sent out all notifications!")
+                }
+                
             }
             }
         }
@@ -304,23 +320,6 @@ class FinalPageCreateLinkViewController: UIViewController {
         return "link_\(username)_\(randomNumber)_\(timeStamp)"
     }
     
-    private func createNewPostIDS() -> [String]? {
-        
-        var idArray = [String]()
-        let timeStamp = Date().timeIntervalSince1970
-        let randomNumber = Int.random(in: 0...1000)
-        guard let username = UserDefaults.standard.string(forKey: "username") else {
-            return nil
-        }
-    
-        arrayOfImage.forEach({ item in
-            let id = "link_\(username)_\(randomNumber)_\(timeStamp)"
-            idArray.append(id)
-        })
-        print("Print idArray: \(idArray)")
-        return idArray
-
-    }
     
     
     @objc private func didTapLock() {
@@ -349,6 +348,13 @@ class FinalPageCreateLinkViewController: UIViewController {
         print("current: \(picker.date)")
        }
     
+    
+    @objc func didTapDoneGuests() {
+        
+        let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, guestInvited: publicGuestsInvited)
+       navigationController?.pushViewController(vc, animated: true)
+        
+    }
     
 
 }
@@ -389,16 +395,17 @@ extension FinalPageCreateLinkViewController: UITableViewDelegate, UITableViewDat
             blurEffectView.isHidden = false
             picker.isHidden = false
         case "Media":
-            let vc = PostEditViewController(arrayOfImage: arrayOfImage)
+            let vc = PostEditViewController(arrayOfImage: arrayOfImage, iconImage: publicIconImage, caption: caption, categoryItem: publicCategoryString, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
             navigationController?.pushViewController(vc, animated: true)
         case "Categories":
-            let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: iconImage, caption: caption)
+            let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: iconImage, caption: caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
             navigationController?.pushViewController(vc, animated: true)
         case "Location":
-            let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption)
+            let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
             navigationController?.pushViewController(vc, animated: true)
         case "Guests":
-            let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption)
+            let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, guestInvited: publicGuestsInvited)
+            vc.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(didTapDoneGuests))
             navigationController?.pushViewController(vc, animated: true)
         case "Sponsor Event":
             break

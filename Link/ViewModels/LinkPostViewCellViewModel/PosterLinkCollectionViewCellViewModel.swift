@@ -12,5 +12,6 @@ struct PosterLinkCollectionViewCellViewModel {
     
     let linkType: String
     let profilePictureURL: URL?
+    let userArray: [SearchResult]
     
 }

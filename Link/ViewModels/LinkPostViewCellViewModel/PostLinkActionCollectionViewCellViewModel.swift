@@ -10,4 +10,6 @@ import Foundation
 struct PostLinkActionCollectionViewCellViewModel {
     let isLiked: Bool
     let likers: [String]
+    let comments: String
+    let dateOfLink: String
 }

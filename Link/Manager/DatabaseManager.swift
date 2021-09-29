@@ -35,6 +35,44 @@ final class DatabaseManager {
     }
     
     
+    
+    
+    public func createStories(newStory: LinkStory, completion: @escaping (Bool) -> Void) {
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            completion(false)
+            return
+        }
+
+        let reference = database.document("users/\(username)/stories/\(newStory.id)")
+        guard let data = newStory.asDictionary() else {
+            completion(false)
+            return
+        }
+        reference.setData(data) { error in
+            completion(error == nil)
+        }
+    }
+    
+    
+    public func getAllStories(
+        for otherUsername: String,
+        completion: @escaping (Result<[LinkStory], Error>) -> Void
+    ) {
+        let ref = database.collection("users")
+            .document(otherUsername)
+            .collection("stories")
+        ref.getDocuments { snapshot, error in
+            guard let stories = snapshot?.documents.compactMap({
+                LinkStory(with: $0.data())
+            }),
+            error == nil else {
+                return
+            }
+            completion(.success(stories))
+        }
+    }
+    
+    
     public func savePins(pinDrop: Pin, completion: @escaping (Bool) -> Void) {
  
         let reference = database.document("pins/\(pinDrop)")
@@ -142,7 +180,7 @@ final class DatabaseManager {
                 return
             }
 
-            var allLinks = [LinkModel]()
+            var allLinks: [LinkModel] = []
             let group = DispatchGroup()
 
             users.forEach { user in
@@ -250,7 +288,6 @@ final class DatabaseManager {
                 completion(nil)
                 return
             }
-
             let user = users.first(where: { $0.email == email })
             completion(user)
         }
@@ -355,7 +392,7 @@ final class DatabaseManager {
     /// Get notifications for current user
     /// - Parameter completion: Result callback
     public func getNotifications(
-        completion: @escaping ([IGNotification]) -> Void
+        completion: @escaping ([LinkNotification]) -> Void
     ) {
         guard let username = UserDefaults.standard.string(forKey: "username") else {
             completion([])
@@ -364,7 +401,7 @@ final class DatabaseManager {
         let ref = database.collection("users").document(username).collection("notifications")
         ref.getDocuments { snapshot, error in
             guard let notifications = snapshot?.documents.compactMap({
-                IGNotification(with: $0.data())
+                LinkNotification(with: $0.data())
             }),
             error == nil else {
                 completion([])
@@ -422,6 +459,19 @@ final class DatabaseManager {
         case follow
         case unfollow
     }
+    
+    
+    enum RelationshipStateRequest {
+        case request
+        case requesting
+    }
+    
+    enum RelationshipStateAccept{
+        case accept
+        case accepted
+    }
+    
+    
 
     /// Update relationship of follow for user
     /// - Parameters:
@@ -463,6 +513,159 @@ final class DatabaseManager {
             completion(true)
         }
     }
+    
+    
+    
+    
+    
+    
+    public func updateGuestList(state: RelationshipStateAccept,
+                                linkId: String,
+                                eventUsername: String,
+                                completion: @escaping (Bool) -> Void
+    ) {
+        
+        
+      
+        DatabaseManager.shared.getLink(with: linkId, from: eventUsername) { linkModel in
+            guard var usersArray = linkModel?.invites else {
+                return
+            }
+            
+            
+            switch state {
+            case .accepted:
+                
+                /// delete from requesting
+                DatabaseManager.shared.deleteUserFromRequest(userRequesting: eventUsername) { success in
+                    if success {
+                        print("Current user sucessfully removed from database")
+                    } else {
+                        print("Failed to remove user from data base")
+                    }
+                }
+                /// find users email and add to database
+                DatabaseManager.shared.findUser(with: eventUsername) { user in
+                    guard let email = user?.email else {
+                        return
+                    }
+                    let newUser = SearchResult(name: eventUsername, email: email)
+                    usersArray.append(newUser)
+                    print("Sucessfully added user from database ")
+                    completion(true)
+                }
+                
+                completion(true)
+            case .accept:
+                /// remove  user from database!
+                completion(true)
+                break
+                
+            
+            
+                
+        }
+        
+    }
+    }
+    
+    
+    public func updateGuestListForInvitesOnly(state: RelationshipStateAccept,
+                                linkId: String,
+                                eventUsername: String,
+                                completion: @escaping (Bool) -> Void
+    ) {
+        
+        
+      
+        DatabaseManager.shared.getLink(with: linkId, from: eventUsername) { linkModel in
+            guard var usersArray = linkModel?.invites else {
+                return
+            }
+            
+            
+            switch state {
+            case .accepted:
+                /// find users email and add to database
+                DatabaseManager.shared.findUser(with: eventUsername) { user in
+                    guard let email = user?.email else {
+                        return
+                    }
+                    let newUser = SearchResult(name: eventUsername, email: email)
+                    usersArray.append(newUser)
+                    print("Sucessfully added user from database ")
+                    completion(true)
+                }
+                
+                completion(true)
+            case .accept:
+                /// remove  user from database!
+                completion(true)
+                break
+                
+            
+            
+                
+        }
+        
+    }
+    }
+    
+    
+    public func deleteUserFromRequest(userRequesting: String, completion: @escaping(Bool)-> Void) {
+        
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+
+        let currentRequests = database.collection("users")
+            .document(currentUsername)
+            .collection("request")
+        
+        currentRequests.document(userRequesting).delete()
+        
+        completion(true)
+    
+
+    }
+    
+    
+    
+    public func updateRelationshipRequest(
+        state: RelationshipStateRequest,
+        completion: @escaping (Bool) -> Void
+    ) {
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+            completion(false)
+            return
+        }
+
+        let currentRequests = database.collection("users")
+            .document(currentUsername)
+            .collection("request")
+
+//        let targetUserRequesting = database.collection("users")
+//            .document(targetUsername)
+//            .collection("requesting")
+
+        switch state {
+        case .request:
+            // Remove follower for currentUser following list
+            currentRequests.document(currentUsername).delete()
+            // Remove currentUser from targetUser followers list
+//            targetUserRequesting.document(currentUsername).delete()
+
+            completion(true)
+        case .requesting:
+            // Add follower for requester following list
+            currentRequests.document(currentUsername).setData(["valid": "1"])
+            // Add currentUser to targetUser followers list
+//            targetUserRequesting.document(currentUsername).setData(["valid": "1"])
+
+            completion(true)
+        }
+    }
+
 
     /// Get user counts for target usre
     /// - Parameters:
@@ -652,7 +855,7 @@ final class DatabaseManager {
         let newIdentifier = "\(postID)_\(comment.username)_\(Date().timeIntervalSince1970)_\(Int.random(in: 0...1000))"
         let ref = database.collection("users")
             .document(owner)
-            .collection("posts")
+            .collection("links")
             .document(postID)
             .collection("comments")
             .document(newIdentifier)
@@ -674,7 +877,7 @@ final class DatabaseManager {
     ) {
         let ref = database.collection("users")
             .document(owner)
-            .collection("posts")
+            .collection("links")
             .document(postID)
             .collection("comments")
         ref.getDocuments { snapshot, error in
@@ -713,24 +916,24 @@ final class DatabaseManager {
         guard let currentUsername = UserDefaults.standard.string(forKey: "username") else { return }
         let ref = database.collection("users")
             .document(owner)
-            .collection("posts")
+            .collection("links")
             .document(postID)
-        getPost(with: postID, from: owner) { post in
-            guard var post = post else {
+        getLink(with: postID, from: owner) { link in
+            guard var link = link else {
                 completion(false)
                 return
             }
 
             switch state {
             case .like:
-                if !post.likers.contains(currentUsername) {
-                    post.likers.append(currentUsername)
+                if !link.likers.contains(currentUsername) {
+                    link.likers.append(currentUsername)
                 }
             case .unlike:
-                post.likers.removeAll(where: { $0 == currentUsername })
+                link.likers.removeAll(where: { $0 == currentUsername })
             }
 
-            guard let data = post.asDictionary() else {
+            guard let data = link.asDictionary() else {
                 completion(false)
                 return
             }

@@ -455,6 +455,21 @@ extension ProfileViewController: ProfileHeaderCountViewDelegate {
                 DispatchQueue.main.async {
                     self?.collectionView.reloadData()
                 }
+            } else {
+                
+                let id = NotificationsManager.newIdentifier()
+                guard let user = self?.user.username else {
+                    return
+                }
+                
+                print("This user is: \(user)")
+                
+                
+                let followNotification = LinkNotification(identifer: id, notificationType: 3, profilePictureUrl: "", postLinkIconImage: "", username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: false, isAccepted: false, postId: "", postUrl: nil)
+
+                NotificationsManager.shared.create(notification: followNotification, for: user)
+                
+                print("The follow notification has been working!")
             }
         }
     }

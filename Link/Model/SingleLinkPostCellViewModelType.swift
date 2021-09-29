@@ -16,7 +16,7 @@ enum SingleLinkPostCellViewModelType {
     case location(viewModel: PostLocationCollectionViewCellViewModel)
     case logistic(viewModel: PostLogisticCollectionViewCellViewModel)
 //    case extraInfo(viewModel: PostLinkExtraInfoCollectionCellViewModel)
-    case date(viewModel: PostLinkDateCollectionCellViewModel)
+//    case date(viewModel: PostLinkDateCollectionCellViewModel)
     
 }
 

@@ -7,22 +7,30 @@
 
 import UIKit
 
+protocol AddUsersToLinkCollectionViewCellDelegate: AnyObject {
+    func PostInviteCollectionViewCell( _ cell: AddUsersToLinkCollectionViewCell, username: String)
+}
+
 class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
     
     private var profileURL: URL?
     static let identifier = "AddUsersToLinkCollectionViewCell"
+    weak var delegate: AddUsersToLinkCollectionViewCellDelegate?
+    private var username: String?
 
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.layer.masksToBounds = true
         imageView.backgroundColor = .black
+        imageView.isUserInteractionEnabled = true
         return imageView
     }()
 
     private let label: UILabel = {
         let label = UILabel()
         label.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
+        label.textAlignment = .center
         return label
     }()
 
@@ -31,6 +39,10 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
         clipsToBounds = true
         contentView.addSubview(label)
         contentView.addSubview(imageView)
+        
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapImage))
+        imageView.addGestureRecognizer(tap)
     }
 
     required init?(coder: NSCoder) {
@@ -40,27 +52,24 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-//         let imageSize = contentView.height-label.height-10
-//        imageView.frame = CGRect(x: 5, y: 2, width: imageSize, height: imageSize)
-//        imageView.layer.cornerRadius = imageSize/2
-//        label.frame = CGRect(x: 7, y: imageView.bottom+10, width: imageView.width, height: 20)
-//
-        
+
         
         label.sizeToFit()
-        label.frame = CGRect(x: 10, y: contentView.height-label.height, width: contentView.width, height: label.height)
+        label.frame = CGRect(x: (imageView.left), y: contentView.height-15, width: contentView.width, height: label.height)
 
         let imageSize: CGFloat = contentView.height-label.height-4
         imageView.layer.cornerRadius = imageSize/2
         imageView.frame = CGRect(x: (contentView.width-imageSize)/2, y: 0, width: imageSize, height: imageSize)
         
+ 
+    }
+    
+    @objc func didTapImage() {
+        guard let username = username else {
+            return
+        }
         
-//        label.sizeToFit()
-//        label.frame = CGRect(x: 10, y: imageView.bottom+42, width: imageView.width+50, height: label.height)
-//
-//        let imageSize: CGFloat = contentView.height-label.height+10
-//        imageView.layer.cornerRadius = imageSize/2
-//        imageView.frame = CGRect(x: 5, y: 0, width: imageSize, height: imageSize)
+        delegate?.PostInviteCollectionViewCell(self, username: username)
     }
 
     override func prepareForReuse() {
@@ -71,21 +80,20 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
 
     func configure(with viewModel: SearchResult) {
         label.text = viewModel.name
+        self.username = viewModel.name
         
         StorageManager.shared.profilePictureURL(for: viewModel.name) { [weak self] url in
             guard  let profileURL = url else {
                 return
                 
             }
+            DispatchQueue.main.async {
+                self?.imageView.sd_setImage(with: profileURL, completed: nil)
+            }
             self?.profileURL = profileURL
         }
         
-        DispatchQueue.main.async {
-            self.imageView.sd_setImage(with: self.profileURL, completed: nil)
-        }
-
-        print("the name: \(label.text)")
-        print(profileURL)
+    
         
     }
 }

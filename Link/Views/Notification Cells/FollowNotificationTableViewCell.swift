@@ -133,7 +133,18 @@ final class FollowNotificationTableViewCell: UITableViewCell {
         self.viewModel = viewModel
         print(viewModel)
         label.text = viewModel.username + " started following you."
-        profilePictureImageView.sd_setImage(with: viewModel.profilePictureUrl, completed: nil)
+        
+        DispatchQueue.main.async {
+            StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
+                guard let url = url else {
+                    return
+                }
+                self.profilePictureImageView.sd_setImage(with: url, completed: nil)
+            }
+            
+        }
+        
+        
         isFollowing = viewModel.isCurrentUserFollowing
         dateLabel.text = viewModel.date
 

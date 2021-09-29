@@ -10,16 +10,19 @@ import Foundation
 final class NotificationsManager {
     static let shared = NotificationsManager()
 
-    enum IGType: Int {
+    enum linkType: Int {
         case like = 1
         case comment = 2
         case follow = 3
+        case accept = 4
+        case request = 5
+        case accepetedRequest = 6 
     }
 
     private init() {}
 
     public func getNotifications(
-        completion: @escaping ([IGNotification]) -> Void
+        completion: @escaping ([LinkNotification]) -> Void
     ) {
         DatabaseManager.shared.getNotifications(completion: completion)
     }
@@ -32,7 +35,7 @@ final class NotificationsManager {
     }
 
     public func create(
-        notification: IGNotification,
+        notification: LinkNotification,
         for username: String
     ) {
         let identifier = notification.identifer

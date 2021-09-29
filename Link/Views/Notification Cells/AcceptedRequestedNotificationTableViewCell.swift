@@ -1,23 +1,23 @@
 //
-//  LikeNotificationTableViewCell.swift
+//  AcceptedNotificationTableViewCell.swift
 //  Link
 //
-//  Created by Gabriella Fawaz on 2021/07/22.
+//  Created by Gabriella Fawaz on 2021/09/07.
 //
 
 import UIKit
 
-protocol LikeNotificationTableViewCellDelegate: AnyObject {
-    func likeNotificationTableViewCell(_ cell: LikeNotificationTableViewCell,
-                                       didTapPostWith viewModel: LikeNotificationCellViewModel)
+protocol AcceptedRequestNotificationTableViewCellDelegate: AnyObject {
+    func acceptedRequestedNotificationTableViewCell(_ cell: AcceptedRequestedNotificationTableViewCell,
+                                       didTapPostWith viewModel: AcceptedRequestNotificationCellViewModel)
 }
 
-class LikeNotificationTableViewCell: UITableViewCell {
-    static let identifer = "LikeNotificationTableViewCell"
+class AcceptedRequestedNotificationTableViewCell: UITableViewCell {
+    static let identifer = "AcceptedNotificationTableViewCell"
 
-    weak var delegate: LikeNotificationTableViewCellDelegate?
+    weak var delegate: AcceptedRequestNotificationTableViewCellDelegate?
 
-    private var viewModel: LikeNotificationCellViewModel?
+    private var viewModel: AcceptedRequestNotificationCellViewModel?
 
     private let profilePictureImageView: UIImageView = {
         let imageView = UIImageView()
@@ -71,7 +71,7 @@ class LikeNotificationTableViewCell: UITableViewCell {
         guard let vm = viewModel else {
             return
         }
-        delegate?.likeNotificationTableViewCell(self,
+        delegate?.acceptedRequestedNotificationTableViewCell(self,
                                                 didTapPostWith: vm)
     }
 
@@ -127,23 +127,16 @@ class LikeNotificationTableViewCell: UITableViewCell {
         dateLabel.text = nil
     }
 
-    public func configure(with viewModel: LikeNotificationCellViewModel) {
+    public func configure(with viewModel: AcceptedRequestNotificationCellViewModel) {
         self.viewModel = viewModel
-        
-        StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
-            guard let url = url else {
-                return
-            }
-            self.profilePictureImageView.sd_setImage(
-                with: url,
-                completed: nil
-            )
-            
-            self.postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
-        }
-        
-        label.text = viewModel.username + " liked your post."
+        profilePictureImageView.sd_setImage(
+            with: viewModel.linkIconPictureUrl,
+            completed: nil
+        )
+        postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
+        label.text = viewModel.username + " accepted your request."
         dateLabel.text = viewModel.date
     }
 }
+
 

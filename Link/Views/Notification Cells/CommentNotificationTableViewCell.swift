@@ -130,11 +130,23 @@ class CommentNotificationTableViewCell: UITableViewCell {
 
     public func configure(with viewModel: CommentNotificationCellViewModel) {
         self.viewModel = viewModel
-        profilePictureImageView.sd_setImage(
-            with: viewModel.profilePictureUrl,
-            completed: nil
-        )
-        postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
+        
+        
+        
+        StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
+            guard let url = url else {
+                return
+            }
+            self.profilePictureImageView.sd_setImage(
+                with: url,
+                completed: nil
+            )
+            
+            self.postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
+        }
+     
+       
+        
         label.text = viewModel.username + " commented on your post."
         dateLabel.text = viewModel.date
     }

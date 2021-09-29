@@ -66,7 +66,7 @@ class LinkCameraViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        cameraView.frame = view.bounds
+        cameraView.frame = view.frame
         previewLayer.frame = CGRect(
             x: 0,
             y: view.safeAreaInsets.top,
@@ -147,7 +147,7 @@ class LinkCameraViewController: UIViewController {
                // add images to collection view
                 
                 dismiss(animated: true, completion: {
-                    let vc = PostEditViewController(arrayOfImage: self.PhotoArray)
+                    let vc = PostEditViewController(arrayOfImage: self.PhotoArray, iconImage: publicIconImage, caption: publicCaption, categoryItem: publicCategoryString, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
                     self.navigationController?.pushViewController(vc, animated: true)
                 })
                 
@@ -224,6 +224,14 @@ class LinkCameraViewController: UIViewController {
     }
 
     private func setUpNavBar() {
+        
+        navigationController?.navigationBar.isHidden = false
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.view.backgroundColor = nil
+        
+        navigationItem.leftBarButtonItem?.tintColor = .black
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .close,
             target: self,

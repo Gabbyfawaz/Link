@@ -66,6 +66,7 @@ final class AddNewPeopleToLinkViewController: UIViewController {
         self.navigationController?.view.backgroundColor = .clear
         
     
+        publicGuestsInvited = self.targetUserDataArray
         view.addSubview(searchBar)
         view.addSubview(noResultsLabel)
         view.addSubview(tableView)
@@ -84,7 +85,7 @@ final class AddNewPeopleToLinkViewController: UIViewController {
         searchBar.becomeFirstResponder()
     }
     
-    init(arrayOfImage: [UIImage], locationTitle: String?, coordinates: CLLocationCoordinate2D?, typeOfLink: String, iconImage: UIImage, caption:String) {
+    init(arrayOfImage: [UIImage], locationTitle: String?, coordinates: CLLocationCoordinate2D?, typeOfLink: String, iconImage: UIImage, caption:String, guestInvited: [SearchResult]) {
         
         self.arrayOfImage = arrayOfImage
         self.locationTitle = locationTitle
@@ -92,6 +93,7 @@ final class AddNewPeopleToLinkViewController: UIViewController {
         self.typeOfLink = typeOfLink
         self.iconImage = iconImage
         self.caption = caption
+        publicGuestsInvited = guestInvited
         super.init(nibName: nil, bundle: nil)
     }
     

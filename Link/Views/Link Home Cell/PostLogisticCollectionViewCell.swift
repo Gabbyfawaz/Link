@@ -69,9 +69,9 @@ final class PostLogisticCollectionViewCell: UICollectionViewCell {
     }
 
     func configure(with viewModel: PostLogisticCollectionViewCellViewModel) {
-        let date = viewModel.date
-        label.text = .date(from: date)
-    }
+        label.text = viewModel.date
+
+}
 
 }
 

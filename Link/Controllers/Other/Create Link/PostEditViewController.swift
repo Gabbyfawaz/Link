@@ -7,6 +7,7 @@
 
 import CoreImage
 import UIKit
+import CoreLocation
 
 protocol PostEditViewControllerDelegate: AnyObject {
     func postEditViewControllerImageArray(_ vc: PostEditViewController, array: [UIImage])
@@ -17,6 +18,8 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     //MARK: - Properties
     
     weak var delegate: PostEditViewControllerDelegate?
+    private var typeOfLink: String?
+    private var title2: String?
     
      public var iconImageView: UIImageView = {
         let image = UIImageView()
@@ -49,14 +52,14 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         return button
     }()
     
-    private let leftButton: UIButton = {
-        let button = UIButton()
-        let image = UIImage(systemName: "arrow.left",
-                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
-        button.setImage(image, for: .normal)
-        button.tintColor = UIColor(white: 1, alpha: 0.8)
-        return button
-    }()
+//    private let leftButton: UIButton = {
+//        let button = UIButton()
+//        let image = UIImage(systemName: "arrow.left",
+//                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
+//        button.setImage(image, for: .normal)
+//        button.tintColor = UIColor(white: 1, alpha: 0.8)
+//        return button
+//    }()
     
     private var filters = ["Original", "Chrome", "Fade", "Mono", "Instant", "Noir", "Process", "Tonal", "Transfer"]
     
@@ -104,7 +107,8 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
 
     public var pickerImage: UIImage?
-    private let arrayOfImage: [UIImage]
+    private var arrayOfImage: [UIImage]
+    private var orginalArrayOfImages: [UIImage]
     private var index = 0
     private var imageCell: FiltersCollectionViewCell?
     
@@ -120,7 +124,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
         if arrayOfImage.count == 1 {
             rightButton.isHidden = true
-            leftButton.isHidden = true
+//            leftButton.isHidden = true
         }
         
         imageView.image = arrayOfImage[index]
@@ -129,19 +133,32 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
 
         rightButton.addTarget(self, action: #selector(didSwipeRight), for: .touchUpInside)
-        leftButton.addTarget(self, action: #selector(didSwipeLeft), for: .touchUpInside)
+//        leftButton.addTarget(self, action: #selector(didSwipeLeft), for: .touchUpInside)
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapImage))
         iconImageView.addGestureRecognizer(tap)
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapNext))
+    
+        
+        publicArrayOfImages = self.arrayOfImage
+        publicCaption = self.caption.text ?? ""
         
     }
     
     //MARK: - Init
-    init(arrayOfImage: [UIImage]) {
+    init(arrayOfImage: [UIImage], iconImage: UIImage, caption: String?, categoryItem: String?, locationTitle: String?, coordinates: CLLocationCoordinate2D?, guestInvited: [SearchResult]) {
+        
         self.arrayOfImage = arrayOfImage
+        self.orginalArrayOfImages = arrayOfImage
+        publicIconImage = iconImage
+        publicCaption = caption ?? ""
+        publicLocationTitle = locationTitle ?? ""
+        publicCoordinates = coordinates ?? CLLocationCoordinate2D()
+        publicGuestsInvited = guestInvited
         super.init(nibName: nil, bundle: nil)
+        
+       
     }
 
     required init?(coder: NSCoder) {
@@ -164,10 +181,10 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
                                    y: imageView.top+(imageView.height-rightButton.height)/2,
                                    width: 40,
                                    height: 40)
-        leftButton.frame = CGRect(x: leftButton.width+10,
-                                   y: imageView.top+(imageView.height-leftButton.height)/2,
-                                   width: 40,
-                                   height: 40)
+//        leftButton.frame = CGRect(x: leftButton.width+10,
+//                                   y: imageView.top+(imageView.height-leftButton.height)/2,
+//                                   width: 40,
+//                                   height: 40)
         iconImageView.frame = CGRect(x: 20,
                                      y: imageView.bottom+20,
                                      width: 70,
@@ -220,7 +237,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         view.addSubview(label)
         view.addSubview(caption)
         view.insertSubview(rightButton, at: 1)
-        view.insertSubview(leftButton, at: 1)
+//        view.insertSubview(leftButton, at: 1)
         view.addSubview(lineView)
     }
     
@@ -240,26 +257,26 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
     }
     
-    @objc func didSwipeLeft() {
-        var numberArray = arrayOfImage.count
-        if index <= arrayOfImage.count-1 {
-            numberArray -= 1
-            self.index = numberArray
-            imageView.image = arrayOfImage[numberArray]
-            filterCollectionView.reloadData()
-        } else if index > arrayOfImage.count-1 {
-            index = 0
-            imageView.image = arrayOfImage[index]
-            filterCollectionView.reloadData()
-        }
-    }
+//    @objc func didSwipeLeft() {
+//        var numberArray = arrayOfImage.count
+//        if index <= arrayOfImage.count-1 {
+//            numberArray -= 1
+//            self.index = numberArray
+//            imageView.image = arrayOfImage[numberArray]
+//            filterCollectionView.reloadData()
+//        } else if index > arrayOfImage.count-1 {
+//            index = 0
+//            imageView.image = arrayOfImage[index]
+//            filterCollectionView.reloadData()
+//        }
+//    }
     
     
     @objc func didTapNext() {
         guard let iconImage = iconImageView.image, let pickerImage = self.pickerImage else {return}
 
         if iconImage == pickerImage {
-            let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: pickerImage, caption: caption.text ?? "")
+            let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: pickerImage, caption: caption.text ?? "",  locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
             navigationController?.pushViewController(vc, animated: true)
         } else {
             let alert = UIAlertController(title: "Choose Icon", message: "Select Link Icon Please", preferredStyle: .alert)
@@ -268,14 +285,6 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         }
     }
     
-    @objc func didTapDone() {
-        
-       
-        dismiss(animated: true) {
-            self.delegate?.postEditViewControllerImageArray(self, array: self.arrayOfImage)
-            
-        }
-    }
 
     
     @objc func didTapImage() {
@@ -339,27 +348,45 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
    
         
         let image = arrayOfImage[index]
-        
+        let orginalImages = orginalArrayOfImages[index]
         
         switch filters[indexPath.row] {
         case "Original":
-            imageView.image = image
+            let newImage = orginalImages
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Chrome":
-            imageView.image = image.addFilter(filter: .Chrome)
+            let newImage = orginalImages.addFilter(filter: .Chrome)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Fade":
-            imageView.image = image.addFilter(filter: .Fade)
+            let newImage = orginalImages.addFilter(filter: .Fade)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Mono":
-            imageView.image = image.addFilter(filter: .Mono)
+            let newImage = orginalImages.addFilter(filter: .Mono)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Instant":
-            imageView.image = image.addFilter(filter: .Instant)
+            let newImage = orginalImages.addFilter(filter: .Instant)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Noir":
-            imageView.image = image.addFilter(filter: .Noir)
+            let newImage = orginalImages.addFilter(filter: .Noir)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Process":
-            imageView.image = image.addFilter(filter: .Process)
+            let newImage = orginalImages.addFilter(filter: .Process)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Tonal":
-            imageView.image = image.addFilter(filter: .Tonal)
+            let newImage = orginalImages.addFilter(filter: .Tonal)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         case "Transfer":
-            imageView.image = image.addFilter(filter: .Transfer)
+            let newImage = orginalImages.addFilter(filter: .Transfer)
+            imageView.image = newImage
+            arrayOfImage[index] = newImage
         default:
             break
         }
@@ -384,6 +411,7 @@ extension PostEditViewController: UIImagePickerControllerDelegate, UINavigationC
         self.pickerImage = image
         label.isHidden = true
         iconImageView.image = image
+        publicIconImage = image
         
     }
 }

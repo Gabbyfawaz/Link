@@ -11,13 +11,32 @@ import MapKit
 
 class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegate {
     
+    private let mapIdentifier = "mapIdentifier"
     private var longitude: CLLocationDegrees?
     private var latitude: CLLocationDegrees?
-    private var username: String?
     private let locationManager = CLLocationManager()
+    private var distanceBetweenPoints: CLLocationDistance?
 
-    private let imageView: UIImageView = {
+    private let userIconImageView: UIImageView = {
         let iv = UIImageView()
+        iv.contentMode = .scaleAspectFill
+        iv.layer.masksToBounds = true
+        iv.layer.cornerRadius = 22.5
+        iv.frame.size = CGSize(width: 45, height: 45)
+        iv.layer.borderWidth = 2
+        iv.layer.borderColor = UIColor.white.cgColor
+        iv.backgroundColor = .secondarySystemBackground
+        return iv
+    }()
+    
+    private let linkIconImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFill
+        iv.layer.masksToBounds = true
+        iv.layer.cornerRadius = 22.5
+        iv.frame.size = CGSize(width: 45, height: 45)
+        iv.layer.borderWidth = 2
+        iv.layer.borderColor = UIColor.white.cgColor
         iv.backgroundColor = .secondarySystemBackground
         return iv
     }()
@@ -35,8 +54,6 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
     private let googleMapsButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "maps"), for: .normal)
-//        button.setTitle("Maps", for: .normal)
-//        button.setTitleColor(.black, for: .normal)
         return button
     }()
     
@@ -56,12 +73,9 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         label.textAlignment = .center
         label.textColor = .white
         label.font = .systemFont(ofSize: 10, weight: .bold)
-//        label.layer.borderWidth = 2
-//        label.layer.borderColor = UIColor.black.cgColor
-//        label.backgroundColor = .black
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 8
-        label.backgroundColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+        label.backgroundColor = .black
         return label
     }()
     
@@ -71,12 +85,9 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         label.textAlignment = .center
         label.textColor = .white
         label.font = .systemFont(ofSize: 10, weight: .bold)
-//        label.layer.borderWidth = 2
-//        label.layer.borderColor = UIColor.black.cgColor
-//        label.backgroundColor = .black
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 8
-        label.backgroundColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+        label.backgroundColor = .black
         return label
     }()
     
@@ -84,18 +95,14 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
     private var titleLabel: UILabel = {
         let label = UILabel()
         label.text = "LOCATION"
-        label.textColor =  #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
-//        label.layer.shadowColor = UIColor.black.cgColor
-//        label.layer.shadowRadius = 3.0
-//        label.layer.shadowOpacity = 1.0
-//        label.layer.shadowOffset = CGSize(width: 4, height: 4)
+        label.textColor =  .black
         label.font = .systemFont(ofSize: 25, weight: .bold)
         return label
     }()
     
     private let locationImageView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(systemName: "ellipsis")
+        iv.image = UIImage(systemName: "info.circle")
         iv.isUserInteractionEnabled = true
         iv.tintColor = .label
         return iv
@@ -103,8 +110,6 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
     
     private let mapView: MKMapView = {
         let map = MKMapView()
-        map.layer.masksToBounds = true
-        map.layer.cornerRadius = 8
         return map
     }()
     
@@ -120,7 +125,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         super.init(frame: frame)
         
         clipsToBounds = true
-        backgroundColor = .systemBackground
+        backgroundColor = .white
 
         addSubview(mapView)
         addSubview(titleLabel)
@@ -167,7 +172,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
                                      width: width-30,
                                      height: 40)
             
-            locationImageView.frame = CGRect(x: width-40-locationImageView.width , y: 5, width: 30, height: 10)
+            locationImageView.frame = CGRect(x: width-30-locationImageView.width , y: 5, width: 20, height: 20)
 //
 //            locationlabel.frame = CGRect(x: locationImageView.right+10, y: stackView.bottom+10 , width: (width-locationImageView.width-10-15), height: 30)
             
@@ -198,14 +203,28 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
 //              print("locations = \(locValue.latitude) \(locValue.longitude)")
        
         
+        
+        
+        
         let location = locations.last
         guard let lat = location?.coordinate.latitude,
         let lon = location?.coordinate.longitude, let latitude = self.latitude, let longitude = self.longitude  else {return}
         
         let sourceLocation = CLLocationCoordinate2D(latitude: lat , longitude: lon)
+      
+        
         let destinationLocation = CLLocationCoordinate2D(latitude: latitude , longitude: longitude)
         
+        let sourceCoordinate = CLLocation(latitude: lat, longitude: lon)
+        let destinationCoordinate = CLLocation(latitude: latitude, longitude: longitude)
         
+        
+        
+        
+        let distanceBetweenPoints = sourceCoordinate.distance(from: destinationCoordinate)/1000
+        let roundedDistance = Int(distanceBetweenPoints)
+        DistanceAwayLabel.text = "\(roundedDistance) KM"
+      
         let sourcePin = MKPointAnnotation()
         sourcePin.coordinate = sourceLocation
         let destinationPin = MKPointAnnotation()
@@ -267,16 +286,6 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         }
     }
    
-//    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-//
-//        let renderer = MKPolylineRenderer(overlay: overlay)
-//
-//        renderer.strokeColor = UIColor.purple
-//        renderer.lineWidth = 5.0
-//
-//        return renderer
-//    }
-//
 
     
 
@@ -291,18 +300,74 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         
     }
     
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        guard !(annotation is MKUserLocation) else {
+            return nil
+        }
 
-//        func configure(with viewModel: PostOfFeedCollectionViewModel) {
-//           
-//            locationlabel.text = "\(viewModel.location ?? "")"
-//            
-//
-//        }
-//    
+        var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: mapIdentifier)
+
+        if annotationView == nil {
+            //create the view
+            annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: mapIdentifier)
+
+        } else {
+            annotationView?.annotation = annotation
+        }
+        
+
+        guard let latitude = self.latitude, let longitude = self.longitude else {
+            return nil
+        }
+        
+        let linkCoordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude )
+        
+        let annoationCoords = annotation.coordinate.latitude
+        if annoationCoords == linkCoordinate.latitude {
+            annotationView?.addSubview(linkIconImageView)
+        } else {
+            annotationView?.addSubview(userIconImageView)
+        }
+      
+       
+//        annotationView?.contentMode = .scaleAspectFill
+//        annotationView?.frame.size = CGSize(width: 45, height: 45)
+            
+
+        return annotationView
+    }
+
+    
+    //MARK: - ConfigureUI
+    
+
     func configure(with viewModel: PostOfFeedCollectionViewModel) {
+        
+        print("distance away: \(self.distanceBetweenPoints)")
+        
+        if let distance = self.distanceBetweenPoints {
+            let distanceAwayInt = Int(distance)
+            DistanceAwayLabel.text = "\(distanceAwayInt) km"
+        }
+       
+        
+        
         locationlabel.text = "\(viewModel.location ?? "")"
         
-        self.username = viewModel.username
+        
+        StorageManager.shared.profilePictureURL(for: viewModel.username, completion: { url in
+            
+            guard let url = url else {
+                return
+            }
+            self.userIconImageView.sd_setImage(with: url, completed: nil)
+            
+            self.linkIconImageView.sd_setImage(with: viewModel.linkTypeImage, completed: nil)
+        })
+        
+       
+        
         
         if viewModel.isPrivate == true {
             locationlabel.text = "Private"

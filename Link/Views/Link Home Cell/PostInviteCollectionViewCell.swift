@@ -8,8 +8,14 @@
 
 import UIKit
 
+protocol PostInviteCollectionViewCellDelegate: AnyObject {
+    func postInviteCollectionViewCell(_ cell: PostInviteCollectionViewCell, username: String)
+}
+
 final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionViewDelegate, UICollectionViewDataSource {
     static let identifier = "PostInviteCollectionViewCell"
+    
+    weak var delegate: PostInviteCollectionViewCellDelegate?
 
     private var userArray = [SearchResult]()
     
@@ -45,7 +51,7 @@ final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionView
 //        label.backgroundColor = .black
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 8
-        label.backgroundColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+        label.backgroundColor = .black
       
         return label
     }()
@@ -61,7 +67,7 @@ final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionView
 //        label.backgroundColor = .black
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 8
-        label.backgroundColor = #colorLiteral(red: 0.8822453618, green: 0.8364266753, blue: 0.9527176023, alpha: 1)
+        label.backgroundColor = .black
         label.layer.shadowColor = UIColor.black.cgColor
        
         return label
@@ -154,11 +160,8 @@ final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionView
         layout.minimumInteritemSpacing = 2
         layout.minimumLineSpacing = 0
         layout.itemSize = CGSize(width: 100, height: 100)
-//        layout.sectionInset = UIEdgeInsets(top: 1, left: 1, bottom: 1, right: 1)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .systemBackground
-//        collectionView.layer.borderWidth = 2
-//        collectionView.layer.borderColor = UIColor.label.cgColor
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(AddUsersToLinkCollectionViewCell.self,
                                 forCellWithReuseIdentifier: AddUsersToLinkCollectionViewCell.identifier)
@@ -182,9 +185,9 @@ final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionView
         horizontalStackView.addArrangedSubview(pendingNumberLabel)
         horizontalStackView.addArrangedSubview(confirmedNumberLabel)
         
-        addSubview(verticalStackView)
-        verticalStackView.addArrangedSubview(pendingButton)
-        verticalStackView.addArrangedSubview(confirmedButton)
+//        addSubview(verticalStackView)
+//        verticalStackView.addArrangedSubview(pendingButton)
+//        verticalStackView.addArrangedSubview(confirmedButton)
         
 //        addSubview(commentsLabel)
 //
@@ -203,18 +206,18 @@ final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionView
         super.layoutSubviews()
 
 //        peopleInvitedButton.frame = CGRect(x: 15, y: 20, width: 50, height: 50)
-        peopleCollectionView.frame = CGRect(x: 15+50+10, y: 60, width: width-30-35, height: 100)
+        peopleCollectionView.frame = CGRect(x: 15, y: 5, width: width-30, height: 100)
 //        peopleCollectionView.layer.cornerRadius = 20
         
-        horizontalStackView.frame = CGRect(x: 15,
-                                 y: 5,
-                                 width: width-30,
-                                 height: 30)
+//        horizontalStackView.frame = CGRect(x: 15,
+//                                 y: 5,
+//                                 width: width-30,
+//                                 height: 30)
         
-        verticalStackView.frame = CGRect(x: 15,
-                                         y: 60,
-                                         width: 50,
-                                         height: 100)
+//        verticalStackView.frame = CGRect(x: 15,
+//                                         y: 60,
+//                                         width: 50,
+//                                         height: 100)
 
         
     }
@@ -250,6 +253,7 @@ final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionView
             fatalError()
         }
         cell.configure(with: model)
+        cell.delegate = self
         return cell
     }
 
@@ -259,3 +263,11 @@ final class PostInviteCollectionViewCell: UICollectionViewCell, UICollectionView
     
 }
 
+extension PostInviteCollectionViewCell: AddUsersToLinkCollectionViewCellDelegate {
+    
+    func PostInviteCollectionViewCell(_ cell: AddUsersToLinkCollectionViewCell, username: String) {
+        delegate?.postInviteCollectionViewCell(self, username: username)
+    }
+    
+    
+}

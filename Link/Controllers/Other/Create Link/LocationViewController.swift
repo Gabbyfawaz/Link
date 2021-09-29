@@ -55,16 +55,22 @@ class LocationViewController: UIViewController, SearchMapViewControllerDelegate 
         panel.addPanel(toParent: self)
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapDone))
+        
+        publicLocationTitle = locationTitle ?? ""
+        publicCoordinates = coordinates ?? CLLocationCoordinate2D()
             
     }
     
     //MARK: - Init
     
-    init(arrayOfImage: [UIImage], typeOfLink:String, iconImage: UIImage, caption:String) {
+    init(arrayOfImage: [UIImage], typeOfLink:String, iconImage: UIImage, caption:String, locationTitle: String?, coordinates: CLLocationCoordinate2D?, guestInvited: [SearchResult]) {
         self.arrayOfImage = arrayOfImage
         self.typeOfLink = typeOfLink
         self.iconImage = iconImage
         self.caption = caption
+        publicLocationTitle = locationTitle ?? ""
+        publicCoordinates = coordinates ?? CLLocationCoordinate2D()
+        publicGuestsInvited = guestInvited
         
         super.init(nibName: nil, bundle: nil)
     }
@@ -82,8 +88,7 @@ class LocationViewController: UIViewController, SearchMapViewControllerDelegate 
     //MARK: - Actions
     @objc private func didTapDone() {
         
-
-        let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: self.typeOfLink, iconImage: iconImage, caption: self.caption)
+        let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: self.typeOfLink, iconImage: iconImage, caption: self.caption, guestInvited: publicGuestsInvited)
         vc.completion = { [weak self] result in
             guard let strongSelf = self else {return}
             strongSelf.resultsArray.append(contentsOf: result)

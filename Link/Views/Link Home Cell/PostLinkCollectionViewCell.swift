@@ -5,49 +5,41 @@
 //  Created by Gabriella Fawaz on 2021/07/22.
 //
 
+
+protocol PostLinkCollectionViewCellDelegate: AnyObject {
+    func postLinkCollectionViewCell( _ cell: PostLinkCollectionViewCell, index: Int )
+    func postCollectionViewCellDidLike(_ cell: PostLinkCollectionViewCell, index: Int)
+}
+
 import UIKit
+import SDWebImage
 
 final class PostLinkCollectionViewCell: UICollectionViewCell {
     static let identifier = "PostLinkCollectionViewCell"
 
     //MARK: - Propetries
     
-    private var postStrings = [String]()
     private var index = 0
+    private var index2 = 0
+    private var postStrings = [String]()
+    weak var delegate: PostLinkCollectionViewCellDelegate?
+    
+
     private let imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-//        imageView.layer.masksToBounds = true
-        imageView.backgroundColor = .secondarySystemBackground
-        return imageView
-    }()
-    
-    private let iconImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
         imageView.layer.masksToBounds = true
-        imageView.layer.borderWidth = 2
-        imageView.layer.borderColor = UIColor.white.cgColor
+        imageView.contentMode = .scaleAspectFill
         imageView.backgroundColor = .secondarySystemBackground
         return imageView
     }()
 
+//    private let curveView: UIView = {
+//        let view = UIView()
+//        view.backgroundColor = .systemBackground
+//        view.roundCorners(corners: [.topLeft , .topRight], radius: 10)
+//        return view
+//    }()
 
-    private let curveImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.masksToBounds = true
-//        imageView.layer.masksToBounds = true
-        imageView.backgroundColor = .systemBackground
-        return imageView
-    }()
-    
-    private var maskImageView: UIImageView = {
-        let maskImageView = UIImageView()
-        maskImageView.contentMode = .scaleAspectFit
-        maskImageView.image = #imageLiteral(resourceName: "mask")
-        return maskImageView
-    }()
     private let heartImageView: UIImageView = {
         let image = UIImage(systemName: "suit.heart.fill",
                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 50))
@@ -57,8 +49,7 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
         imageView.alpha = 0
         return imageView
     }()
-    
-    
+
     private let moreButton: UIButton = {
         let button = UIButton()
         button.tintColor = .white
@@ -68,43 +59,39 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
         return button
     }()
     
-    private var imageCollectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 2
-        layout.itemSize = CGSize(width: 450, height: 450)
-        layout.sectionInset = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .none
-        collectionView.register(FiltersCollectionViewCell.self,
-                                forCellWithReuseIdentifier: FiltersCollectionViewCell.identifier)
-        return collectionView
+
+    private let rightButton: UIButton = {
+        let button = UIButton()
+        let image = UIImage(systemName: "arrow.right",
+                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
+        button.setImage(image, for: .normal)
+        button.isHidden = false
+        button.tintColor = .black
+        return button
     }()
-    
-    private let actionsView = PostActionForPostView()
-    
-    
+
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-//        contentView.clipsToBounds = true
-//        contentView.layer.cornerRadius = 20
-        contentView.backgroundColor = .systemBackground
+        if postStrings.count == 1 {
+            rightButton.isHidden = true
+        }
+    
+        contentView.addSubview(imageView)
         contentView.addSubview(heartImageView)
-        contentView.insertSubview(imageView, at: 0)
-        contentView.insertSubview(imageCollectionView, at: 0)
-        contentView.insertSubview(curveImageView, at: 1)
-//        contentView.addSubview(iconImageView)
         contentView.addSubview(moreButton)
+        contentView.addSubview(rightButton)
+
+        
+        
         let tap = UITapGestureRecognizer(target: self, action: #selector(didDoubleTapToLike))
         tap.numberOfTapsRequired = 2
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(tap)
-        moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
         
-        imageCollectionView.delegate = self
-        imageCollectionView.dataSource = self
+        moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
+        rightButton.addTarget(self, action: #selector(didSwipeRight), for: .touchUpInside)
     }
     
     required init?(coder: NSCoder) {
@@ -112,7 +99,7 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
     }
     
     @objc func didTapMore() {
-//        delegate?.postLinkActionsCollectionViewCellDidTapMore(self, index: index)
+        delegate?.postLinkCollectionViewCell(self, index: index)
     }
     
     @objc func didDoubleTapToLike() {
@@ -131,25 +118,23 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
             }
         }
 
-//        delegate?.postCollectionViewCellDidLike(self, index: index)
+        delegate?.postCollectionViewCellDidLike(self, index: index)
     }
     
     
     override func layoutSubviews() {
         super.layoutSubviews()
-//        imageView.frame = contentView.bounds
-        imageCollectionView.frame = CGRect(x: 0, y: -5, width: (contentView.width), height: contentView.height)
-        curveImageView.frame = CGRect(x: 0, y: imageCollectionView.bottom-20, width: (contentView.width), height: 100)
-        curveImageView.layer.cornerRadius = 25
-        curveImageView.layer.masksToBounds = true
-        iconImageView.frame = CGRect(x: 15, y: 15, width: 80, height: 80)
+
+        
+        imageView.frame = CGRect(x: 0, y: contentView.safeAreaInsets.top, width: contentView.width, height: contentView.width+20)
+
         moreButton.frame = CGRect(x: contentView.width-60, y: 10, width: 50, height:50)
+        rightButton.frame = CGRect(x: contentView.width-rightButton.width,
+                                   y: (imageView.height-rightButton.height)/2,
+                                   width: 40,
+                                   height: 40)
+    
         
-        iconImageView.mask = maskImageView
-        maskImageView.frame = iconImageView.bounds
-        
-        
-//        imageView.layer.cornerRadius = 30
         let size: CGFloat = contentView.width/5
         heartImageView.frame = CGRect(
             x: (contentView.width-size)/2,
@@ -167,32 +152,27 @@ final class PostLinkCollectionViewCell: UICollectionViewCell {
 //         remember to add index parameter
         self.index = index
         self.postStrings = viewModel.postString
-//        imageView.sd_setImage(with: viewModel.postUrl, completed: nil)
-        
-        
-        StorageManager.shared.profilePictureURL(for: viewModel.user) { (url) in
-            guard let profileUrl = url else {return}
-            self.iconImageView.sd_setImage(with: profileUrl, completed: nil)
-        }
+        imageView.sd_setImage(with: URL(string: postStrings[index2]), completed: nil)
+ 
+    
     }
+    
+    @objc func didSwipeRight() {
+        
+        if index2 < postStrings.count-1 {
+            self.index2 += 1
+            imageView.sd_setImage(with: URL(string: postStrings[index2]), completed: nil)
+        } else if index2 >= postStrings.count-1 {
+            index2 = 0
+            imageView.sd_setImage(with: URL(string:  postStrings[index2]), completed: nil)
+    
+        }
+        
+    }
+    
 
     
 }
 
 
-extension PostLinkCollectionViewCell: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return postStrings.count
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let modelString = postStrings[indexPath.row]
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FiltersCollectionViewCell.identifier, for: indexPath) as? FiltersCollectionViewCell else {
-            fatalError()
-        }
-        cell.configure(stringURL: modelString)
-        return cell
-    }
-    
-    
-}
+
