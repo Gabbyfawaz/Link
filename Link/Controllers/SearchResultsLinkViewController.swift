@@ -32,6 +32,7 @@ class SearchResultsLinkViewController: UIViewController, UITableViewDelegate, UI
         tableView.frame = view.bounds
         tableView.delegate = self
         tableView.dataSource = self
+       
     }
     
     public func update(with results: [LinkModel]) {

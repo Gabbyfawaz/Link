@@ -1,9 +1,7 @@
 ${PODS_ROOT}/Target Support Files/Pods-Link/Pods-Link-frameworks.sh
 ${BUILT_PRODUCTS_DIR}/Appirater/Appirater.framework
-${BUILT_PRODUCTS_DIR}/BSImagePicker/BSImagePicker.framework
 ${BUILT_PRODUCTS_DIR}/BoringSSL-GRPC/openssl_grpc.framework
 ${BUILT_PRODUCTS_DIR}/Cosmos/Cosmos.framework
-${BUILT_PRODUCTS_DIR}/DateTimePicker/DateTimePicker.framework
 ${BUILT_PRODUCTS_DIR}/FirebaseAuth/FirebaseAuth.framework
 ${BUILT_PRODUCTS_DIR}/FirebaseCore/FirebaseCore.framework
 ${BUILT_PRODUCTS_DIR}/FirebaseCoreDiagnostics/FirebaseCoreDiagnostics.framework
@@ -21,6 +19,8 @@ ${BUILT_PRODUCTS_DIR}/MessageKit/MessageKit.framework
 ${BUILT_PRODUCTS_DIR}/PromisesObjC/FBLPromises.framework
 ${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework
 ${BUILT_PRODUCTS_DIR}/TinyConstraints/TinyConstraints.framework
+${BUILT_PRODUCTS_DIR}/UberCore/UberCore.framework
+${BUILT_PRODUCTS_DIR}/UberRides/UberRides.framework
 ${BUILT_PRODUCTS_DIR}/abseil/absl.framework
 ${BUILT_PRODUCTS_DIR}/gRPC-C++/grpcpp.framework
 ${BUILT_PRODUCTS_DIR}/gRPC-Core/grpc.framework

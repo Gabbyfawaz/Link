@@ -37,7 +37,7 @@ final class StorageManager {
         }
     }
     
-    public func uploadStories(
+    public func uploadQuickLink(
         data: Data?,
         id: String,
         completion: @escaping (URL?) -> Void
@@ -157,18 +157,19 @@ final class StorageManager {
 //        completion(arrayURL)
 //    }
 
-    public func downloadURL(for post: Post, completion: @escaping (URL?) -> Void) {
-        guard let ref = post.storageReference else {
-            completion(nil)
-            return
-        }
-        
-        storage.child(ref).downloadURL { url, _ in
-            completion(url)
-        }
-    }
+//    public func downloadURL(for post: Post, completion: @escaping (URL?) -> Void) {
+//        guard let ref = post.storageReference else {
+//            completion(nil)
+//            return
+//        }
+//
+//        storage.child(ref).downloadURL { url, _ in
+//            completion(url)
+//        }
+//    }
 
     public func profilePictureURL(for username: String, completion: @escaping (URL?) -> Void) {
+        
         storage.child("\(username)/profile_picture.png").downloadURL { url, _ in
             completion(url)
         }

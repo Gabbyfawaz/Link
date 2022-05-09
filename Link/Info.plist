@@ -2,18 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPrincipalClass</key>
-	<string></string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Can we use your location?</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Can we use your location?</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Can we use your location?</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Allow access to camera</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allow access to Library</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>uber</string>
+	</array>
+	<key>UberDisplayName</key>
+	<string>LINK</string>
+	<key>UberClientID</key>
+	<string>Yavf1DjeIpMqc15VO7FVJMloAUPs0i</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -30,8 +26,20 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<true/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Allow access to camera</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Can we use your location?</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Can we use your location?</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Can we use your location?</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow access to Library</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -60,8 +68,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

@@ -22,7 +22,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         label.isHidden = true
         label.text = "No Results"
         label.textAlignment = .center
-        label.textColor = .green
+        label.textColor = .label
         label.font = .systemFont(ofSize: 21, weight: .medium)
         return label
     }()
@@ -36,15 +36,29 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
     
     private var filteredSections = [CategorySection]()
     public var titleOfLink: String?
-    private var arrayOfImage: [UIImage]
-    private var iconImage: UIImage
-    private var caption: String
+    static var staticTitleOfLink: String?
+//    private var arrayOfImage: [UIImage]
+//    private var iconImage: UIImage
+//    private var caption: String
 //    private var uniqueNameOfLink: String?
 
     // MARK: - Lifecycle
+    
+    override func viewWillAppear(_ animated: Bool) {
+        
+        if let vcs = self.navigationController?.viewControllers {
+            let previousVC = vcs[vcs.count - 2]
+            if previousVC is FinalPageCreateLinkViewController {
+                navigationItem.rightBarButtonItem?.title = "Done"
+            }
+        }
+        
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationController?.navigationBar.tintColor = .label
+        view.backgroundColor = .systemBackground
         title = "Categories"
         view.addSubview(tableView)
 //        view.addSubview(searchBar)
@@ -52,8 +66,12 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         configureModels()
         tableView.delegate = self
         tableView.dataSource = self
-        view.backgroundColor = .systemBackground
+        tableView.allowsMultipleSelection = false
+        
+       
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapDone))
+       
+       
         
         
 //        createTableFooter()
@@ -61,19 +79,88 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
     
     //MARK: - Init
     
-    init(arrayOfImage: [UIImage], iconImage: UIImage, caption: String, locationTitle: String?, coordinates: CLLocationCoordinate2D?, guestInvited: [SearchResult] ) {
-        self.arrayOfImage = arrayOfImage
-        self.iconImage = iconImage
-        self.caption = caption
-        publicLocationTitle = locationTitle ?? ""
-        publicCoordinates = coordinates ?? CLLocationCoordinate2D()
-        publicGuestsInvited = guestInvited
-        super.init(nibName: nil, bundle: nil)
+//    init(arrayOfImage: [UIImage], iconImage: UIImage, caption: String) {
+//        self.arrayOfImage = arrayOfImage
+//        self.iconImage = iconImage
+//        self.caption = caption
+//        super.init(nibName: nil, bundle: nil)
+//    }
+//
+//    required init?(coder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
+    
+    //MARK: - Actions
+    
+    private func alertPopUp(message: String) {
+        let alert = UIAlertController(title: "Oops", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Try again", style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    private func configureCategoryTitle() {
+        if let titleOfLink = self.titleOfLink {
+            if titleOfLink == "Custom Link" {
+                alertPopUp(message: "No Category Choosen")
+            }
+//            let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: titleOfLink, iconImage: iconImage, caption: self.caption)
+//
+//            navigationController?.pushViewController(vc, animated: true)
+            
+            print("the type of link selected is: \(titleOfLink)")
+            CategoryViewController.staticTitleOfLink = titleOfLink
+//            let vc = SearchResultTableViewController(arrayOfImage: self.arrayOfImage, iconImage: self.iconImage, caption: self.caption, category: titleOfLink)
+            let vc = SearchResultTableViewController()
+            self.navigationController?.pushViewController(vc, animated: true)
+            
+        } else {
+            alertPopUp(message: "No Category Choosen")
+        }
     }
+    
+     private func didTapNext() {
+        if  let index = tableView.indexPathForSelectedRow, let cell = tableView.cellForRow(at: index ) {
+            if cell.isSelected {
+                if let titleOfLink = self.titleOfLink {
+                    CategoryViewController.staticTitleOfLink = titleOfLink
+                    if titleOfLink == "Custom Link" {
+                        alertPopUp(message: "No Category Choosen")
+                    }
+
+                    print("the type of link selected is: \(titleOfLink)")
+                    CategoryViewController.staticTitleOfLink = titleOfLink 
+                    navigationController?.popViewController(animated: true)
+                }
+            } else {
+                alertPopUp(message: "No Category Choosen")
+            }
+            
+        } else {
+            alertPopUp(message: "Select a category")
+        }
+        
+
+        
+    }
+    
+ 
+    
+    @objc func didTapDone() {
+        if let vcs = self.navigationController?.viewControllers {
+            let previousVC = vcs[vcs.count - 2]
+            if previousVC is FinalPageCreateLinkViewController {
+                didTapNext()
+//                navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action:#selector(didTapNext) )
+            } else if previousVC is PostEditViewController {
+                configureCategoryTitle()
+            }
+            
+       
+
+        }
+               
+    }
+
     
     //MARK: - Layout Subviews
 
@@ -91,21 +178,124 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
 //                                      height: 200)
     }
     
-    @objc func didTapDone() {
-        
-        // present create view controller
-//        dismiss(animated: true, completion: nil)
-        
-        guard let titleOfLink = self.titleOfLink else {return}
-        let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: titleOfLink, iconImage: iconImage, caption: self.caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
-        navigationController?.pushViewController(vc, animated: true)
+
+    
+   //MARK: - TableView (Delegate/DataSource)
+
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return sections.count
     }
 
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+       
+        return sections[section].options.count
+    }
+
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let model = sections[indexPath.section].options[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        cell.textLabel?.text = model.title
+        if let selectedRows = tableView.indexPathsForSelectedRows,
+                    selectedRows.contains(indexPath)
+                {
+                    cell.accessoryType = .checkmark
+
+                } else {
+                    cell.accessoryType = .none
+                }
+        return cell
+    }
+    
+ 
+      func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+          let cell = self.tableView.cellForRow(at: indexPath)
+          cell?.accessoryType = .none
+      }
+
+
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+
+        let cell = self.tableView.cellForRow(at: indexPath)
+//        tableView.deselectRow(at: indexPath, animated: true)
+        cell?.accessoryType = .checkmark
+       
+
+
+        let titleOfLink = sections[indexPath.section].options[indexPath.row].title
+        self.titleOfLink = titleOfLink
+        
+        
+        if titleOfLink == "Custom Link" {
+            let alert = UIAlertController(title: "Custom your link", message: "Make it interesting!", preferredStyle: .alert)
+            
+            alert.addTextField { (textField) in
+                textField.text = ""
+            }
+            
+            alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { [weak alert] (_) in
+                let textField = alert?.textFields![0]
+                guard let typeOfLink = textField?.text else {return}
+                
+                guard !typeOfLink.trimmingCharacters(in: .whitespaces).isEmpty else {
+                    self.alertPopUp(message: "No Text Entered")
+                    return
+                }
+                
+                
+//                let vc = MapViewController()
+//                self.navigationController?.pushViewController(vc, animated: true)
+                
+//                let vc = LocationViewController(arrayOfImage: self.arrayOfImage, typeOfLink: typeOfLink, iconImage: self.iconImage, caption: self.caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates,guestInvited: publicGuestsInvited)
+                
+                print("this is the type of link: \(typeOfLink)")
+                CategoryViewController.staticTitleOfLink = typeOfLink
+//                let vc = SearchResultTableViewController(arrayOfImage: self.arrayOfImage, iconImage: self.iconImage, caption: self.caption, category: typeOfLink)
+                
+            if let vcs = self.navigationController?.viewControllers {
+                    let previousVC = vcs[vcs.count - 2]
+                if previousVC is FinalPageCreateLinkViewController {
+                    self.navigationController?.popViewController(animated: true)
+                } else {
+                    let vc = SearchResultTableViewController()
+                    self.navigationController?.pushViewController(vc, animated: true)
+                }
+                
+            }
+                
+              
+                
+              
+                
+            }))
+
+            self.present(alert, animated: true, completion: nil)
+        }
+        
+    
+        print(titleOfLink)
+        
+       
+
+        
+    }
+
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return sections[section].title
+    }
+    
+    
+    //MARK: - Configure Model
+    
     private func configureModels() {
         sections.append(
             CategorySection(title: "Custom",
                             options: [
-                                CategoryName(title: "Name Link"),
+                                CategoryName(title: "Custom Link"),
                                 
                             ]))
         
@@ -203,98 +393,11 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
             
     }
 
-    
-
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return sections.count
-    }
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-       
-        return sections[section].options.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let model = sections[indexPath.section].options[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = model.title
-//        cell.accessoryType = .disclosureIndicator
-        return cell
-    }
-
-    
-    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
-//        tableView.deselectRow(at: indexPath, animated: true)
-
-        tableView.cellForRow(at: indexPath)?.accessoryType = .none
-
-    }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        tableView.deselectRow(at: indexPath, animated: true)
-        tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        let titleOfLink = sections[indexPath.section].options[indexPath.row].title
-        self.titleOfLink = titleOfLink
-        
-        publicCategoryString = titleOfLink
-        
-        if titleOfLink == "Name Link" {
-            let alert = UIAlertController(title: "Name your link", message: "Make it interesting!", preferredStyle: .alert)
-            
-            alert.addTextField { (textField) in
-                textField.text = ""
-            }
-            
-            
-            // 3. Grab the value from the text field, and print it when the user clicks OK.
-            alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { [weak alert] (_) in
-                // Force unwrapping because we know it exists.
-                let textField = alert?.textFields![0]
-                // get text from alert action
-                // dismiss and segue to locationViewController
-                
-                guard let typeOfLink = textField?.text else {return}
-                
-                guard !typeOfLink.trimmingCharacters(in: .whitespaces).isEmpty else {
-                    let alert = UIAlertController(title: "Oops", message: "No Text Enteredr", preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "Try again", style: .cancel, handler: nil))
-                    self.present(alert, animated: true, completion: nil)
-                    return
-                }
-                
-                let vc = LocationViewController(arrayOfImage: self.arrayOfImage, typeOfLink: typeOfLink, iconImage: self.iconImage, caption: self.caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates,guestInvited: publicGuestsInvited)
-                self.navigationController?.pushViewController(vc, animated: true)
-//                self.uniqueNameOfLink = textField?.text
-                
-                publicCategoryString = titleOfLink
-            }))
-
-            // 4. Present the alert.
-            self.present(alert, animated: true, completion: nil)
-        }
-        
-        
-        
-        print(titleOfLink)
-        
-        
-//
-//        if let cell = tableView.cellForRow(at: indexPath) {
-//            if cell.accessoryType == .checkmark {
-//                cell.accessoryType = .none
-//            } else {
-//                cell.accessoryType = .checkmark
-//            }
-//
-//        }
-        
-    }
-
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return sections[section].title
-    }
 
 }
+
+
+
 
 
 //extension CategoryViewController: UISearchBarDelegate {

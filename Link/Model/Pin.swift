@@ -9,8 +9,11 @@ import Foundation
 import CoreLocation
 
 struct Pin: Codable {
-    let name: String
+    let people: [SearchUser]
     let cooordinates: Coordinate
+    let locationString: String
+    let timeStamp: TimeInterval
+    
 }
 
 struct Coordinate: Codable {

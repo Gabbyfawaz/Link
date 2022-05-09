@@ -47,7 +47,7 @@ class NewConversationCell: UITableViewCell {
                                      width: 70,
                                      height: 70)
 
-        userNameLabel.frame = CGRect(x: userImageView.right + 10,
+        userNameLabel.frame = CGRect(x: userImageView.bottom + 5,
                                      y: 20,
                                      width: contentView.width - 20 - userImageView.width,
                                      height: 50)
@@ -55,24 +55,34 @@ class NewConversationCell: UITableViewCell {
 
     
     public func configure(with model: SearchResult) {
-         
-        
-//        let username = UserDefaults.standard.value(forKey: "username")
-        
-        
+
         StorageManager.shared.profilePictureURL(for: model.name) { [weak self] url in
             guard  let profileURL = url else {
                 return
-                
             }
             self?.profileURL = profileURL
         }
-        
-        
         DispatchQueue.main.async {
             self.userImageView.sd_setImage(with: self.profileURL, completed: nil)
         }
         userNameLabel.text = model.name
     }
+    
+    
+    
+    public func configure(with model: SearchUser) {
+
+        StorageManager.shared.profilePictureURL(for: model.name) { [weak self] url in
+            guard  let profileURL = url else {
+                return
+                
+            }
+            DispatchQueue.main.async {
+                self?.userImageView.sd_setImage(with: profileURL, completed: nil)
+                self?.userNameLabel.text = model.name
+            }
+        }
+    }
+
 }
 

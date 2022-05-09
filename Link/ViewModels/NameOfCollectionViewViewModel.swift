@@ -15,13 +15,16 @@ struct NameOfCollectionViewViewModel {
 
 
 struct PostOfFeedCollectionViewModel {
+    let linkId: String
     let linkType: String
     let linkTypeImage: URL?
     let mainImage: [String]?
     let username: String
-    let location: String?
-    let invite: [SearchResult]
+    let locationTitle: String?
+    let pendingUsers: [SearchUser]
+    let confirmedUsers: [SearchUser]
     let isPrivate: Bool
     let coordinates: Coordinates
-    let date: String
+    let date: TimeInterval
+    let actionButton: NameOfLinkCollectionCellViewActions
 }

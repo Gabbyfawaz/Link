@@ -7,7 +7,7 @@
 
 import UIKit
 import CoreLocation
-import DateTimePicker
+import JGProgressHUD
 
 
 struct Sections {
@@ -19,16 +19,18 @@ class FinalPageCreateLinkViewController: UIViewController {
     
     //MARK: - Properties
     
+    private let spinner = JGProgressHUD(style: .dark)
     private var id: [String]?
-    private var arrayOfImage: [UIImage]
-    private var iconImage: UIImage
-    private var locationTitle: String?
-    private var coordinates: CLLocationCoordinate2D?
+//    private var arrayOfImage: [UIImage]
+//    private var iconImage: UIImage
+//    private var locationTitle: String?
+//    private var coordinates: CLLocationCoordinate2D?
     private var isLocked = false
-    private var resultsArray = [SearchResult]()
+    private var pickerDate: Date?
+//    private var resultsArray = [SearchResult]()
     private var postDateString: String?
-    private var typeOfLink: String
-    private var caption: String
+//    private var typeOfLink: String
+//    private var caption: String
     private var tableSections = [
         Sections(sectionTitles: "Date", cellTitles: ["Date of Event"]),
         Sections(sectionTitles: "Go Back", cellTitles: ["Media", "Categories", "Location", "Guests"]),
@@ -36,12 +38,14 @@ class FinalPageCreateLinkViewController: UIViewController {
     ]
     
     
+    static var typeOfLink: String?
+    
     private var linkTypeImage: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
         iv.layer.masksToBounds = true
         iv.layer.cornerRadius = 35
-        iv.layer.borderColor = UIColor.white.cgColor
+        iv.layer.borderColor = UIColor.label.cgColor
         iv.layer.borderWidth = 2
         iv.isUserInteractionEnabled = true
         return iv
@@ -51,13 +55,14 @@ class FinalPageCreateLinkViewController: UIViewController {
     private var typeOfLinkLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 21, weight: .semibold)
+        label.textColor = .label
         return label
     }()
     
     private let eventInfoTextView: UITextView = {
         let textField = UITextView()
         textField.backgroundColor = .secondarySystemBackground
-        textField.textColor = .black
+        textField.textColor = .label
 //        textField.layer.borderColor = UIColor.black.cgColor
 //        textField.layer.borderWidth = 1
         textField.font = .systemFont(ofSize: 19, weight: .regular)
@@ -68,7 +73,7 @@ class FinalPageCreateLinkViewController: UIViewController {
     private let privacyButton: UIButton = {
         let barButton = UIButton()
         barButton.setImage(UIImage(systemName: "lock.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 35)), for: .normal)
-        barButton.tintColor = .black
+        barButton.tintColor = .label
         return barButton
     }()
     
@@ -86,17 +91,18 @@ class FinalPageCreateLinkViewController: UIViewController {
     
     private let picker: UIDatePicker = {
         let  picker = UIDatePicker()
+        picker.minimumDate = Date()
         picker.preferredDatePickerStyle = .inline
         picker.isHidden = true
-        picker.backgroundColor = .white
+        picker.backgroundColor = .systemBackground
         picker.layer.cornerRadius = 10
         picker.layer.masksToBounds = true
         return picker
     }()
     
-    let blurEffectView: UIVisualEffectView = {
-        let view = UIVisualEffectView()
-        view.effect = UIBlurEffect(style: .extraLight)
+    let blurEffectView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .secondarySystemBackground
         view.isHidden = true
         return view
     }()
@@ -106,28 +112,24 @@ class FinalPageCreateLinkViewController: UIViewController {
      
     //MARK: - Lifecycle
 
+    override func viewWillAppear(_ animated: Bool) {
+          
+        linkTypeImage.image = PostEditViewController.staticIconImage
+        typeOfLinkLabel.text = CategoryViewController.staticTitleOfLink
+        
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        addSubviews()
+//        fetchDataFromOtherVCs()
+        navigationController?.navigationBar.tintColor = .label
         view.backgroundColor = .systemBackground
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(didTapDone))
         
-
-        view.insertSubview(linkTypeImage, at: 0)
-        view.insertSubview(typeOfLinkLabel, at: 0)
-        view.insertSubview(eventInfoTextView, at: 0)
-        view.insertSubview(tableView, at: 0)
-        view.insertSubview(privacyButton, at: 0)
-        view.insertSubview(picker, at: 6)
-        view.insertSubview(blurEffectView, at: 5)
-        
-        linkTypeImage.image = iconImage
-        typeOfLinkLabel.text = typeOfLink
-        
-        
-        
         tableView.delegate = self
         tableView.dataSource = self
+        eventInfoTextView.delegate = self
         
         
         privacyButton.addTarget(self, action: #selector(didTapLock), for: .touchUpInside)
@@ -137,8 +139,10 @@ class FinalPageCreateLinkViewController: UIViewController {
         blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapView))
         blurEffectView.addGestureRecognizer(tap)
-        
-        print("resultsArray: \(publicGuestsInvited)")
+        let tap2 = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
+        view.addGestureRecognizer(tap2)
+        tap2.cancelsTouchesInView = false
+    
      
 
     }
@@ -147,20 +151,23 @@ class FinalPageCreateLinkViewController: UIViewController {
     
     //MARK: - Init
     
-    init(arrayOfImage: [UIImage], locationTitle: String?, coordinates: CLLocationCoordinate2D?, results: [SearchResult], typeOfLink: String, iconImage: UIImage, caption: String) {
-        self.arrayOfImage = arrayOfImage
-        self.locationTitle = locationTitle
-        self.coordinates = coordinates
-        self.resultsArray = results
-        self.typeOfLink = typeOfLink
-        self.iconImage = iconImage
-        self.caption = caption
-        super.init(nibName: nil, bundle: nil)
-    }
+//    init(arrayOfImage: [UIImage], locationTitle: String?, coordinates: CLLocationCoordinate2D?, results: [SearchResult], typeOfLink: String, iconImage: UIImage, caption: String) {
+//        self.arrayOfImage = arrayOfImage
+//        self.locationTitle = locationTitle
+//        self.coordinates = coordinates
+//        self.resultsArray = results
+//        self.typeOfLink = typeOfLink
+//        self.iconImage = iconImage
+//        self.caption = caption
+//        super.init(nibName: nil, bundle: nil)
+//    }
+//
+//    required init?(coder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    
+    // MARK: LayoutSubview
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -188,35 +195,67 @@ class FinalPageCreateLinkViewController: UIViewController {
         tableView.frame =  CGRect(x: 0,
                                   y: eventInfoTextView.bottom+20,
                                   width: view.width,
-                                  height: 390)
+                                  height: 450)
         
         picker.frame = CGRect(x: (view.width-picker.width)/2, y:  (view.height-picker.height)/2, width: picker.width, height: picker.height)
         
-    
-    }
+            }
     
     //MARK: - Actions
+    
+    private func addSubviews() {
+        view.addSubview(linkTypeImage)
+        view.addSubview(typeOfLinkLabel)
+        view.addSubview(eventInfoTextView)
+        view.addSubview(tableView)
+        view.addSubview(privacyButton)
+        view.addSubview(picker)
+        view.addSubview(blurEffectView)
+        view.insertSubview(picker, aboveSubview: blurEffectView)
+        
+    }
+    
+    private func alertPopUp(message: String) {
+        let alert = UIAlertController(title: "Oops", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Try again", style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+
+    @objc func dismissKeyboard() {
+        //Causes the view (or one of its embedded text fields) to resign the first responder status.
+        view.endEditing(true)
+    }
+
     
     @objc private func didTapDone() {
         
         
         let extraInfo = eventInfoTextView.text ?? ""
+        guard let dateOfLink = self.pickerDate else {
+            alertPopUp(message: "Please Select a Date")
+            return
+        }
+        
+        spinner.show(in: view)
 
         // Generate post ID
      
         guard let username = UserDefaults.standard.string(forKey: "username"),
-              let locationTitle = self.locationTitle,
-              let coordinates = self.coordinates,
-              let dateOfLink = self.postDateString,
+              let locationTitle = MapViewController.staticLocationTitle,
+              let coordinates = MapViewController.staticCoordinates,
               let newPostID = createNewPostID(),
-              let stringDate = String.date(from: Date())
+                let linkName = CategoryViewController.staticTitleOfLink,
+                let info = PostEditViewController.staticCaption
         else {
-            return
+            fatalError("No info gotten ")
         }
+        
         
         let latitude = coordinates.latitude
         let longitude = coordinates.longitude
 
+        let arrayOfImage = LinkCameraViewController.staticPhotoArray
         var dataImageArray = [Data]()
         arrayOfImage.forEach({ image in
             guard let dataImage = image.pngData() else {
@@ -251,55 +290,71 @@ class FinalPageCreateLinkViewController: UIViewController {
                     print("error: failed to upload")
                     return
                 }
-                
+                    
 
+                
             // New Post
             let newLink = LinkModel(
                 id: newPostID,
                 user: username,
-                info: self.caption,
+                info: info,
                 location: Coordinates(latitude: latitude, longitude: longitude),
                 locationTitle: locationTitle,
-                linkTypeName: self.typeOfLink,
-                invites: self.resultsArray,
-                postedDate: stringDate,
-                linkDate: dateOfLink,
+                linkTypeName: linkName,
+                 pending: AddNewPeopleToLinkViewController.staticTargetUsers,
+                 accepted: [],
+                 requesting: [],
+                postedDate: Date().timeIntervalSince1970,
+                linkDate: dateOfLink.timeIntervalSince1970,
                 postArrayString: postLinkString,
                 likers: [],
+                
                 isPrivate: self.isLocked,
                 linkTypeImage: linkTypeImageDownloadURL.absoluteString,
-                extraInformation: extraInfo)
+                extraInformation: extraInfo
+            )
 
                 /// sending a notification to each user!
     
                 let id = NotificationsManager.newIdentifier()
                 
-               
+                    
+              
                 
             // Update Database
             DatabaseManager.shared.createLink(newLink: newLink) { [weak self] finished in
                 guard finished else {
                     return
                 }
-                DispatchQueue.main.async {
-                    self?.tabBarController?.tabBar.isHidden = false
-                    self?.tabBarController?.selectedIndex = 0
-                    self?.navigationController?.popToRootViewController(animated: false)
-
-                    NotificationCenter.default.post(name: .didPostNotification,
-                                                    object: nil)
-                }
-                
+             
                 
                 // send out all the users notifications!
-                self?.resultsArray.forEach { users in
+                let resultsArray = AddNewPeopleToLinkViewController.staticTargetUsers
+                 resultsArray.forEach { users in
                     let user = users.name
                     
-                    let inviteNotification = LinkNotification(identifer: id, notificationType: 4, profilePictureUrl: "", postLinkIconImage: linkTypeImageDownloadURL.absoluteString, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: false, isAccepted: false, postId: newPostID, postUrl: "")
+                     let inviteNotification = LinkNotification(identifer: id, notificationType: 4, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [], isRequesting: [], postId: newPostID, postUrl: postLinkUrl[0].absoluteString)
                     
                     NotificationsManager.shared.create(notification: inviteNotification, for: user)
                     
                     print("Sent out all notifications!")
+                
+                DispatchQueue.main.async {
+                    self?.spinner.dismiss(animated: true)
+                    self?.tabBarController?.tabBar.isHidden = false
+                    self?.tabBarController?.selectedIndex = 0
+                    NotificationCenter.default.post(name: .didPostNotification,
+                                                    object: nil)
+                    NotificationCenter.default.post(name: .didPostLinkOnMap,
+                                                    object: nil)
+                    self?.navigationController?.navigationBar.tintColor = .black
+                    self?.navigationController?.popToRootViewController(animated: false)
+                    
+                }
+                
+                
+              
+            
                 }
                 
             }
@@ -323,36 +378,48 @@ class FinalPageCreateLinkViewController: UIViewController {
     
     
     @objc private func didTapLock() {
-        isLocked = !isLocked
         
         if isLocked {
+            privacyButton.setImage(UIImage(systemName: "lock.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 35)), for: .normal)
+            print(isLocked)
+            
+        } else {
             privacyButton.setImage( UIImage(systemName: "lock.open.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 35)), for: .normal)
             
             print(isLocked)
-        } else {
-            privacyButton.setImage(UIImage(systemName: "lock.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 35)), for: .normal)
-            print(isLocked)
+            
         }
+        isLocked = !isLocked
+        
     }
     
     
     @objc func didTapView() {
         picker.isHidden = true
         blurEffectView.isHidden = true
+        linkTypeImage.isHidden = false
+        typeOfLinkLabel.isHidden = false
+        eventInfoTextView.isHidden = false
+        tableView.isHidden = false
+        privacyButton.isHidden = false
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(didTapDone))
     }
     
     @objc func datePickerChanged(picker: UIDatePicker) {
         
         let dateString = DateFormatter.formatter.string(from: picker.date)
+        self.pickerDate = picker.date
         self.postDateString = dateString
         print("current: \(picker.date)")
        }
     
     
     @objc func didTapDoneGuests() {
+         let vc = AddNewPeopleToLinkViewController()
+        navigationController?.pushViewController(vc, animated: true)
         
-        let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, guestInvited: publicGuestsInvited)
-       navigationController?.pushViewController(vc, animated: true)
+//        let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption)
+//       navigationController?.pushViewController(vc, animated: true)
         
     }
     
@@ -392,20 +459,40 @@ extension FinalPageCreateLinkViewController: UITableViewDelegate, UITableViewDat
         
         switch cellTitles[indexPath.row] {
         case "Date of Event":
-            blurEffectView.isHidden = false
+            navigationItem.rightBarButtonItem = nil
             picker.isHidden = false
+            blurEffectView.isHidden = false
+            linkTypeImage.isHidden = true
+            typeOfLinkLabel.isHidden = true
+            eventInfoTextView.isHidden = true
+            tableView.isHidden = true
+            privacyButton.isHidden = true
         case "Media":
-            let vc = PostEditViewController(arrayOfImage: arrayOfImage, iconImage: publicIconImage, caption: caption, categoryItem: publicCategoryString, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
+//            break
+            let imageArray = PostEditViewController.staticImageArray
+            let vc = PostEditViewController(arrayOfImage: imageArray)
+//            let vc = PostEditViewController(arrayOfImage: arrayOfImage, iconImage: publicIconImage, caption: caption, categoryItem: publicCategoryString, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
             navigationController?.pushViewController(vc, animated: true)
         case "Categories":
-            let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: iconImage, caption: caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
+//            break
+            let vc = CategoryViewController()
+            
+            
+//            let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: iconImage, caption: caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
+            
             navigationController?.pushViewController(vc, animated: true)
+            
         case "Location":
-            let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
+//            break
+            let vc = SearchResultTableViewController()
+//            let vc = LocationViewController(arrayOfImage: arrayOfImage, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
             navigationController?.pushViewController(vc, animated: true)
         case "Guests":
-            let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, guestInvited: publicGuestsInvited)
-            vc.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(didTapDoneGuests))
+//            break
+            let vc = AddNewPeopleToLinkViewController()
+//            let vc = AddNewPeopleToLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, typeOfLink: typeOfLink, iconImage: iconImage, caption: caption, guestInvited: publicGuestsInvited)
+//            vc.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(didTapDoneGuests))
+            navigationItem.rightBarButtonItem?.title = "Done"
             navigationController?.pushViewController(vc, animated: true)
         case "Sponsor Event":
             break
@@ -423,8 +510,17 @@ extension FinalPageCreateLinkViewController: UITableViewDelegate, UITableViewDat
 extension FinalPageCreateLinkViewController: UITextViewDelegate {
     
     func textViewDidBeginEditing(_ textView: UITextView) {
-        textView.text = ""
+        
+        if eventInfoTextView.text == "Enter Event Information" {
+            textView.text = nil
+            textView.becomeFirstResponder()
+        }
+       
         textView.becomeFirstResponder()
+    }
+    
+    func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
+        textView.resignFirstResponder()
     }
     
 }

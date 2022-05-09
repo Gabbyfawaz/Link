@@ -27,6 +27,7 @@ final class RequestNotificationTableViewCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
+        imageView.backgroundColor = .tertiarySystemBackground
         return imageView
     }()
 
@@ -71,10 +72,11 @@ final class RequestNotificationTableViewCell: UITableViewCell {
         guard let vm = viewModel else {
             return
         }
-        delegate?.requestNotificationTableViewCell(self, didTapButton: !didAccept, viewModel: vm)
         didAccept = !didAccept
-
+        print("the state of this button is: \(didAccept)")
         acceptButton.configure(for: didAccept ? .accepted : .accept)
+        delegate?.requestNotificationTableViewCell(self, didTapButton: didAccept, viewModel: vm)
+        
     }
 
     override func layoutSubviews() {
@@ -132,11 +134,18 @@ final class RequestNotificationTableViewCell: UITableViewCell {
         self.viewModel = viewModel
         print(viewModel)
         label.text = viewModel.username + " requested to join your link."
-        linkIconPictureImageView.sd_setImage(with: viewModel.linkIconPictureUrl, completed: nil)
-        didAccept = viewModel.isRequested
+        
+        StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
+            DispatchQueue.main.async {
+                if let url = url {
+                    self.linkIconPictureImageView.sd_setImage(with: url, completed: nil)
+                }
+            }
+        }
+//        didAccept = viewModel.isRequested
         dateLabel.text = viewModel.date
 
-        acceptButton.configure(for: didAccept ? .accepted : .accept)
+        acceptButton.configure(for: viewModel.isRequested ? .accepted : .accept)
     }
 }
 

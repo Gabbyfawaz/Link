@@ -3,7 +3,7 @@
 //  Link
 //
 //  Created by Gabriella Fawaz on 2021/08/25.
-//
+
 
 import UIKit
 
@@ -31,10 +31,10 @@ class CreateLinkTableViewCell: UITableViewCell {
     }
     
 //    func configure(with view: UIView) {
-//        
+//
 //        self.specializedView = view
 //    }
-//    
+//
     
 
 

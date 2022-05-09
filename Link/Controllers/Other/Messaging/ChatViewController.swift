@@ -14,7 +14,7 @@ import AVKit
 import CoreLocation
 
 
-final class ChatViewController: MessagesViewController {
+internal class ChatViewController: MessagesViewController {
 
     private var senderPhotoURL: URL?
     private var otherUserPhotoURL: URL?
@@ -30,7 +30,7 @@ final class ChatViewController: MessagesViewController {
     public let otherUserEmail: String
     private var conversationId: String?
     public var isNewConversation = false
-
+    private var privateLink: PrivateLink?
     private var messages = [Message]()
 
     private var selfSender: Sender? {
@@ -57,15 +57,21 @@ final class ChatViewController: MessagesViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+//        messagesCollectionView = MessagesCollectionView(frame: .zero, collectionViewLayout: MyCustomMessagesFlowLayout())
+//                   messagesCollectionView.register(MyCustomCell.self)
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
         messagesCollectionView.messageCellDelegate = self
         messageInputBar.delegate = self
         setupInputButton()
-        
+//
+       
         
     }
+    
+    
     
 
     private func setupInputButton() {
@@ -95,9 +101,56 @@ final class ChatViewController: MessagesViewController {
         actionSheet.addAction(UIAlertAction(title: "Location", style: .default, handler: { [weak self]  _ in
             self?.presentLocationPicker()
         }))
+        actionSheet.addAction(UIAlertAction(title: "Link", style: .default, handler: { [weak self]  _ in
+            self?.presentLinkActionsheet()
+        }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
         present(actionSheet, animated: true)
+    }
+    
+    
+
+    
+    private func presentLinkActionsheet() {
+        
+        let vc = LinkPickerViewController()
+        vc.completion = { [weak self] privateLink in
+        
+            guard let strongSelf = self else {
+                return
+            }
+            guard let messageId = strongSelf.createMessageId(),
+                  let conversationId = strongSelf.conversationId,
+                  let name = strongSelf.title,
+                  let selfSender = strongSelf.selfSender else {
+                      return
+                  }
+            
+            let message = Message(sender: selfSender,
+                                  messageId: messageId,
+                                  sentDate: Date(),
+                                  kind: .custom(privateLink),
+                                  type: "custom")
+            
+            DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: strongSelf.otherUserEmail, name: name, newMessage: message, completion: { success in
+                          if success {
+                              print("sent location message")
+                          }
+                          else {
+                              print("failed to send location message")
+                          }
+                      })
+//
+        }
+        vc.modalPresentationStyle = .automatic
+        present(vc, animated: true)
+       
+        
+
+        
+//
+      
     }
 
     private func presentLocationPicker() {
@@ -129,7 +182,8 @@ final class ChatViewController: MessagesViewController {
             let message = Message(sender: selfSender,
                                   messageId: messageId,
                                   sentDate: Date(),
-                                  kind: .location(location))
+                                  kind: .location(location),
+                                  type: "location")
 
             DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: strongSelf.otherUserEmail, name: name, newMessage: message, completion: { success in
                 if success {
@@ -205,16 +259,17 @@ final class ChatViewController: MessagesViewController {
         DatabaseManager.shared.getAllMessagesForConversation(with: id, completion: { [weak self] result in
             switch result {
             case .success(let messages):
+              
                 print("success in getting messages: \(messages)")
                 guard !messages.isEmpty else {
                     print("messages are empty")
                     return
                 }
                 self?.messages = messages
-
+                print("the type of the message: \(messages.count)")
                 DispatchQueue.main.async {
+//                    self?.messagesCollectionView.reloadData()
                     self?.messagesCollectionView.reloadDataAndKeepOffset()
-
                     if shouldScrollToBottom {
                         self?.messagesCollectionView.scrollToLastItem()
                     }
@@ -231,7 +286,29 @@ final class ChatViewController: MessagesViewController {
         if let conversationId = conversationId {
             listenForMessages(id: conversationId, shouldScrollToBottom: true)
         }
+
     }
+    
+    
+    override open func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+            guard let messagesDataSource = messagesCollectionView.messagesDataSource else {
+                fatalError("Ouch. nil data source for messages")
+            }
+            //before checking the messages check if section is reserved for typing otherwise it will cause IndexOutOfBounds error
+            if isSectionReservedForTypingIndicator(indexPath.section){
+                return super.collectionView(collectionView, cellForItemAt: indexPath)
+            }
+            let message = messagesDataSource.messageForItem(at: indexPath, in: messagesCollectionView)
+            if case .custom = message.kind {
+                
+                let cell = messagesCollectionView.dequeueReusableCell(MyCustomCell.self, for: indexPath)
+                cell.configure(with: message, at: indexPath, and: messagesCollectionView)
+                return cell
+            }
+        
+            return super.collectionView(collectionView, cellForItemAt: indexPath)
+        }
 
 }
 
@@ -278,7 +355,8 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                     let message = Message(sender: selfSender,
                                           messageId: messageId,
                                           sentDate: Date(),
-                                          kind: .photo(media))
+                                          kind: .photo(media),
+                                          type: "photo")
 
                     DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: strongSelf.otherUserEmail, name: name, newMessage: message, completion: { success in
 
@@ -324,7 +402,8 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                     let message = Message(sender: selfSender,
                                           messageId: messageId,
                                           sentDate: Date(),
-                                          kind: .video(media))
+                                          kind: .video(media),
+                                          type: "video")
 
                     DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: strongSelf.otherUserEmail, name: name, newMessage: message, completion: { success in
 
@@ -360,7 +439,8 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
         let message = Message(sender: selfSender,
                                messageId: messageId,
                                sentDate: Date(),
-                               kind: .text(text))
+                              kind: .text(text),
+                              type: "text")
 
         // Send Message
         if isNewConversation {
@@ -536,6 +616,8 @@ extension ChatViewController: MessageCellDelegate {
             
             vc.title = "Location"
             navigationController?.pushViewController(vc, animated: true)
+        case .custom(let privateLink):
+            break
         default:
             break
         }
@@ -568,4 +650,6 @@ extension ChatViewController: MessageCellDelegate {
         }
     }
 }
+
+
 

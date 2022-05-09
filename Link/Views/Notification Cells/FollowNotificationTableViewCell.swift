@@ -7,6 +7,11 @@
 
 import UIKit
 
+//enum NotificationButtonType {
+//    case follow(isFollowing: Bool)
+//    case confirm(isConfirmed: Bool)
+//}
+
 protocol FollowNotificationTableViewCellDelegate: AnyObject {
     func followNotificationTableViewCell(_ cell: FollowNotificationTableViewCell,
                                          didTapButton isFollowing: Bool,
@@ -21,6 +26,8 @@ final class FollowNotificationTableViewCell: UITableViewCell {
     private var viewModel: FollowNotificationCellViewModel?
 
     private var isFollowing = false
+    
+    private var action = FollowNotificationButtonType.follow
 
     private let profilePictureImageView: UIImageView = {
         let imageView = UIImageView()
@@ -70,12 +77,16 @@ final class FollowNotificationTableViewCell: UITableViewCell {
         guard let vm = viewModel else {
             return
         }
-        delegate?.followNotificationTableViewCell(self,
-                                                  didTapButton: !isFollowing,
-                                                  viewModel: vm)
+        
         isFollowing = !isFollowing
 
         followButton.configure(for: isFollowing ? .unfollow : .follow)
+
+        delegate?.followNotificationTableViewCell(self,
+                                                  didTapButton: isFollowing,
+                                                  viewModel: vm)
+        
+        
     }
 
     override func layoutSubviews() {
@@ -108,7 +119,7 @@ final class FollowNotificationTableViewCell: UITableViewCell {
 
         label.frame = CGRect(
             x: profilePictureImageView.right+10,
-            y: 0,
+            y: 5,
             width: labelSIze.width,
             height: contentView.height-dateLabel.height-2
         )
@@ -134,21 +145,21 @@ final class FollowNotificationTableViewCell: UITableViewCell {
         print(viewModel)
         label.text = viewModel.username + " started following you."
         
+        StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
         DispatchQueue.main.async {
-            StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
-                guard let url = url else {
+            guard let url = url else {
                     return
                 }
                 self.profilePictureImageView.sd_setImage(with: url, completed: nil)
             }
-            
+//
         }
-        
+//
         
         isFollowing = viewModel.isCurrentUserFollowing
         dateLabel.text = viewModel.date
 
-        followButton.configure(for: isFollowing ? .unfollow : .follow)
+        followButton.configure(for: viewModel.isCurrentUserFollowing ? .unfollow : .follow)
     }
 }
 

@@ -27,6 +27,7 @@ final class AcceptNotificationTableCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
+        imageView.backgroundColor = .tertiarySystemBackground
         return imageView
     }()
 
@@ -132,7 +133,15 @@ final class AcceptNotificationTableCell: UITableViewCell {
         self.viewModel = viewModel
         print(viewModel)
         label.text = viewModel.username + " invited you to their link."
-        linkIconPictureImageView.sd_setImage(with: viewModel.linkIconPictureUrl, completed: nil)
+        
+        StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
+            DispatchQueue.main.async {
+                if let url = url {
+                    self.linkIconPictureImageView.sd_setImage(with: url, completed: nil)
+                }
+            }
+        }
+       
         didAccept = viewModel.isCurrentInGuestInvited
         dateLabel.text = viewModel.date
 

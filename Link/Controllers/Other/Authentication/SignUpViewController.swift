@@ -18,14 +18,14 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
     private let mainTitle: UILabel = {
         let title = UILabel()
         title.text = "Create"
-        title.textColor = .systemPurple
+        title.textColor = .label
         title.font = UIFont.systemFont(ofSize: 50, weight: .bold)
         return title
     }()
     private let mainTitle2: UILabel = {
         let title = UILabel()
         title.text = "Account"
-        title.textColor = .systemPurple
+        title.textColor = .label
         title.font = UIFont.systemFont(ofSize: 50, weight: .bold)
         return title
     }()
@@ -34,7 +34,7 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
     private let subTitle: UILabel = {
         let title = UILabel()
         title.text = "Please fill the input below here"
-        title.textColor = .white
+        title.textColor = .label
         title.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         return title
     }()
@@ -48,12 +48,12 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
         return field
     }()
     
-    private let emailFieldImage: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "envelope")
-        iv.tintColor = .black
-        return iv
-    }()
+//    private let emailFieldImage: UIImageView = {
+//        let iv = UIImageView()
+//        iv.image = UIImage(systemName: "envelope")
+//        iv.tintColor = .label
+//        return iv
+//    }()
     
     private let usernameField: LinkTextField = {
         let field = LinkTextField()
@@ -63,12 +63,12 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
         return field
     }()
     
-    private let usernameImage: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "person.fill")
-        iv.tintColor = .black
-        return iv
-    }()
+//    private let usernameImage: UIImageView = {
+//        let iv = UIImageView()
+//        iv.image = UIImage(systemName: "person.fill")
+//        iv.tintColor = .label
+//        return iv
+//    }()
     
     private let passwordField: LinkTextField = {
         let field = LinkTextField()
@@ -80,18 +80,19 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
         return field
     }()
     
-    private let passwordFieldImage: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "lock")
-        iv.tintColor = .black
-        return iv
-    }()
+//    private let passwordFieldImage: UIImageView = {
+//        let iv = UIImageView()
+//        iv.image = UIImage(systemName: "lock")
+//        iv.tintColor = .label
+//        return iv
+//    }()
 
 
     private let signUpButton: UIButton = {
         let button = UIButton()
         button.setTitle("Sign In", for: .normal)
-        button.backgroundColor = .systemPurple
+        button.setTitleColor(.systemBackground, for: .normal)
+        button.backgroundColor = .label
         button.layer.cornerRadius = 30
         button.layer.masksToBounds = true
         return button
@@ -102,7 +103,7 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
     private let alreadyHaveAccount: UILabel = {
         let title = UILabel()
         title.text = "Already have an account?"
-        title.textColor = .white
+        title.textColor = .label
         title.alpha = 0.7
         title.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         return title
@@ -110,7 +111,7 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
 
     private let backToLogInButton: UIButton = {
         let button = UIButton()
-        button.setTitleColor(.systemPurple, for: .normal)
+        button.setTitleColor(.label, for: .normal)
         button.setTitle("Log in", for: .normal)
         return button
     }()
@@ -129,6 +130,9 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
         emailField.delegate = self
         passwordField.delegate = self
         addButtonActions()
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
+           view.addGestureRecognizer(tap)
     }
 
     override func viewDidLayoutSubviews() {
@@ -136,12 +140,12 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
         mainTitle.frame = CGRect(x: 25, y: view.height/8, width: view.width-50, height: 50)
         mainTitle2.frame = CGRect(x: 25, y: mainTitle.bottom+2, width: view.width-50, height: 50)
         subTitle.frame = CGRect(x: 25, y: mainTitle2.bottom+50, width: view.width, height: 50)
-        usernameImage.frame = CGRect(x: 25, y: subTitle.bottom+10, width: 50, height: 50)
-        usernameField.frame = CGRect(x: usernameImage.right+2, y: subTitle.bottom+10, width: view.width-usernameImage.width-50, height: 50)
-        emailFieldImage.frame = CGRect(x: 25, y: usernameField.bottom+10, width: 50, height: 50)
-        emailField.frame = CGRect(x: emailFieldImage.right+2, y: usernameField.bottom+10, width: view.width-emailFieldImage.width-50, height: 50)
-        passwordFieldImage.frame = CGRect(x: 25, y: emailFieldImage.bottom+10, width: 50, height: 50)
-        passwordField.frame = CGRect(x: passwordFieldImage.right+2, y: emailField.bottom+10, width: view.width-passwordFieldImage.width-50, height: 50)
+//        usernameImage.frame = CGRect(x: 25, y: subTitle.bottom+10, width: 50, height: 50)
+        usernameField.frame = CGRect(x: 30, y: subTitle.bottom+10, width: view.width-60, height: 50)
+//        emailFieldImage.frame = CGRect(x: 25, y: usernameField.bottom+10, width: 50, height: 50)
+        emailField.frame = CGRect(x: 30, y: usernameField.bottom+10, width: view.width-60, height: 50)
+//        passwordFieldImage.frame = CGRect(x: 25, y: emailFieldImage.bottom+10, width: 50, height: 50)
+        passwordField.frame = CGRect(x: 30, y: emailField.bottom+10, width: view.width-60, height: 50)
         signUpButton.frame = CGRect(x: (view.width-signUpButton.width-200)/2, y: passwordField.bottom+40, width: 200, height: 70)
         alreadyHaveAccount.frame = CGRect(x: (view.width-alreadyHaveAccount.width-250)/2, y: signUpButton.bottom+50, width: 300, height: 50)
         backToLogInButton.frame = CGRect(x: (view.width-backToLogInButton.width-200)/2, y: alreadyHaveAccount.bottom, width: 200, height: 20)
@@ -150,14 +154,14 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
     private func addSubviews() {
         view.addSubview(mainTitle)
         view.addSubview(subTitle)
-        view.addSubview(emailFieldImage)
-        view.addSubview(passwordFieldImage)
+//        view.addSubview(emailFieldImage)
+//        view.addSubview(passwordFieldImage)
         view.addSubview(emailField)
         view.addSubview(passwordField)
         view.addSubview(signUpButton)
         view.addSubview(backToLogInButton)
         view.addSubview(alreadyHaveAccount)
-        view.addSubview(usernameImage)
+//        view.addSubview(usernameImage)
         view.addSubview(usernameField)
         view.addSubview(mainTitle2)
     }
@@ -171,6 +175,11 @@ class SignUpViewController: UIViewController, UITextFieldDelegate, UIImagePicker
 
     // MARK: - Actions
 
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    
 
     @objc func didTapSignUp() {
         usernameField.resignFirstResponder()

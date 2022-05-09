@@ -2,12 +2,12 @@
 # platform :ios, '9.0'
 
 target 'Link' do
-  # Comment the next line if you don't want to use dynamic frameworks
-  use_frameworks!
+  # Comment the next line if you don't want to use dynamic frameworks pod 'BSImagePicker'
+  use_frameworks! 
 
   # Pods for Link
 
- pod 'Appirater'
+pod 'Appirater'
   pod 'Firebase/Core'
   pod 'Firebase/Auth'
   pod 'Firebase/Analytics'
@@ -17,14 +17,9 @@ target 'Link' do
   pod 'Firebase/Database'
   pod 'MessageKit'
   pod 'JGProgressHUD'
-  pod 'FloatingPanel'
-  pod 'GoogleMaps', '5.1.0'
   pod 'Cosmos'
   pod 'TinyConstraints'
-  pod 'GooglePlaces', '5.0.0'
-  pod "BSImagePicker"
-  pod 'DateTimePicker'
-
-
+ pod 'FloatingPanel'
+ pod 'UberRides'
 
 end

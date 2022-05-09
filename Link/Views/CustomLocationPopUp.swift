@@ -18,18 +18,18 @@ class CustomLocationPopUp : UIView {
 
     private let title: UILabel = {
         let title = UILabel()
-        title.text = "LOCATION:"
+        title.text = "Event's Location:"
         title.textAlignment = .left
-        title.textColor = .black
-        title.font = .systemFont(ofSize: 21, weight: .bold)
+        title.textColor = .label
+        title.font = .systemFont(ofSize: 18, weight: .semibold)
         return title
     }()
     
     private let locationTitle: UILabel = {
         let title = UILabel()
         title.textAlignment = .left
-        title.textColor = .black
-        title.font = .systemFont(ofSize: 19, weight: .medium)
+        title.textColor = .label
+        title.font = .systemFont(ofSize: 16, weight: .medium)
         return title
     }()
     
@@ -37,7 +37,7 @@ class CustomLocationPopUp : UIView {
     private let cancelButton: UIButton = {
        let button = UIButton()
         button.setImage(UIImage(systemName: "multiply.circle"), for: .normal)
-        button.tintColor = .black
+        button.tintColor = .label
         return button
     }()
    
@@ -46,7 +46,9 @@ class CustomLocationPopUp : UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        
+        backgroundColor = .systemBackground
+        layer.masksToBounds = true
+        layer.cornerRadius = 10
         addSubview(title)
         addSubview(locationTitle)
         addSubview(cancelButton)
@@ -64,7 +66,7 @@ class CustomLocationPopUp : UIView {
         title.frame = CGRect(x: 15,
                              y: 5,
                              width: width-15-45,
-                             height: 40)
+                             height: 30)
         cancelButton.frame = CGRect(x: width-45,
                              y: 5,
                              width: 30,
@@ -72,7 +74,7 @@ class CustomLocationPopUp : UIView {
         locationTitle.frame = CGRect(x: 15,
                                      y: title.bottom,
                              width: width-15,
-                             height: 40)
+                             height: 30)
         
     }
     
@@ -85,10 +87,11 @@ class CustomLocationPopUp : UIView {
     
     public func configure(locationString: String, isPrivate: Bool) {
         locationTitle.text = locationString
+        print("The location is: \(locationString)")
         
         if isPrivate == true {
             locationTitle.text = "Private"
-        }
+        } 
     }
     
    

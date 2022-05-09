@@ -24,6 +24,9 @@ class CommentNotificationTableViewCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
+        imageView.backgroundColor = .tertiarySystemBackground
+//        imageView.image = UIImage(systemName: "person")
+        imageView.tintColor = .label
         return imageView
     }()
 
@@ -130,25 +133,28 @@ class CommentNotificationTableViewCell: UITableViewCell {
 
     public func configure(with viewModel: CommentNotificationCellViewModel) {
         self.viewModel = viewModel
-        
-        
+        self.label.text = viewModel.username + " commented on your post."
+        self.dateLabel.text = viewModel.date
         
         StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
-            guard let url = url else {
-                return
+
+            DispatchQueue.main.async {
+               
+                self.postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
+                if let url = url  {
+                    self.profilePictureImageView.sd_setImage(
+                        with: url,
+                        completed: nil
+                    )
+                }
+
             }
-            self.profilePictureImageView.sd_setImage(
-                with: url,
-                completed: nil
-            )
             
-            self.postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
         }
      
        
         
-        label.text = viewModel.username + " commented on your post."
-        dateLabel.text = viewModel.date
+      
     }
 }
 

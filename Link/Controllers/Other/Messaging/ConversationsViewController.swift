@@ -38,18 +38,18 @@ final class ConversationsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Chats"
-        navigationController?.navigationBar.prefersLargeTitles = false
-        view.backgroundColor = .systemBackground
+//        title = "Chats"
+//        navigationController?.navigationBar.prefersLargeTitles = false
+//        view.backgroundColor = .systemBackground
+        configureNavBar()
         
-        navigationItem.leftBarButtonItem =  UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .done, target: self, action: #selector(didTapBackButton))
 //       navigationItem.backBarButtonItem? = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(didTapBackButton))
 //
 //        tabBarController?.tabBar.isHidden = true
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose,
-                                                            target: self,
-                                                            action: #selector(didTapComposeButton))
+//        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose,
+//                                                            target: self,
+//                                                            action: #selector(didTapComposeButton))
         view.addSubview(tableView)
         view.addSubview(noConversationsLabel)
         setupTableView()
@@ -64,12 +64,39 @@ final class ConversationsViewController: UIViewController {
         })
     }
     
+    
+    private func configureNavBar() {
+        
+        let titleLabel = UILabel()
+        titleLabel.text = "CHATS"
+        titleLabel.textColor = UIColor.label
+        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
+        let leftItem = UIBarButtonItem(customView: titleLabel)
+        view.backgroundColor = .systemBackground
+        
+        self.navigationItem.leftBarButtonItems = [ UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .done, target: self, action: #selector(didSwipeRight)), leftItem]
+        tabBarController?.tabBar.isHidden = true
+        navigationController?.navigationBar.tintColor = .label
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose,
+                                                            target: self,
+                                                            action: #selector(didTapComposeButton))
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didSwipeRight))
+        swipeRight.direction = .right
+        view.addGestureRecognizer(swipeRight)
+//        navigationItem.leftBarButtonItem =  UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .done, target: self, action: #selector(didTapBackButton))
+    }
+    
     @objc private func didTapBackButton() {
         navigationController?.popToRootViewController(animated: true)
         tabBarController?.tabBar.isHidden = false
         print("Has been tapped")
     }
 
+    @objc private func didSwipeRight() {
+        navigationController?.navigationBar.tintColor = .black
+        navigationController?.popViewController(animated: true)
+        tabBarController?.tabBar.isHidden = false
+    }
     private func startListeningForCOnversations() {
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
             return

@@ -24,21 +24,54 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
                            forCellReuseIdentifier: "cell")
         return tableView
     }()
+    
+    private let noResultsLabel: UILabel = {
+        let label = UILabel()
+        label.isHidden = true
+        label.text = "User does not exist"
+        label.textAlignment = .center
+        label.textColor = .label
+        label.font = .systemFont(ofSize: 18, weight: .medium)
+        return label
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         view.addSubview(tableView)
-        tableView.frame = view.bounds
+        view.addSubview(noResultsLabel)
         tableView.delegate = self
         tableView.dataSource = self
+        
+      
     }
     
     public func update(with results: [User]) {
-        self.users = results
-        tableView.reloadData()
-        tableView.isHidden = users.isEmpty
+       
+        
+        if results.isEmpty {
+            noResultsLabel.isHidden = false
+            tableView.isHidden = true
+        } else {
+            
+            self.users = results
+            tableView.reloadData()
+            tableView.isHidden = users.isEmpty
+            noResultsLabel.isHidden = true
+        }
     }
+    
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        tableView.frame = view.bounds
+        noResultsLabel.frame = CGRect(x: view.width/4,
+                                      y: (view.height-200)/2,
+                                      width: view.width/2,
+                                      height: 200)
+    }
+
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return users.count
@@ -53,6 +86,10 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         delegate?.searchResultsViewController(self, didSelectResultWith: users[indexPath.row])
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return "Search for Users"
     }
 }
 

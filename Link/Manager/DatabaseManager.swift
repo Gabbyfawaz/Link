@@ -36,42 +36,42 @@ final class DatabaseManager {
     
     
     
-    
-    public func createStories(newStory: LinkStory, completion: @escaping (Bool) -> Void) {
-        guard let username = UserDefaults.standard.string(forKey: "username") else {
-            completion(false)
-            return
-        }
-
-        let reference = database.document("users/\(username)/stories/\(newStory.id)")
-        guard let data = newStory.asDictionary() else {
-            completion(false)
-            return
-        }
-        reference.setData(data) { error in
-            completion(error == nil)
-        }
-    }
-    
-    
-    public func getAllStories(
-        for otherUsername: String,
-        completion: @escaping (Result<[LinkStory], Error>) -> Void
-    ) {
-        let ref = database.collection("users")
-            .document(otherUsername)
-            .collection("stories")
-        ref.getDocuments { snapshot, error in
-            guard let stories = snapshot?.documents.compactMap({
-                LinkStory(with: $0.data())
-            }),
-            error == nil else {
-                return
-            }
-            completion(.success(stories))
-        }
-    }
-    
+//    
+//    public func createStories(newStory: LinkStory, completion: @escaping (Bool) -> Void) {
+//        guard let username = UserDefaults.standard.string(forKey: "username") else {
+//            completion(false)
+//            return
+//        }
+//
+//        let reference = database.document("users/\(username)/stories/\(newStory.id)")
+//        guard let data = newStory.asDictionary() else {
+//            completion(false)
+//            return
+//        }
+//        reference.setData(data) { error in
+//            completion(error == nil)
+//        }
+//    }
+//    
+//    
+//    public func getAllStories(
+//        for otherUsername: String,
+//        completion: @escaping (Result<[LinkStory], Error>) -> Void
+//    ) {
+//        let ref = database.collection("users")
+//            .document(otherUsername)
+//            .collection("stories")
+//        ref.getDocuments { snapshot, error in
+//            guard let stories = snapshot?.documents.compactMap({
+//                LinkStory(with: $0.data())
+//            }),
+//            error == nil else {
+//                return
+//            }
+//            completion(.success(stories))
+//        }
+//    }
+//    
     
     public func savePins(pinDrop: Pin, completion: @escaping (Bool) -> Void) {
  
@@ -91,6 +91,8 @@ final class DatabaseManager {
     public func getAllPins(
         completion: @escaping (Result<[Pin], Error>) -> Void
     ) {
+        
+    
         let ref = database.collection("pins")
         ref.getDocuments { snapshot, error in
             guard let pins = snapshot?.documents.compactMap({
@@ -99,8 +101,12 @@ final class DatabaseManager {
             error == nil else {
                 return
             }
+            
             completion(.success(pins))
         }
+
+        
+        
     }
     
     
@@ -126,22 +132,26 @@ final class DatabaseManager {
         for otherUsername: String,
         completion: @escaping (Result<[LinkModel], Error>) -> Void
     ) {
+      
         let ref = database.collection("users")
             .document(otherUsername)
             .collection("links")
+   
         ref.getDocuments { snapshot, error in
             guard let links = snapshot?.documents.compactMap({
                 LinkModel(with: $0.data())
             }).sorted(by: {
-                return $0.date > $1.date
+                return $0.postedDate > $1.postedDate
             }),
             error == nil else {
                 return
             }
+            print("The links are: \(links)")
             completion(.success(links))
         }
     }
     
+   
     /// Link for individual post
 
     public func getLink(
@@ -159,12 +169,149 @@ final class DatabaseManager {
                 completion(nil)
                 return
             }
-
             completion(LinkModel(with: data))
         }
     }
     
+      
     
+    public func createQuickLink(quickLink: QuickLink, completion: @escaping(Bool) -> Void) {
+
+        let ref = database.collection("users")
+            .document(quickLink.username)
+            .collection("QuickLinks")
+            .document("\(quickLink.id)")
+        
+        guard let data = quickLink.asDictionary() else {
+            completion(false)
+            return
+        }
+        ref.setData(data) { error in
+            completion(error == nil)
+        }
+    }
+    
+    public func getQuickLink(
+        with identifer: String,
+        from username: String,
+        completion: @escaping (QuickLink?) -> Void
+    ) {
+        let ref = database.collection("users")
+            .document(username)
+            .collection("QuickLinks")
+            .document(identifer)
+        ref.getDocument { snapshot, error in
+            guard let data = snapshot?.data(),
+                  error == nil else {
+                completion(nil)
+                return
+            }
+            completion(QuickLink(with: data))
+        }
+    }
+  
+    
+    public func getAllQuickLinks(
+        for otherUsername: String,
+        completion: @escaping (Result<[QuickLink], Error>) -> Void
+    ) {
+        // define the path
+        
+        let ref = database.collection("users")
+            .document(otherUsername)
+            .collection("QuickLinks")
+   
+        ref.getDocuments { snapshot, error in
+            guard let quickLinks = snapshot?.documents.compactMap({
+                QuickLink(with: $0.data())
+//                QuickLink(with: $0.data())
+            }).sorted(by: {
+                return $0.date > $1.date
+            }),
+            error == nil else {
+                return
+            }
+            print("The links are: \(quickLinks)")
+            completion(.success(quickLinks))
+        }
+    }
+    
+    
+    public func createBoomingPin(pin: Pin, completion: @escaping(Bool) -> Void) {
+        guard let data = pin.asDictionary() else {
+            completion(false)
+            return
+        }
+        let ref = database.collection("pins").document(pin.locationString)
+       
+        ref.setData(data) { error in
+            completion(error == nil)
+        }
+        
+    }
+
+    
+    public func getBoomingPin(
+        completion: @escaping ([Pin?]) -> Void
+    ) {
+        
+        // want to do this search in terms of users region 
+        var pins = [Pin?]()
+//        let group = DispatchGroup()
+        let ref = database.collection("pins")
+//        group.enter()
+        ref.getDocuments { documents, error in
+            documents?.documents.forEach({ snapshot in
+//                defer {
+//                    group.leave()
+//                }
+                let data = snapshot.data()
+                guard error == nil else {
+                    completion([nil])
+                    return
+                }
+                pins.append(Pin(with: data))
+                
+            })
+//            group.notify(queue: .main) {
+            completion(pins)
+//            }
+           
+        }
+    }
+  
+    
+    
+    public func deleteLinkAfterEventComplete() {
+        
+
+        var users = [String]()
+        let usersRef = database.collection("users")
+        usersRef.addSnapshotListener { snapshot, error in
+            snapshot?.documents.forEach { document in
+                users.append(document.documentID)
+            }
+            
+        }
+        
+            DispatchQueue.global(qos: .background).async {
+            users.forEach({ user in
+                let ref = self.database.collection("users")
+                    .document(user)
+                    .collection("links")
+                // first delete any old links
+                let date = Date().timeIntervalSince1970
+                let query =  ref.whereField("linkDate", isLessThan: date)
+                query.getDocuments { querySnapshot, error in
+                    querySnapshot?.documents.forEach({ document in
+                        document.reference.delete()
+                    })
+
+                }
+            })
+            }
+
+    }
     
     public func findLinks(
         with linkPrefix: String,
@@ -256,25 +403,25 @@ final class DatabaseManager {
     /// - Parameters:
     ///   - username: Username to query
     ///   - completion: Result callback
-    public func posts(
-        for username: String,
-        completion: @escaping (Result<[Post], Error>) -> Void
-    ) {
-        let ref = database.collection("users")
-            .document(username)
-            .collection("posts")
-        ref.getDocuments { snapshot, error in
-            guard let posts = snapshot?.documents.compactMap({
-                Post(with: $0.data())
-            }).sorted(by: {
-                return $0.date > $1.date
-            }),
-            error == nil else {
-                return
-            }
-            completion(.success(posts))
-        }
-    }
+//    public func posts(
+//        for username: String,
+//        completion: @escaping (Result<[Post], Error>) -> Void
+//    ) {
+//        let ref = database.collection("users")
+//            .document(username)
+//            .collection("posts")
+//        ref.getDocuments { snapshot, error in
+//            guard let posts = snapshot?.documents.compactMap({
+//                Post(with: $0.data())
+//            }).sorted(by: {
+//                return $0.date > $1.date
+//            }),
+//            error == nil else {
+//                return
+//            }
+//            completion(.success(posts))
+//        }
+//    }
 
     /// Find single user with email
     /// - Parameters:
@@ -315,21 +462,21 @@ final class DatabaseManager {
     /// - Parameters:
     ///   - newPost: New Post model
     ///   - completion: Result callback
-    public func createPost(newPost: Post, completion: @escaping (Bool) -> Void) {
-        guard let username = UserDefaults.standard.string(forKey: "username") else {
-            completion(false)
-            return
-        }
+//    public func createPost(newPost: Post, completion: @escaping (Bool) -> Void) {
+//        guard let username = UserDefaults.standard.string(forKey: "username") else {
+//            completion(false)
+//            return
+//        }
 
-        let reference = database.document("users/\(username)/posts/\(newPost.id)")
-        guard let data = newPost.asDictionary() else {
-            completion(false)
-            return
-        }
-        reference.setData(data) { error in
-            completion(error == nil)
-        }
-    }
+//        let reference = database.document("users/\(username)/posts/\(newPost.id)")
+//        guard let data = newPost.asDictionary() else {
+//            completion(false)
+//            return
+//        }
+//        reference.setData(data) { error in
+//            completion(error == nil)
+//        }
+//    }
 
     /// Create new user
     /// - Parameters:
@@ -411,6 +558,25 @@ final class DatabaseManager {
             completion(notifications)
         }
     }
+    
+    public func getNotification (notificationID: String,
+        completion: @escaping (LinkNotification?) -> Void
+    ) {
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            completion(nil)
+            return
+        }
+        let ref = database.collection("users").document(username).collection("notifications").document(notificationID)
+        ref.getDocument { snapshot, error in
+            guard let notifications = snapshot?.data(),
+                  error == nil else {
+                completion(nil)
+                return
+            }
+
+            completion(LinkNotification(with: notifications))
+        }
+    }
 
     /// Creates new notification
     /// - Parameters:
@@ -434,25 +600,25 @@ final class DatabaseManager {
     ///   - identifer: Query id
     ///   - username: Query username
     ///   - completion: Result callback
-    public func getPost(
-        with identifer: String,
-        from username: String,
-        completion: @escaping (Post?) -> Void
-    ) {
-        let ref = database.collection("users")
-            .document(username)
-            .collection("posts")
-            .document(identifer)
-        ref.getDocument { snapshot, error in
-            guard let data = snapshot?.data(),
-                  error == nil else {
-                completion(nil)
-                return
-            }
-
-            completion(Post(with: data))
-        }
-    }
+//    public func getPost(
+//        with identifer: String,
+//        from username: String,
+//        completion: @escaping (Post?) -> Void
+//    ) {
+//        let ref = database.collection("users")
+//            .document(username)
+//            .collection("posts")
+//            .document(identifer)
+//        ref.getDocument { snapshot, error in
+//            guard let data = snapshot?.data(),
+//                  error == nil else {
+//                completion(nil)
+//                return
+//            }
+//
+//            completion(Post(with: data))
+//        }
+//    }
 
     /// Follow states that are supported
     enum RelationshipState {
@@ -471,6 +637,17 @@ final class DatabaseManager {
         case accepted
     }
     
+    enum RelationshipStatePrivate {
+        case isPrivate
+        case notPrivate
+        
+    }
+    
+    enum RelationshipStateJoin{
+        case join
+        case joined
+    }
+     
     
 
     /// Update relationship of follow for user
@@ -501,14 +678,14 @@ final class DatabaseManager {
             // Remove follower for currentUser following list
             currentFollowing.document(targetUsername).delete()
             // Remove currentUser from targetUser followers list
-            targetUserFollowers.document(currentUsername).delete()
-
+            targetUserFollowers.document(currentUsername).setData(["valid": "1"])
+            
             completion(true)
         case .follow:
             // Add follower for requester following list
             currentFollowing.document(targetUsername).setData(["valid": "1"])
             // Add currentUser to targetUser followers list
-            targetUserFollowers.document(currentUsername).setData(["valid": "1"])
+            targetUserFollowers.document(currentUsername).delete()
 
             completion(true)
         }
@@ -516,155 +693,247 @@ final class DatabaseManager {
     
     
     
+//    public func uploadGuest(targertUser: String, guests: [SearchUser], linkId: String, completion: @escaping(Bool)->Void) {
+//        let ref = database.collection("users").document(targertUser).collection("links").document(linkId).collection("Pending")
+//
+//        guests.forEach { guest in
+//            ref.document(guest.name).setData(["name": "\(guest.name)"])
+//            completion(true)
+//        }
+//    }
+
+//    public func getPendingUsers(targetUser: String, linkId: String, completion: @escaping([SearchUser]) -> Void) {
+//
+//        let ref = database.collection("users").document(targetUser).collection("links").document(linkId).collection("Pending")
+//        ref.getDocuments { snapshot, error in
+//            guard let user = snapshot?.documents.compactMap({
+//                SearchUser(with: $0.data())
+//            }),
+//            error == nil else {
+//                completion([])
+//                return
+//            }
+//
+//            completion(user)
+//        }
+//    }
+
+    
+    
+//    public func getAcceptedUsers(targetUser: String, linkId: String, completion: @escaping([SearchUser]) -> Void) {
+//
+//        let ref = database.collection("users").document(targetUser).collection("links").document(linkId).collection("Accepted")
+//        ref.getDocuments { snapshot, error in
+//            guard let user = snapshot?.documents.compactMap({
+//                SearchUser(with: $0.data())
+//            }),
+//            error == nil else {
+//                completion([])
+//                return
+//            }
+//
+//            completion(user)
+//        }
+//    }
+
+    
+    
+//    public func isAccepted(targetUsername: String, linkId: String, completion: @escaping(Bool) -> Void) {
+//
+//        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+//            return
+//        }
+//        let ref = database.collection("users").document(targetUsername).collection("links").document(linkId).collection("Accepted").document(currentUsername )
+//
+//        ref.addSnapshotListener { snapshot, error in
+//            guard snapshot?.data() != nil, error == nil else {
+//                // Not following
+//                completion(false)
+//                return
+//            }
+//            // following
+//            completion(true)
+//        }
+//    }
     
     
     
+//    public func isPending(targetUsername: String, linkId: String, completion: @escaping(Bool) -> Void) {
+//
+//        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+//            return
+//        }
+//        let ref = database.collection("users").document(targetUsername).collection("links").document(linkId).collection("Pending").document(currentUsername )
+//
+//        ref.addSnapshotListener { snapshot, error in
+//            guard snapshot?.data() != nil, error == nil else {
+//                // Not following
+//                completion(false)
+//                return
+//            }
+//            // following
+//            completion(true)
+//        }
+//    }
+//
+    
+
     public func updateGuestList(state: RelationshipStateAccept,
                                 linkId: String,
                                 eventUsername: String,
                                 completion: @escaping (Bool) -> Void
     ) {
-        
-        
-      
-        DatabaseManager.shared.getLink(with: linkId, from: eventUsername) { linkModel in
-            guard var usersArray = linkModel?.invites else {
-                return
-            }
-            
-            
-            switch state {
-            case .accepted:
-                
-                /// delete from requesting
-                DatabaseManager.shared.deleteUserFromRequest(userRequesting: eventUsername) { success in
-                    if success {
-                        print("Current user sucessfully removed from database")
-                    } else {
-                        print("Failed to remove user from data base")
-                    }
-                }
-                /// find users email and add to database
-                DatabaseManager.shared.findUser(with: eventUsername) { user in
-                    guard let email = user?.email else {
-                        return
-                    }
-                    let newUser = SearchResult(name: eventUsername, email: email)
-                    usersArray.append(newUser)
-                    print("Sucessfully added user from database ")
-                    completion(true)
-                }
-                
-                completion(true)
-            case .accept:
-                /// remove  user from database!
-                completion(true)
-                break
-                
-            
-            
-                
-        }
-        
-    }
-    }
-    
-    
-    public func updateGuestListForInvitesOnly(state: RelationshipStateAccept,
-                                linkId: String,
-                                eventUsername: String,
-                                completion: @escaping (Bool) -> Void
-    ) {
-        
-        
-      
-        DatabaseManager.shared.getLink(with: linkId, from: eventUsername) { linkModel in
-            guard var usersArray = linkModel?.invites else {
-                return
-            }
-            
-            
-            switch state {
-            case .accepted:
-                /// find users email and add to database
-                DatabaseManager.shared.findUser(with: eventUsername) { user in
-                    guard let email = user?.email else {
-                        return
-                    }
-                    let newUser = SearchResult(name: eventUsername, email: email)
-                    usersArray.append(newUser)
-                    print("Sucessfully added user from database ")
-                    completion(true)
-                }
-                
-                completion(true)
-            case .accept:
-                /// remove  user from database!
-                completion(true)
-                break
-                
-            
-            
-                
-        }
-        
-    }
-    }
-    
-    
-    public func deleteUserFromRequest(userRequesting: String, completion: @escaping(Bool)-> Void) {
-        
-        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
             return
         }
 
-        let currentRequests = database.collection("users")
-            .document(currentUsername)
-            .collection("request")
-        
-        currentRequests.document(userRequesting).delete()
-        
-        completion(true)
-    
+        let refAccept = database.collection("users").document(eventUsername).collection("links").document(linkId).collection("Accepted")
 
-    }
-    
-    
-    
-    public func updateRelationshipRequest(
-        state: RelationshipStateRequest,
-        completion: @escaping (Bool) -> Void
-    ) {
-        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
-            completion(false)
-            return
+        let refPending = database.collection("users").document(eventUsername).collection("links").document(linkId).collection("Pending")
+
+            switch state {
+            case .accept:
+//             delete user from accepted database
+                refPending.document(username).delete()
+//             add user to requesting database
+                refAccept.document(username).setData(["name": "\(username)"])
+
+                completion(true)
+            case .accepted:
+                // delete user from requesting database
+                refAccept.document(username).delete()
+                // add user to accepted database
+                refPending.document(username).setData(["name": "\(username)"])
+                completion(true)
+                break
+
+            }
+
+
         }
 
-        let currentRequests = database.collection("users")
-            .document(currentUsername)
-            .collection("request")
-
-//        let targetUserRequesting = database.collection("users")
+//
+//
+//
+    
+//    public func updateGuestListForInvitesOnly(state: RelationshipStateAccept,
+//                                linkId: String,
+//                                eventUsername: String,
+//                                completion: @escaping (Bool) -> Void
+//    ) {
+//        
+//        
+//      
+//        DatabaseManager.shared.getLink(with: linkId, from: eventUsername) { linkModel in
+//            guard var usersArray = linkModel?.invites else {
+//                return
+//            }
+//            
+//            
+//            switch state {
+//            case .accepted:
+//                /// find users email and add to database
+//                DatabaseManager.shared.findUser(with: eventUsername) { user in
+//                    guard let email = user?.email else {
+//                        return
+//                    }
+//                    let newUser = SearchResult(name: eventUsername, email: email)
+//                    usersArray.append(newUser)
+//                    print("Sucessfully added user from database ")
+//                    completion(true)
+//                }
+//                
+//                
+//               
+//                
+//                
+//                
+//                DatabaseManager.shared.getLink(with: linkId, from: eventUsername) { linkModel in
+//                    
+//                    
+//                    
+//                }
+//                
+//                completion(true)
+//            case .accept:
+//                /// remove  user from database!
+//                completion(true)
+//                break
+//                
+//            
+//            
+//                
+//        }
+//        
+//    }
+//    }
+//    
+    
+//    public func deleteUserFromRequest(userRequesting: String,linkId: String, completion: @escaping(Bool)-> Void) {
+//
+//        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+//            return
+//        }
+//
+//        let currentRequests = database.collection("users")
+//            .document(userRequesting)
+//            .collection("links").document(linkId).collection("requesting")
+//
+//        currentRequests.document(userRequesting).delete()
+//
+//        completion(true)
+//
+//
+//    }
+    
+//
+//    public func isRequestEvent(targetUsername: String,linkId: String, completion: @escaping(Bool)-> Void) {
+//        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+//            completion(false)
+//            return
+//        }
+//
+//        let currentRequests = database.collection("users")
 //            .document(targetUsername)
-//            .collection("requesting")
-
-        switch state {
-        case .request:
-            // Remove follower for currentUser following list
-            currentRequests.document(currentUsername).delete()
-            // Remove currentUser from targetUser followers list
-//            targetUserRequesting.document(currentUsername).delete()
-
-            completion(true)
-        case .requesting:
-            // Add follower for requester following list
-            currentRequests.document(currentUsername).setData(["valid": "1"])
-            // Add currentUser to targetUser followers list
-//            targetUserRequesting.document(currentUsername).setData(["valid": "1"])
-
-            completion(true)
-        }
-    }
+//            .collection("links").document(linkId).collection("requesting")
+//            .document(currentUsername)
+//        currentRequests.addSnapshotListener { snapshot, error in
+//            guard snapshot?.data() != nil, error == nil else {
+//                // Not following
+//                completion(false)
+//                return
+//            }
+//            // following
+//            completion(true)
+//        }
+//    }
+    
+//    public func updateRelationshipRequest(
+//        linkId: String,
+//        username: String,
+//        state: RelationshipStateRequest,
+//        completion: @escaping (Bool) -> Void
+//    ) {
+//        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+//            completion(false)
+//            return
+//        }
+//
+//        let currentRequests = database.collection("users")
+//            .document(username)
+//            .collection("links").document(linkId).collection("requesting")
+//
+//
+//        switch state {
+//        case .requesting:
+//            currentRequests.document(currentUsername).delete()
+//            completion(true)
+//        case .request:
+//            currentRequests.document(currentUsername).setData(["valid": "1"])
+//            completion(true)
+//        }
+//    }
 
 
     /// Get user counts for target usre
@@ -729,7 +998,148 @@ final class DatabaseManager {
             completion(result)
         }
     }
+    
+    
+    // saves the users state isPrivate to database
+    public func UpdatePrivateState(state: RelationshipStatePrivate, completion: @escaping(Bool) -> Void) {
+        
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            fatalError("Could not get the username and data")
+        }
+        
+        let ref = database.collection("users").document(username).collection("links").document("isPrivate")
+        
+        switch state {
+        case .isPrivate:
+            ref.setData(["Valid": "1"])
+           completion(true)
+        case .notPrivate:
+            ref.delete()
+            completion(true)
+        }
 
+    }
+    
+    public func isUserPrivate(username: String, completion: @escaping(Bool) -> Void) {
+        
+        let ref = database.collection("users").document(username).collection("links").document("isPrivate")
+        
+        ref.getDocument { snapshot, error in
+            guard snapshot?.data() != nil, error == nil else {
+                // Not following
+                completion(false)
+                return
+            }
+            // following
+            completion(true)
+        }
+    }
+    
+    public func deleteRequestingUsersWhenPublic(completion: @escaping(Bool)-> Void) {
+        
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+            fatalError("Error fetching username")
+        }
+        let group = DispatchGroup()
+        let ref = database.collection("users").document(currentUsername).collection("requesting")
+        
+        ref.getDocuments {snapshot, error in
+            group.enter()
+            guard let usersRequesting = snapshot?.documents.compactMap({ $0.documentID }), error == nil else {
+                completion(false)
+                return
+            }
+            usersRequesting.forEach { targetUser in
+                
+                     defer {
+                         group.leave()
+                     }
+                     
+                // eg gabby is the requesting party (target user) and yasmina is the current user
+                let currentFollowing = self.database.collection("users")
+                    .document(currentUsername)
+                    .collection("followers") // yasi's followers
+
+                let targetUserFollowers = self.database.collection("users")
+                    .document(targetUser)
+                    .collection("following")
+                
+                
+                currentFollowing.document(targetUser).setData(["valid": "1"]) // put gabby in yasi followers
+                targetUserFollowers.document(currentUsername).setData(["valid": "1"]) //gabby's following put yasmina
+
+               
+    
+                    // print send the targetUser the notifications!
+                    print("sucessfully added the user to the follow database")
+                    ref.document(targetUser).delete()
+                }
+        
+        group.notify(queue: .main) {
+            
+            completion(true)
+            
+        }
+        }
+        
+    }
+        
+
+    
+
+    public func updateRequestingState(targetUsername: String, state: RelationshipStateRequest, completion: @escaping(Bool) -> Void) {
+    
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+            completion(false)
+            return
+        }
+
+        let currentRequesting = database.collection("users")
+            .document(targetUsername)
+            .collection("requesting")
+
+
+        switch state {
+        case .request:
+            // Remove follower for currentUser following list
+            currentRequesting.document(currentUsername).delete()
+            /// checks if the user is public
+            /// if !isPriavet {...}
+            /// update the state of target user in the following of the other user
+            completion(false)
+        case .requesting:
+            // Add follower for requester following list
+            currentRequesting.document(currentUsername).setData(["valid": "1"])
+
+            completion(true)
+        }
+        
+    }
+    
+    public func isRequesting(targetUsername: String, completion: @escaping(Bool)-> Void) {
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else {
+            completion(false)
+            return
+        }
+
+        let ref = database.collection("users")
+            .document(targetUsername)
+            .collection("requesting")
+            .document(currentUsername)
+        ref.getDocument { snapshot, error in
+            guard snapshot?.data() != nil, error == nil else {
+                // Not following
+                completion(false)
+                return
+            }
+            // following
+            completion(true)
+        }
+    }
+
+
+  
+    
     /// Check if current user is following another
     /// - Parameters:
     ///   - targetUsername: Other user to check
@@ -757,6 +1167,7 @@ final class DatabaseManager {
             completion(true)
         }
     }
+    
 
     /// Get followers for user
     /// - Parameters:
@@ -880,9 +1291,11 @@ final class DatabaseManager {
             .collection("links")
             .document(postID)
             .collection("comments")
-        ref.getDocuments { snapshot, error in
+        ref.addSnapshotListener { snapshot, error in
             guard let comments = snapshot?.documents.compactMap({
                 Comment(with: $0.data())
+            }).sorted(by: { first, second in
+                second.date > first.date
             }),
             error == nil else {
                 completion([])
@@ -895,18 +1308,31 @@ final class DatabaseManager {
 
     // MARK: - Liking
 
-    /// Like states that are supported
+   
     enum LikeState {
         case like
         case unlike
     }
 
-    /// Update like state on post
-    /// - Parameters:
-    ///   - state: State to update to
-    ///   - postID: Post to update for
-    ///   - owner: Owner username of post
-    ///   - completion: Result callback
+    public func createLike (
+        postID: String,
+        owner: String,
+        completion: @escaping (Bool) -> Void
+    ) {
+        
+        guard let currentUser = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+        let ref = database.collection("users")
+            .document(owner)
+            .collection("links")
+            .document(postID)
+            .collection("likers").document(currentUser)
+        
+        ref.setData(["valid": "1"]) { error in
+            completion(error == nil)
+        }
+    }
     public func updateLikeState(
         state: LikeState,
         postID: String,
@@ -933,15 +1359,216 @@ final class DatabaseManager {
                 link.likers.removeAll(where: { $0 == currentUsername })
             }
 
+            NotificationCenter.default.post(name: .updateLikeCount, object: nil, userInfo: ["likers": link.likers])
             guard let data = link.asDictionary() else {
                 completion(false)
                 return
             }
+            
+           
             ref.setData(data) { error in
                 completion(error == nil)
             }
         }
     }
+    
+    public func updateAcceptState(
+        state: RelationshipStateAccept,
+        postID: String,
+        owner: String,
+        completion: @escaping (Bool) -> Void
+    ) {
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else { return }
+        let ref = database.collection("users")
+            .document(owner)
+            .collection("links")
+            .document(postID)
+        getLink(with: postID, from: owner) { link in
+            guard var link = link else {
+                completion(false)
+                return
+            }
+
+            let user = SearchUser(name: currentUsername)
+            switch state {
+            case .accept:
+//                if link.pending.contains(user) {
+                    link.accepted.append(user)
+                    link.pending.removeAll(where: { $0 == user })
+//                }
+          
+            case .accepted:
+//                if link.accepted.contains(user) {
+                    link.pending.append(user)
+                    link.accepted.removeAll(where: { $0 == user })
+                    
+//                }
+          
+            }
+
+
+            guard let data = link.asDictionary() else {
+                completion(false)
+                return
+            }
+            
+           
+            ref.setData(data) { error in
+                completion(error == nil)
+            }
+        }
+    }
+    
+    
+    public func updateNotifticationRequestButton(owner: String, notificationID: String, isAccepted: Bool?, completion: @escaping(Bool)-> Void) {
+        
+        let ref = database.collection("users")
+            .document(owner)
+            .collection("notifications")
+            .document(notificationID)
+        getNotification(notificationID: notificationID) { notification in
+            
+            guard var notification = notification else {
+                completion(false)
+                return
+            }
+            
+            notification.isRequesting.removeAll()
+            notification.isRequesting.append(isAccepted)
+            guard let data = notification.asDictionary() else {
+                completion(false)
+                return
+            }
+            
+           
+            ref.setData(data) { error in
+                completion(error == nil)
+            }
+    }
+    
+    }
+    
+    
+    public func updateNotifticationFollowButton(owner: String, notificationID: String, isFollowing: Bool?, completion: @escaping(Bool)-> Void) {
+        
+        let ref = database.collection("users")
+            .document(owner)
+            .collection("notifications")
+            .document(notificationID)
+        getNotification(notificationID: notificationID) { notification in
+            
+            guard var notification = notification else {
+                completion(false)
+                return
+            }
+            
+            notification.isFollowing.removeAll()
+            notification.isFollowing.append(isFollowing)
+            guard let data = notification.asDictionary() else {
+                completion(false)
+                return
+            }
+            
+           
+            ref.setData(data) { error in
+                completion(error == nil)
+            }
+    }
+    
+    }
+//    
+//    
+    public func updateJoinState(
+        state: RelationshipStateJoin,
+        linkId: String,
+        owner: String,
+        completion: @escaping (Bool) -> Void
+    ) {
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else { return }
+        let ref = database.collection("users")
+            .document(owner)
+            .collection("QuickLinks")
+            .document(linkId)
+        getQuickLink(with: linkId, from: owner) { quickLink in
+            guard var quickLink = quickLink else {
+                completion(false)
+                return
+            }
+
+            let user = SearchUser(name: currentUsername)
+            switch state {
+            case .join:
+                if quickLink.joined.contains(user) {
+                    quickLink.joined.removeAll(where: { $0 == user })
+                }
+          
+            case .joined:
+                if !quickLink.joined.contains(where: { $0 == user } ) {
+                    quickLink.joined.append(user)
+                }
+             
+          
+            }
+
+
+            guard let data = quickLink.asDictionary() else {
+                completion(false)
+                return
+            }
+            
+            NotificationCenter.default.post(name: .didUpdateJoinButton, object: nil, userInfo: ["isJoined": quickLink.joined])
+           
+            ref.setData(data) { error in
+                completion(error == nil)
+            }
+        }
+    }
+    
+    public func updateRequestState(
+        state: RelationshipStateRequest,
+        postID: String,
+        owner: String,
+        completion: @escaping (Bool) -> Void
+    ) {
+        guard let currentUsername = UserDefaults.standard.string(forKey: "username") else { return }
+        let ref = database.collection("users")
+            .document(owner)
+            .collection("links")
+            .document(postID)
+        getLink(with: postID, from: owner) { link in
+            guard var link = link else {
+                completion(false)
+                return
+            }
+
+            let user = SearchUser(name: currentUsername)
+            switch state {
+            case .requesting:
+                  link.requesting.removeAll(where: { $0 == user })
+            case .request:
+                if !link.requesting.contains(user) {
+                    link.requesting.append(user)
+                }
+            }
+
+
+            guard let data = link.asDictionary() else {
+                completion(false)
+                return
+            }
+            
+           
+            ref.setData(data) { error in
+                completion(error == nil)
+            }
+        }
+    }
+    
+    
+    
+    
+    
+    
 }
 
 //MARK: - Messaging
@@ -1122,7 +1749,6 @@ extension DatabaseManager {
         let safeEmail = DatabaseManager.safeEmail(emailAddress: currentEmail)
 
         let ref = realDatabase.child("\(safeEmail)")
-
         ref.observeSingleEvent(of: .value, with: { [weak self] snapshot in
             guard var userNode = snapshot.value as? [String: Any] else {
                 completion(false)
@@ -1342,7 +1968,7 @@ extension DatabaseManager {
     /// Gets all mmessages for a given conversatino
     public func getAllMessagesForConversation(with id: String, completion: @escaping (Result<[Message], Error>) -> Void) {
         realDatabase.child("\(id)/messages").observe(.value, with: { snapshot in
-            guard let value = snapshot.value as? [[String: Any]] else{
+            guard let value = snapshot.value as? [[String: Any]] else {
                 completion(.failure(DatabaseError.failedToFetch))
                 return
             }
@@ -1355,10 +1981,12 @@ extension DatabaseManager {
                     let senderEmail = dictionary["sender_email"] as? String,
                     let type = dictionary["type"] as? String,
                     let dateString = dictionary["date"] as? String,
-                    let date = ChatViewController.dateFormatter.date(from: dateString)else {
+                    let date = ChatViewController.dateFormatter.date(from: dateString) else {
                         return nil
                 }
+                
                 var kind: MessageKind?
+//                var type: String?
                 if type == "photo" {
                     // photo
                     guard let imageUrl = URL(string: content),
@@ -1394,6 +2022,18 @@ extension DatabaseManager {
                     let location = Location(location: CLLocation(latitude: latitude, longitude: longitude),
                                             size: CGSize(width: 300, height: 300))
                     kind = .location(location)
+                } else if type == "custom" {
+                    let privateLinkComponent = content.components(separatedBy: ",")
+                    let latitude = Double(privateLinkComponent[4])
+                    let longitude = Double(privateLinkComponent[5])
+                    let coordinates = CLLocationCoordinate2D(latitude: latitude ?? 0.0, longitude: longitude ?? 0.0)
+                    let timeInterval = TimeInterval(privateLinkComponent[2])
+
+                 let privateLink = PrivateLink(title: privateLinkComponent[0], desciption: privateLinkComponent[1], date: timeInterval, locationTitle: privateLinkComponent[3], coordinates: coordinates)
+
+                    
+                        print("quicklink: \(privateLink)")
+                    kind = .custom(privateLink)
                 }
                 else {
                     kind = .text(content)
@@ -1410,7 +2050,8 @@ extension DatabaseManager {
                 return Message(sender: sender,
                                messageId: messageID,
                                sentDate: date,
-                               kind: finalKind)
+                               kind: finalKind,
+                               type: type)
             })
 
             completion(.success(messages))
@@ -1442,11 +2083,11 @@ extension DatabaseManager {
 
             let messageDate = newMessage.sentDate
             let dateString = ChatViewController.dateFormatter.string(from: messageDate)
-
             var message = ""
             switch newMessage.kind {
             case .text(let messageText):
                 message = messageText
+                break
             case .attributedText(_):
                 break
             case .photo(let mediaItem):
@@ -1469,7 +2110,9 @@ extension DatabaseManager {
                 break
             case .contact(_):
                 break
-            case .custom(_):
+            case .custom(let privatelink):
+                let privatelink = privatelink as? PrivateLink
+                message = "\(privatelink?.title), \(privatelink?.desciption), \(privatelink?.date), \(privatelink?.locationTitle), \(privatelink?.coordinates?.latitude), \(privatelink?.coordinates?.longitude)"
                 break
             case .linkPreview(_):
                 break

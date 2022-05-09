@@ -44,21 +44,25 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
         
         table.register(RequestNotificationTableViewCell.self, forCellReuseIdentifier: RequestNotificationTableViewCell.identifer)
         
-        table.register(AcceptedRequestedNotificationTableViewCell.self, forCellReuseIdentifier: AcceptedRequestedNotificationTableViewCell.identifer)
+        table.register(AcceptedNotificationTableViewCell.self, forCellReuseIdentifier: AcceptedNotificationTableViewCell.identifer)
         
         return table
     }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Notifications"
-        view.backgroundColor = .white
+//        title = "Notifications"
+        
         view.addSubview(tableView)
         tableView.delegate = self
         tableView.dataSource = self
         view.addSubview(noActivityLabel)
         fetchNotifications()
         configureNavBar()
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didTapRight))
+        swipeRight.direction = .right
+        view.addGestureRecognizer(swipeRight)
+       
     }
 
     override func viewDidLayoutSubviews() {
@@ -69,90 +73,108 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
     }
 
     private func fetchNotifications() {
-        NotificationsManager.shared.getNotifications { [weak self] models in
+        NotificationsManager.shared.getNotifications {[weak self] models in
             DispatchQueue.main.async {
                 self?.models = models
                 self?.createViewModels()
+                print("the models: \(models)")
+                
             }
         }
+        
+        
+        
+        
     }
     
     /// configure Navigation Bar
 
     private func configureNavBar() {
-        navigationController?.navigationBar.isHidden = false
-        navigationController?.navigationBar.prefersLargeTitles = false
+        let titleLabel = UILabel()
+        titleLabel.text = "NOTIFICATIONS"
+        titleLabel.textColor = UIColor.label
+        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
+        let leftItem = UIBarButtonItem(customView: titleLabel)
+        self.navigationItem.leftBarButtonItems = [ UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .done, target: self, action: #selector(didTapRight)), leftItem]
         view.backgroundColor = .systemBackground
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.isTranslucent = true
-        navigationController?.view.backgroundColor = .clear
+        tabBarController?.tabBar.isHidden = true
+//        navigationItem.backButtonDisplayMode = .minimal
     }
+    
+    @objc private func didTapRight() {
+        navigationController?.popViewController(animated: true )
+        tabBarController?.tabBar.isHidden = false
+    }
+    
     
     /// Creates viewModels from models
     private func createViewModels() {
+    
         
         models.forEach { model in
             guard let type = NotificationsManager.linkType(rawValue: model.notificationType) else {
                 return
             }
+        
             let username = model.username
-            guard let profilePictureUrl = URL(string: model.profilePictureUrl) else {
-                return
-            }
-
-            // Derive
-
+          
+            
             switch type {
             case .like:
-                guard let postUrl = URL(string: model.postUrl ?? "") else {
+                
+                guard let postUrl = URL(string: model.postUrl) else {
                     return
                 }
+                
+        
                 viewModels.append(
                     .like(
                         viewModel: LikeNotificationCellViewModel(
                             username: username,
-                            profilePictureUrl: profilePictureUrl,
+//                            profilePictureUrl: profilePictureUrl,
                             postUrl: postUrl,
                             date: model.dateString
                         )
                     )
                 )
             case .comment:
-                guard let postUrl = URL(string: model.postUrl ?? "") else {
+                guard let postUrl = URL(string: model.postUrl) else {
                     return
                 }
+                
                 viewModels.append(
                     .comment(
                         viewModel: CommentNotificationCellViewModel(
                             username: username,
-                            profilePictureUrl: profilePictureUrl,
+//                            profilePictureUrl: profilePictureUrl,
                             postUrl: postUrl,
                             date: model.dateString
                         )
                     )
                 )
             case .follow:
-                guard let isFollowing = model.isFollowing else {
-                    return
-                }
-                viewModels.append(
-                    .follow(
-                        viewModel: FollowNotificationCellViewModel(
-                            username: username,
-                            profilePictureUrl: profilePictureUrl,
-                            isCurrentUserFollowing: isFollowing,
-                            date: model.dateString
+                DatabaseManager.shared.isFollowing(targetUsername: model.username) { isFollowing in
+                    print("isFollowing: \(isFollowing)")
+                    
+                        let buttonType: FollowNotificationButtonType = .follow(isFollowing: isFollowing)
+                        
+                        self.viewModels.append(
+                            .follow(
+                                viewModel: FollowNotificationCellViewModel(
+                                    id: model.identifer,
+                                    username: username,
+                                    isCurrentUserFollowing: isFollowing,
+                                    date: model.dateString,
+                                    buttonType: buttonType
+                                )
+                            )
                         )
-                    )
-                )
-                
+                }
+               
+                        
             case .accept:
-//                guard let isAccepted = model.isAccepted else {
-//                    return
-//                }
-                
-                guard let postUrl = URL(string: model.postUrl ?? "") else {
+               let isAccepted = model.isRequesting[0] ?? false
+                guard let postUrl = URL(string: model.postUrl) else {
                     return
                 }
                 
@@ -160,49 +182,50 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
                     return
                 }
                 
-                guard let linkIconPictureURL = URL(string: model.postLinkIconImage) else {
-                    return
-                }
+//                guard let linkIconPictureURL = URL(string: model.username) else {
+//                    return
+//                }
+                
                 viewModels.append(
                     .accept(
                         viewModel: AcceptNotificationCellViewModel(
                             username: username,
-                            linkIconPictureUrl: linkIconPictureURL,
-                            isCurrentInGuestInvited: false,
+//                            linkIconPictureUrl: profilePictureUrl,
+                            isCurrentInGuestInvited: isAccepted,
                             postUrl: postUrl,
                             date: model.dateString,
                             postId: postId)
                     )
                 )
             case .request:
-//                guard let isAccepted = model.isAccepted else {
-//                    return
-//                }
+                let isRequested = model.isRequesting[0] ?? false
                 
-                guard let postUrl = URL(string: model.postUrl ?? "") else {
+                guard let postUrl = URL(string: model.postUrl) else {
                     return
                 }
                 
                 guard let postId = model.postId else {
                     return
                 }
+
+//                guard let linkIconPictureURL = URL(string: model.postLinkIconImage) else {
+//                    return
+//                }
                 
-                guard let linkIconPictureURL = URL(string: model.postLinkIconImage) else {
-                    return
-                }
                 viewModels.append(
                     .request(
                         viewModel: RequestNotificationCellViewModel(
+                            id: model.identifer,
                             username: username,
-                            linkIconPictureUrl: linkIconPictureURL,
-                            isRequested: false,
+//                            linkIconPictureUrl: profilePictureUrl,
+                            isRequested: isRequested,
                             postUrl: postUrl,
                             date: model.dateString,
                             postId: postId)
                     )
                 )
             case .accepetedRequest:
-                guard let postUrl = URL(string: model.postUrl ?? "") else {
+                guard let postUrl = URL(string: model.postUrl) else {
                     return
                 }
                 
@@ -210,14 +233,15 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
                     return
                 }
                 
-                guard let linkIconPictureURL = URL(string: model.postLinkIconImage) else {
-                    return
-                }
+//                guard let linkIconPictureURL = URL(string: model.postLinkIconImage) else {
+//                    return
+//                }
+                
                 viewModels.append(
                     .acceptedRequest(
                         viewModel: AcceptedRequestNotificationCellViewModel(
                             username: username,
-                            linkIconPictureUrl: linkIconPictureURL,
+//                            linkIconPictureUrl: profilePictureUrl,
                             isCurrentInGuestInvited: false,
                             postUrl: postUrl,
                             date: model.dateString,
@@ -249,6 +273,7 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
         let cellType = viewModels[indexPath.row]
         switch cellType {
         case .follow(let viewModel):
+            
             guard let cell = tableView.dequeueReusableCell(
                 withIdentifier: FollowNotificationTableViewCell.identifer,
                 for: indexPath
@@ -302,9 +327,9 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
             
         case .acceptedRequest(let viewModel):
             guard let cell = tableView.dequeueReusableCell(
-                withIdentifier: AcceptedRequestedNotificationTableViewCell.identifer,
+                withIdentifier: AcceptedNotificationTableViewCell.identifer,
                 for: indexPath
-            ) as? AcceptedRequestedNotificationTableViewCell else {
+            ) as? AcceptedNotificationTableViewCell else {
                 fatalError()
             }
             cell.configure(with: viewModel)
@@ -347,7 +372,7 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
                 return
             }
             DispatchQueue.main.async {
-              let vc = PostLinkViewController(link: linkModel, owner: username)
+              let vc = EventViewController(link: linkModel, owner: username)
                 vc.modalPresentationStyle = .automatic
                 self?.present(vc, animated: true, completion: nil)
             }
@@ -372,61 +397,58 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
 
 // MARK: - Actions
 
-extension NotificationsViewController: LikeNotificationTableViewCellDelegate, CommentNotificationTableViewCellDelegate, FollowNotificationTableViewCellDelegate, RequestNotificationTableViewCellDelegate, AcceptNotificationTableCellDelegate, AcceptedRequestNotificationTableViewCellDelegate
+extension NotificationsViewController: LikeNotificationTableViewCellDelegate, CommentNotificationTableViewCellDelegate, FollowNotificationTableViewCellDelegate, RequestNotificationTableViewCellDelegate, AcceptNotificationTableCellDelegate, AcceptedNotificationTableViewCellDelegate
 {
+    func acceptNotificationTableCell(_ cell: AcceptNotificationTableCell, didTapButton isAccepted: Bool, viewModel: AcceptNotificationCellViewModel) {
+        //
+    }
+    
    
-    func acceptedRequestedNotificationTableViewCell(_ cell: AcceptedRequestedNotificationTableViewCell, didTapPostWith viewModel: AcceptedRequestNotificationCellViewModel) {
+    func acceptedNotificationTableViewCell(_ cell: AcceptedNotificationTableViewCell, didTapPostWith viewModel: AcceptedRequestNotificationCellViewModel) {
         // do something when post is tapped!
     }
     
 
     func requestNotificationTableViewCell(_ cell: RequestNotificationTableViewCell, didTapButton isRequest: Bool, viewModel: RequestNotificationCellViewModel) {
         
-        let userRequesting = viewModel.username
-        let id = NotificationsManager.newIdentifier()
-        let linkIconString = viewModel.linkIconPictureUrl.absoluteString
-        let linkPost = viewModel.postUrl.absoluteString
         // remove the user who requested from requested database
+        print("the isRequest:\(isRequest)")
+        DatabaseManager.shared.updateRequestState(state: viewModel.isRequested ? .requesting: .request, postID: viewModel.postId, owner: viewModel.username) { isSuccess in
+            if isSuccess {
+                DatabaseManager.shared.updateAcceptState(state: viewModel.isRequested ? .accepted : .accept, postID: viewModel.postId, owner: viewModel.username) { isSuccess in
+                    if isSuccess {
+                       
+                        DatabaseManager.shared.updateNotifticationRequestButton(owner: viewModel.username, notificationID: viewModel.id, isAccepted: isRequest) { isSuccess in
+                            if isSuccess {
+                                
+                                let userRequesting = viewModel.username
+                                let id = NotificationsManager.newIdentifier()
+                        //        let linkIconString = viewModel.linkIconPictureUrl.absoluteString
+                                let linkPost = viewModel.postUrl.absoluteString
+                                guard let username = UserDefaults.standard.string(forKey: "username") else {
+                                    return
+                                }
+                                
+                                let acceptedRequest = LinkNotification(identifer: id, notificationType: 6, username: username, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [], isRequesting: [], postId: viewModel.postId, postUrl: linkPost )
+                                
+                                
+                                NotificationsManager.shared.create(notification: acceptedRequest, for: userRequesting)
+                            }
+                        }
+                       
+                 
+                        }
+                    }
+                }
+            }
         // add to newUserArray
         // send a notification to person who made request
         
-        DatabaseManager.shared.updateGuestList(state: .accepted, linkId: viewModel.postId, eventUsername: userRequesting) { sucess in
-            if sucess {
-                // send the requested user a notification saying he is invited to event!
-                
-                let acceptedRequest = LinkNotification(identifer: id, notificationType: 6, profilePictureUrl: linkIconString, postLinkIconImage: linkIconString, username: userRequesting, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: false, isAccepted: false, postId: viewModel.postId, postUrl: linkPost )
-                
-                
-                NotificationsManager.shared.create(notification: acceptedRequest, for: userRequesting)
-            } else {
-                
-                print("Couldn't update the guestList")
-            }
-        }
+     
     
     }
     
-    func acceptNotificationTableCell(_ cell: AcceptNotificationTableCell, didTapButton isAccepted: Bool, viewModel: AcceptNotificationCellViewModel) {
-    
-        let userRequesting = viewModel.username
-        let id = NotificationsManager.newIdentifier()
-        let linkIconString = viewModel.linkIconPictureUrl.absoluteString
-        let linkPost = viewModel.postUrl.absoluteString
-        
-        DatabaseManager.shared.updateGuestListForInvitesOnly(state: .accepted, linkId: viewModel.postId, eventUsername: userRequesting) { sucess in
-            if sucess {
-                // send the requested user a notification saying he is invited to event!
-                
-                let acceptedRequest = LinkNotification(identifer: id, notificationType: 6, profilePictureUrl: linkIconString, postLinkIconImage: linkIconString, username: userRequesting, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: false, isAccepted: false, postId: viewModel.postId, postUrl: linkPost )
-                
-                
-                NotificationsManager.shared.create(notification: acceptedRequest, for: userRequesting)
-            } else {
-                
-                print("Couldn't update the guestList")
-            }
-        }
-    }
+   
     
     
     
@@ -467,38 +489,52 @@ extension NotificationsViewController: LikeNotificationTableViewCellDelegate, Co
         didTapButton isFollowing: Bool,
         viewModel: FollowNotificationCellViewModel
     ) {
+        
+        print("the following button is: \(isFollowing)")
         let username = viewModel.username
         DatabaseManager.shared.updateRelationship(
-            state: isFollowing ? .follow : .unfollow,
+            state: isFollowing ? .unfollow : .follow,
             for: username
-        ) { [weak self] success in
-            if !success {
-                DispatchQueue.main.async {
-                    let alert = UIAlertController(
-                        title: "Woops",
-                        message: "Unable to perform action.",
-                        preferredStyle: .alert
-                    )
-                    alert.addAction(
-                        UIAlertAction(
-                            title: "Dismiss",
-                            style: .cancel,
-                            handler: nil
-                        )
-                    )
-                    self?.present(alert, animated: true)
+        ) { [weak self] isSuccess in
+            if isSuccess {
+                
+                guard let username = UserDefaults.standard.string(forKey: "username") else {
+                    return
                 }
-            } else {
-                
-                let id = NotificationsManager.newIdentifier()
-                
-                
-                let followNotification = LinkNotification(identifer: id, notificationType: 3, profilePictureUrl: "", postLinkIconImage: "", username: viewModel.username, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: false, isAccepted: false, postId: "", postUrl: nil)
-                
-            
-                
-                NotificationsManager.shared.create(notification: followNotification, for: viewModel.username)
-            }
+                DatabaseManager.shared.updateNotifticationFollowButton(owner: username, notificationID: viewModel.id, isFollowing: isFollowing) { isSuccess in
+                    
+                    if isFollowing {
+                        
+                        let id = NotificationsManager.newIdentifier()
+                        guard let username = UserDefaults.standard.string(forKey: "username") else {
+                            return
+                        }
+                        
+                        let followNotification = LinkNotification(identifer: id, notificationType: 3, username: username, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [isFollowing], isRequesting: [nil],  postId: "", postUrl: "")
+                        
+                    
+                        
+                        NotificationsManager.shared.create(notification: followNotification, for: viewModel.username)
+                }
+                }
+                       
+                } else {
+                       DispatchQueue.main.async {
+                           let alert = UIAlertController(
+                               title: "Woops",
+                               message: "Unable to perform action.",
+                               preferredStyle: .alert
+                           )
+                           alert.addAction(
+                               UIAlertAction(
+                                   title: "Dismiss",
+                                   style: .cancel,
+                                   handler: nil
+                               )
+                           )
+                           self?.present(alert, animated: true)
+                       }
+                   }
         }
     }
 
@@ -530,7 +566,7 @@ extension NotificationsViewController: LikeNotificationTableViewCellDelegate, Co
                     return
                 }
 
-                let vc = PostLinkViewController(link: link, owner: username)
+                let vc = EventViewController(link: link, owner: username)
                 self?.navigationController?.pushViewController(vc, animated: true)
             }
         }

@@ -8,9 +8,10 @@
 import Foundation
 
 enum SingleLinkPostCellViewModelType {
-    case poster(viewModel: PosterLinkCollectionViewCellViewModel)
-    case post(viewModel: PostLinkCollectionViewCellViewModel)
+    case poster(viewModel: NameOfLinkCollectionViewCellViewModel)
+    case post(viewModel: MediaPostCollectionViewCellViewModel)
     case actions(viewModel: PostLinkActionCollectionViewCellViewModel)
+    case username(viewModel: PostLinkUsenameCollectionCellViewModel )
     case info(viewModel: PostLinkExtraInfoCollectionCellViewModel)
     case invite(viewModel: PostInviteCollectionViewCellViewModel)
     case location(viewModel: PostLocationCollectionViewCellViewModel)
@@ -22,6 +23,7 @@ enum SingleLinkPostCellViewModelType {
 
 enum SingleLinkFeedCellViewModelType {
         case nameOfLink(viewModel: PostOfFeedCollectionViewModel)
+//        case nameOfLink(viewModel: Link)
 //    case nameOfLink(viewModel: NameOfCollectionViewViewModel)
 //    case location(viewModel: PostLocationCollectionViewCellViewModel)
 //    case invites(viewModel: PostInviteCollectionViewCellViewModel)

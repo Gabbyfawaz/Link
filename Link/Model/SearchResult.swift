@@ -7,7 +7,11 @@
 
 import Foundation
 
-public struct SearchResult: Codable {
+public struct SearchResult: Codable, Hashable {
     let name: String
     let email: String
+}
+
+public struct SearchUser: Codable, Hashable {
+    let name: String
 }

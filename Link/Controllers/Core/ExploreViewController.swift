@@ -14,79 +14,79 @@ final class ExploreViewController: UIViewController, UISearchResultsUpdating, UI
     private var searchVC = UISearchController(searchResultsController: SearchResultsViewController())
     
     /// Primary exploreo UI component
-    private let collectionView: UICollectionView = {
-        let layout = UICollectionViewCompositionalLayout { index, _ -> NSCollectionLayoutSection? in
-            let item = NSCollectionLayoutItem(
-                layoutSize: NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(0.5),
-                    heightDimension: .fractionalHeight(1)
-                )
-            )
-
-            let fullItem = NSCollectionLayoutItem(
-                layoutSize: NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1),
-                    heightDimension: .fractionalHeight(1)
-                )
-            )
-//
-//            let tripletItem = NSCollectionLayoutItem(
+//    private let collectionView: UICollectionView = {
+//        let layout = UICollectionViewCompositionalLayout { index, _ -> NSCollectionLayoutSection? in
+//            let item = NSCollectionLayoutItem(
 //                layoutSize: NSCollectionLayoutSize(
-//                    widthDimension: .fractionalWidth(1/3),
+//                    widthDimension: .fractionalWidth(0.5),
 //                    heightDimension: .fractionalHeight(1)
 //                )
 //            )
 //
-            let verticalGroup = NSCollectionLayoutGroup.vertical(
-                layoutSize: NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(0.5),
-                    heightDimension: .fractionalHeight(1)
-                ),
-                subitem: fullItem,
-                count: 1
-            )
-
-            let horizontalGroup = NSCollectionLayoutGroup.horizontal(
-                layoutSize: NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1),
-                    heightDimension: .fractionalWidth(1/2)),
-                subitems: [
-                    item,
-                    verticalGroup
-                ]
-            )
-//
-//            let threeItemGroup = NSCollectionLayoutGroup.horizontal(
+//            let fullItem = NSCollectionLayoutItem(
 //                layoutSize: NSCollectionLayoutSize(
 //                    widthDimension: .fractionalWidth(1),
-//                    heightDimension: .absolute(160)
-//                ),
-//                subitem: tripletItem,
-//                count: 3
+//                    heightDimension: .fractionalHeight(1)
+//                )
 //            )
+////
+////            let tripletItem = NSCollectionLayoutItem(
+////                layoutSize: NSCollectionLayoutSize(
+////                    widthDimension: .fractionalWidth(1/3),
+////                    heightDimension: .fractionalHeight(1)
+////                )
+////            )
+////
+//            let verticalGroup = NSCollectionLayoutGroup.vertical(
+//                layoutSize: NSCollectionLayoutSize(
+//                    widthDimension: .fractionalWidth(0.5),
+//                    heightDimension: .fractionalHeight(1)
+//                ),
+//                subitem: fullItem,
+//                count: 1
+//            )
+//
+//            let horizontalGroup = NSCollectionLayoutGroup.horizontal(
+//                layoutSize: NSCollectionLayoutSize(
+//                    widthDimension: .fractionalWidth(1),
+//                    heightDimension: .fractionalWidth(1/2)),
+//                subitems: [
+//                    item,
+//                    verticalGroup
+//                ]
+//            )
+////
+////            let threeItemGroup = NSCollectionLayoutGroup.horizontal(
+////                layoutSize: NSCollectionLayoutSize(
+////                    widthDimension: .fractionalWidth(1),
+////                    heightDimension: .absolute(160)
+////                ),
+////                subitem: tripletItem,
+////                count: 3
+////            )
+//
+//            let finalGroup = NSCollectionLayoutGroup.vertical(
+//                layoutSize: NSCollectionLayoutSize(
+//                    widthDimension: .fractionalWidth(1),
+//                    heightDimension: .fractionalWidth(1/2)
+//                ),
+//                subitems: [
+////                    horizontalGroup,
+////                    threeItemGroup
+//                    horizontalGroup
+//                ]
+//            )
+//            return NSCollectionLayoutSection(group: finalGroup)
+//        }
 
-            let finalGroup = NSCollectionLayoutGroup.vertical(
-                layoutSize: NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1),
-                    heightDimension: .fractionalWidth(1/2)
-                ),
-                subitems: [
-//                    horizontalGroup,
-//                    threeItemGroup
-                    horizontalGroup
-                ]
-            )
-            return NSCollectionLayoutSection(group: finalGroup)
-        }
-
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .systemBackground
-        collectionView.register(ExploreCollectionViewCell.self,
-                                forCellWithReuseIdentifier: ExploreCollectionViewCell.identifier)
-        return collectionView
-    }()
-
-    private var links = [(link: LinkModel, user: User)]()
+//        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+//        collectionView.backgroundColor = .systemBackground
+//        collectionView.register(ExploreCollectionViewCell.self,
+//                                forCellWithReuseIdentifier: ExploreCollectionViewCell.identifier)
+//        return collectionView
+//    }()
+//
+//    private var links = [(link: LinkModel, user: User)]()
     
 //    private var category = ["Users", "Links"]
 
@@ -94,35 +94,62 @@ final class ExploreViewController: UIViewController, UISearchResultsUpdating, UI
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Explore"
-        navigationController?.navigationBar.prefersLargeTitles = true
-        view.backgroundColor = .systemBackground
         
+
+        configureNavBar()
         (searchVC.searchResultsController as? SearchResultsViewController)?.delegate = self
         searchVC.searchBar.placeholder = "Search..."
         searchVC.searchBar.delegate = self
         searchVC.searchResultsUpdater = self
         navigationItem.searchController = searchVC
-        view.addSubview(collectionView)
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        fetchData()
+//        view.addSubview(collectionView)
+//        collectionView.delegate = self
+//        collectionView.dataSource = self
+//        fetchData()
+        
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didTapRight))
+        swipeRight.direction = .right
+        view.addGestureRecognizer(swipeRight)
+      
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        collectionView.frame = view.bounds
+//        collectionView.frame = view.bounds
     }
 
-    private func fetchData() {
-        
-        DatabaseManager.shared.explorePosts { [weak self] links in
-            DispatchQueue.main.async {
-                self?.links = links
-                self?.collectionView.reloadData()
-            }
-        }
+    
+    private func configureNavBar() {
+        let titleLabel = UILabel()
+        titleLabel.text = "EXPLORE"
+        titleLabel.textColor = UIColor.label
+        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
+        let leftItem = UIBarButtonItem(customView: titleLabel)
+        self.navigationItem.leftBarButtonItems = [ UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .done, target: self, action: #selector(didTapRight)), leftItem]
+        tabBarController?.tabBar.isHidden = true 
+//        title = "Explore"
+//        navigationController?.navigationBar.prefersLargeTitles = true
+        view.backgroundColor = .systemBackground
+//        navigationItem.backButtonDisplayMode = .minimal
     }
+    
+    @objc private func didTapRight() {
+            navigationController?.popViewController(animated: true )
+        tabBarController?.tabBar.isHidden = false
+
+    }
+    
+
+    
+//    private func fetchData() {
+//
+//        DatabaseManager.shared.explorePosts { [weak self] links in
+//            DispatchQueue.main.async {
+//                self?.links = links
+//                self?.collectionView.reloadData()
+//            }
+//        }
+//    }
 
     func updateSearchResults(for searchController: UISearchController) {
         
@@ -156,36 +183,36 @@ final class ExploreViewController: UIViewController, UISearchResultsUpdating, UI
      
 }
 
-extension ExploreViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return links.count
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ExploreCollectionViewCell.identifier,
-            for: indexPath
-        ) as? ExploreCollectionViewCell else {
-            fatalError()
-        }
-        let model = links[indexPath.row]
-        
-        cell.configure(postString: model.link.postArrayString[0], iconString: model.link.linkTypeImage, nameOfLink: model.link.linkTypeName)
-        
-//        let image = model.link.postArrayString[0]
-//        cell.configure(postString: URL(string: image), iconString: model.link.linkTypeImage, nameOfLink: model.link.linkTypeName)
-        return cell
-    }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        collectionView.deselectItem(at: indexPath, animated: true)
-        let model = links[indexPath.row]
-        let vc = PostLinkViewController(link: model.link, owner: model.user.username)
-        vc.modalPresentationStyle = .automatic
-        present(vc, animated: true, completion: nil)
-//        let vc = PostViewController(post: model.post, owner: model.user.username)
-//        navigationController?.pushViewController(vc, animated: true)
-    }
-}
+//extension ExploreViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+//        return links.count
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ExploreCollectionViewCell.identifier,
+//            for: indexPath
+//        ) as? ExploreCollectionViewCell else {
+//            fatalError()
+//        }
+//        let model = links[indexPath.row]
+//
+//        cell.configure(postString: model.link.postArrayString[0], iconString: model.link.linkTypeImage, nameOfLink: model.link.linkTypeName)
+//
+////        let image = model.link.postArrayString[0]
+////        cell.configure(postString: URL(string: image), iconString: model.link.linkTypeImage, nameOfLink: model.link.linkTypeName)
+//        return cell
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+//        collectionView.deselectItem(at: indexPath, animated: true)
+//        let model = links[indexPath.row]
+//        let vc = PostLinkViewController(link: model.link, owner: model.user.username)
+//        vc.modalPresentationStyle = .automatic
+//        present(vc, animated: true, completion: nil)
+////        let vc = PostViewController(post: model.post, owner: model.user.username)
+////        navigationController?.pushViewController(vc, animated: true)
+//    }
+//}
 
 
 

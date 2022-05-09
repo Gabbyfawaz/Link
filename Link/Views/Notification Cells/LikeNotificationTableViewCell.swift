@@ -21,8 +21,11 @@ class LikeNotificationTableViewCell: UITableViewCell {
 
     private let profilePictureImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
+        imageView.layer.masksToBounds = true
+        imageView.backgroundColor = .tertiarySystemBackground
+//        imageView.image = UIImage(systemName: "person.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 10))
+        imageView.tintColor = .label
         return imageView
     }()
 
@@ -129,21 +132,24 @@ class LikeNotificationTableViewCell: UITableViewCell {
 
     public func configure(with viewModel: LikeNotificationCellViewModel) {
         self.viewModel = viewModel
-        
+        self.label.text = viewModel.username + " liked your post."
+        self.dateLabel.text = viewModel.date
         StorageManager.shared.profilePictureURL(for: viewModel.username) { url in
-            guard let url = url else {
-                return
+            DispatchQueue.main.async {
+//
+                self.postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
+                if let url = url {
+                    self.postImageView.contentMode = .scaleAspectFill
+                    self.profilePictureImageView.sd_setImage(
+                        with: url,
+                        completed: nil
+                    )
+                }
             }
-            self.profilePictureImageView.sd_setImage(
-                with: url,
-                completed: nil
-            )
             
-            self.postImageView.sd_setImage(with: viewModel.postUrl, completed: nil)
         }
         
-        label.text = viewModel.username + " liked your post."
-        dateLabel.text = viewModel.date
+       
     }
 }
 

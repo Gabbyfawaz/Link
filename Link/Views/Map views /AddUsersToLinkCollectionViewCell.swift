@@ -43,6 +43,8 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapImage))
         imageView.addGestureRecognizer(tap)
+        
+     
     }
 
     required init?(coder: NSCoder) {
@@ -55,11 +57,11 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
 
         
         label.sizeToFit()
-        label.frame = CGRect(x: (imageView.left), y: contentView.height-15, width: contentView.width, height: label.height)
+        label.frame = CGRect(x: (0), y: 80-14, width: 80, height: 10)
 
-        let imageSize: CGFloat = contentView.height-label.height-4
+        let imageSize: CGFloat = 80-10-4
         imageView.layer.cornerRadius = imageSize/2
-        imageView.frame = CGRect(x: (contentView.width-imageSize)/2, y: 0, width: imageSize, height: imageSize)
+        imageView.frame = CGRect(x: (80-imageSize)/2, y: 0, width: imageSize, height: imageSize)
         
  
     }
@@ -78,8 +80,8 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
         imageView.image = nil
     }
 
-    func configure(with viewModel: SearchResult) {
-        label.text = viewModel.name
+    func configure(with viewModel: SearchUser) {
+//        label.text = viewModel.name
         self.username = viewModel.name
         
         StorageManager.shared.profilePictureURL(for: viewModel.name) { [weak self] url in
@@ -89,12 +91,10 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
             }
             DispatchQueue.main.async {
                 self?.imageView.sd_setImage(with: profileURL, completed: nil)
+                self?.label.text = viewModel.name
             }
-            self?.profileURL = profileURL
+//            self?.profileURL = profileURL
         }
-        
-    
-        
     }
 }
 

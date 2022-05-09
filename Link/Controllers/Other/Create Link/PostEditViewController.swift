@@ -19,7 +19,15 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
     weak var delegate: PostEditViewControllerDelegate?
     private var typeOfLink: String?
-    private var title2: String?
+    static var staticCaption: String?
+    static var staticIconImage: UIImage?
+    static var staticImageArray = [UIImage]()
+    public var pickerImage: UIImage?
+    private var arrayOfImage: [UIImage]
+    private var orginalArrayOfImages: [UIImage]
+    private var index = 0
+    private var imageCell: FiltersCollectionViewCell?
+    private var keyboardHeight: CGFloat?
     
      public var iconImageView: UIImageView = {
         let image = UIImageView()
@@ -27,8 +35,8 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         image.layer.masksToBounds = true
         image.layer.cornerRadius = 35
         image.backgroundColor = UIColor(white: 1, alpha: 0.2)
-        image.layer.borderWidth = 2
-        image.layer.borderColor = UIColor.secondarySystemBackground.cgColor
+        image.layer.borderWidth = 1
+        image.layer.borderColor = UIColor.label.cgColor
 
         return image
     }()
@@ -37,7 +45,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         let label = UILabel()
         label.font = .systemFont(ofSize: 10, weight: .bold)
         label.text = "CHOOSE ICON"
-        label.textColor = .lightGray
+        label.textColor = .label
         label.numberOfLines = 0
         label.textAlignment = .center
         return label
@@ -45,21 +53,21 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
     private let rightButton: UIButton = {
         let button = UIButton()
-        let image = UIImage(systemName: "arrow.right",
+        let image = UIImage(systemName: "arrow.right.circle.fill",
                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
         button.setImage(image, for: .normal)
         button.tintColor = UIColor(white: 1, alpha: 0.8)
         return button
     }()
     
-//    private let leftButton: UIButton = {
-//        let button = UIButton()
-//        let image = UIImage(systemName: "arrow.left",
-//                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
-//        button.setImage(image, for: .normal)
-//        button.tintColor = UIColor(white: 1, alpha: 0.8)
-//        return button
-//    }()
+    private let leftButton: UIButton = {
+        let button = UIButton()
+        let image = UIImage(systemName: "arrow.left.circle.fill",
+                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
+        button.setImage(image, for: .normal)
+        button.tintColor = UIColor(white: 1, alpha: 0.8)
+        return button
+    }()
     
     private var filters = ["Original", "Chrome", "Fade", "Mono", "Instant", "Noir", "Process", "Tonal", "Transfer"]
     
@@ -76,14 +84,14 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.itemSize = CGSize(width: 180, height: 200)
-        layout.minimumLineSpacing = 10
         layout.minimumInteritemSpacing = 2
-        layout.sectionInset = UIEdgeInsets(top: 1, left: 10, bottom: 1, right: 10)
+//        layout.minimumLineSpacing = 10
+//        layout.sectionInset = UIEdgeInsets(top: 1, left: 10, bottom: 1, right: 10)
         let collectionView = UICollectionView(
             frame: .zero,
             collectionViewLayout: layout
         )
-        collectionView.backgroundColor = .none
+        collectionView.backgroundColor = .systemBackground
         collectionView.register(FiltersCollectionViewCell.self,
                                 forCellWithReuseIdentifier: FiltersCollectionViewCell.identifier)
         return collectionView
@@ -91,100 +99,116 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
     
     
-    public let caption: UITextField = {
+    public let captionTextField: UITextField = {
         let tf = UITextField()
         tf.placeholder = "Caption"
+        tf.textColor = .label
         tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 50))
+        tf.translatesAutoresizingMaskIntoConstraints = false
         tf.font = .systemFont(ofSize: 21, weight: .light)
         return tf
     }()
     
-    private let lineView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .secondarySystemBackground
-        return view
-    }()
+//    private let lineView: UIView = {
+//        let view = UIView()
+//        view.backgroundColor = .white
+//        return view
+//    }()
     
 
-    public var pickerImage: UIImage?
-    private var arrayOfImage: [UIImage]
-    private var orginalArrayOfImages: [UIImage]
-    private var index = 0
-    private var imageCell: FiltersCollectionViewCell?
+
     
    
     //MARK: - Lifecycle
     
+    
+    override func viewWillAppear(_ animated: Bool) {
+        
+        
+        if let vcs = self.navigationController?.viewControllers {
+            let previousVC = vcs[vcs.count - 2]
+            if previousVC is FinalPageCreateLinkViewController {
+                navigationItem.rightBarButtonItem?.title = "Done"
+            }
+        }
+     
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-    
         configureNavBar()
         addSubviews()
+
+        
+        imageView.image = arrayOfImage[index]
         
         if arrayOfImage.count == 1 {
             rightButton.isHidden = true
-//            leftButton.isHidden = true
+            leftButton.isHidden = true
         }
         
-        imageView.image = arrayOfImage[index]
         filterCollectionView.delegate = self
         filterCollectionView.dataSource = self
         
 
         rightButton.addTarget(self, action: #selector(didSwipeRight), for: .touchUpInside)
-//        leftButton.addTarget(self, action: #selector(didSwipeLeft), for: .touchUpInside)
+        leftButton.addTarget(self, action: #selector(didSwipeLeft), for: .touchUpInside)
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapImage))
         iconImageView.addGestureRecognizer(tap)
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapNext))
-    
+        let tap2 = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
+        view.addGestureRecognizer(tap2)
         
-        publicArrayOfImages = self.arrayOfImage
-        publicCaption = self.caption.text ?? ""
+        tap2.cancelsTouchesInView = false
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didSwipeRight))
+        swipeRight.direction = .right
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(didSwipeLeft))
         
+        swipeRight.direction = .right
+        swipeLeft.direction = .left
+        
+        imageView.addGestureRecognizer(swipeLeft)
+        imageView.addGestureRecognizer(swipeRight)
+        
+
     }
     
     //MARK: - Init
-    init(arrayOfImage: [UIImage], iconImage: UIImage, caption: String?, categoryItem: String?, locationTitle: String?, coordinates: CLLocationCoordinate2D?, guestInvited: [SearchResult]) {
-        
+    init(arrayOfImage: [UIImage]) {
         self.arrayOfImage = arrayOfImage
         self.orginalArrayOfImages = arrayOfImage
-        publicIconImage = iconImage
-        publicCaption = caption ?? ""
-        publicLocationTitle = locationTitle ?? ""
-        publicCoordinates = coordinates ?? CLLocationCoordinate2D()
-        publicGuestsInvited = guestInvited
         super.init(nibName: nil, bundle: nil)
-        
-       
     }
 
     required init?(coder: NSCoder) {
         fatalError()
     }
     
+    
     //MARK: - LayoutSubviews
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-
+    
+        
         imageView.frame = CGRect(
-            x: 10,
-            y: view.safeAreaInsets.bottom+70,
-            width: view.width-20,
-            height: view.width-20
+            x: 0,
+            y: view.safeAreaInsets.top,
+            width: view.width,
+            height: view.width+40
         )
-        rightButton.frame = CGRect(x: view.width-rightButton.width-50,
+        
+        rightButton.frame = CGRect(x: view.width-rightButton.width-10,
                                    y: imageView.top+(imageView.height-rightButton.height)/2,
                                    width: 40,
                                    height: 40)
-//        leftButton.frame = CGRect(x: leftButton.width+10,
-//                                   y: imageView.top+(imageView.height-leftButton.height)/2,
-//                                   width: 40,
-//                                   height: 40)
+        leftButton.frame = CGRect(x: imageView.left+5,
+                                   y: imageView.top+(imageView.height-leftButton.height)/2,
+                                   width: 40,
+                                   height: 40)
         iconImageView.frame = CGRect(x: 20,
                                      y: imageView.bottom+20,
                                      width: 70,
@@ -194,16 +218,16 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
                              width: 50,
                              height: 50)
         
-        caption.frame = CGRect(x: iconImageView.right+20,
+        captionTextField.frame = CGRect(x: iconImageView.right+20,
                                y: imageView.bottom+30,
                                width: view.width-60-iconImageView.width,
                                height: 50)
-        
-        lineView.frame = CGRect(x: iconImageView.right+20,
-                                y: caption.bottom,
-                                width: view.width-60-iconImageView.width,
-                                height: 2)
-        
+        captionTextField.addLine(position: .bottom, color: .label, width: 1 )
+//        lineView.frame = CGRect(x: iconImageView.right+20,
+//                                y: caption.bottom,
+//                                width: view.width-60-iconImageView.width,
+//                                height: 2)
+//
         filterCollectionView.frame = CGRect(
             x: 0,
             y: iconImageView.bottom+30,
@@ -211,21 +235,20 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
             height: 200
         )
         
+      
+        
     }
     
     //MARK: - ConfigureNavigationBar
     
     private func configureNavBar() {
-        view.insetsLayoutMarginsFromSafeArea = true
-        view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.tintColor = .label
         title = "Edit Image"
-        navigationController?.navigationBar.prefersLargeTitles = false
-        navigationController?.navigationBar.isHidden = false
         view.backgroundColor = .systemBackground
-        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default) //UIImage.init(named: "transparent.png")
-        self.navigationController?.navigationBar.shadowImage = UIImage()
-        self.navigationController?.navigationBar.isTranslucent = true
-        self.navigationController?.view.backgroundColor = .clear
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapNext))
+//        if #available(iOS 14.0, *) {
+//            navigationItem.backButtonDisplayMode = .minimal
+//        }
     }
     
     //MARK: - AddSubviews
@@ -235,13 +258,14 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         view.addSubview(filterCollectionView)
         view.addSubview(iconImageView)
         view.addSubview(label)
-        view.addSubview(caption)
+        view.addSubview(captionTextField)
         view.insertSubview(rightButton, at: 1)
-//        view.insertSubview(leftButton, at: 1)
-        view.addSubview(lineView)
+        view.insertSubview(leftButton, at: 1)
+//        view.addSubview(lineView)
     }
     
     //MARK: - Actions
+    
     
     @objc func didSwipeRight() {
         
@@ -257,32 +281,57 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
     }
     
-//    @objc func didSwipeLeft() {
+
+    @objc func didSwipeLeft() {
 //        var numberArray = arrayOfImage.count
-//        if index <= arrayOfImage.count-1 {
-//            numberArray -= 1
-//            self.index = numberArray
-//            imageView.image = arrayOfImage[numberArray]
-//            filterCollectionView.reloadData()
-//        } else if index > arrayOfImage.count-1 {
-//            index = 0
-//            imageView.image = arrayOfImage[index]
-//            filterCollectionView.reloadData()
-//        }
-//    }
+        if index <= arrayOfImage.count-1 && index > 0{
+            print("More than 0")
+            index -= 1
+            imageView.image = arrayOfImage[index]
+            filterCollectionView.reloadData()
+      
+        } else if index <= 0 {
+            print("Less than 0")
+            index = arrayOfImage.count-1
+            imageView.image = arrayOfImage[index]
+            filterCollectionView.reloadData()
+           
+        }
+    }
+    
     
     
     @objc func didTapNext() {
-        guard let iconImage = iconImageView.image, let pickerImage = self.pickerImage else {return}
-
-        if iconImage == pickerImage {
-            let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: pickerImage, caption: caption.text ?? "",  locationTitle: publicLocationTitle, coordinates: publicCoordinates, guestInvited: publicGuestsInvited)
-            navigationController?.pushViewController(vc, animated: true)
+        
+        
+        if let iconImage = iconImageView.image, let pickerImage = self.pickerImage {
+            
+            if iconImage == pickerImage {
+                
+                
+                if let vcs = self.navigationController?.viewControllers {
+                    let previousVC = vcs[vcs.count - 2]
+                    if previousVC is FinalPageCreateLinkViewController {
+                        PostEditViewController.staticIconImage = pickerImage
+                        navigationController?.popViewController(animated: true)
+                    } else if previousVC is LinkCameraViewController {
+                        let vc = CategoryViewController()
+        //                let vc = CategoryViewController(arrayOfImage: arrayOfImage, iconImage: pickerImage, caption: caption.text ?? "")
+                        PostEditViewController.staticImageArray = arrayOfImage
+                        PostEditViewController.staticCaption = captionTextField.text ?? ""
+                        PostEditViewController.staticIconImage = pickerImage
+                        navigationController?.pushViewController(vc, animated: true)
+                    }
+                    
+                }
+            }
+            
         } else {
-            let alert = UIAlertController(title: "Choose Icon", message: "Select Link Icon Please", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Try Again!", style: .cancel, handler: nil))
+            let alert = UIAlertController(title: "Choose Icon", message: "Select Link Icon", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Try Again", style: .cancel, handler: nil))
             present(alert, animated: true, completion: nil)
         }
+
     }
     
 
@@ -316,6 +365,10 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         present(actionSheet, animated: true)
     }
 
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
 
   
     //MARK: - CollectionView Delegate/Datasource
@@ -335,8 +388,8 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
                 fatalError()
             }
 
-            cell.configure(with: filters[indexPath.row])
-            cell.configure(with: filters[indexPath.row], image: arrayOfImage[index])
+//            cell.configure(with: filters[indexPath.row])
+            cell.configure(with: filters[indexPath.row], image: orginalArrayOfImages[index])
             return cell
 
     }
@@ -345,9 +398,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
         collectionView.deselectItem(at: indexPath, animated: true)
         
-   
-        
-        let image = arrayOfImage[index]
+
         let orginalImages = orginalArrayOfImages[index]
         
         switch filters[indexPath.row] {
@@ -393,6 +444,8 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
 
     }
+    
+   
 }
 
 //MARK: - PickerView Delegate/Datasource
@@ -408,10 +461,11 @@ extension PostEditViewController: UIImagePickerControllerDelegate, UINavigationC
         guard let image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else {
             return
         }
-        self.pickerImage = image
+        
         label.isHidden = true
         iconImageView.image = image
-        publicIconImage = image
+        self.pickerImage = image
+    
         
     }
 }

@@ -17,7 +17,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     private let mainTitle: UILabel = {
         let title = UILabel()
         title.text = "Log In"
-        title.textColor = .systemPurple
+        title.textColor = .label
         title.font = UIFont.systemFont(ofSize: 50, weight: .bold)
         return title
     }()
@@ -25,7 +25,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     private let subTitle: UILabel = {
         let title = UILabel()
         title.text = "Please sign in to continue"
-        title.textColor = .white
+        title.textColor = .label
         title.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         return title
     }()
@@ -39,12 +39,12 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         return field
     }()
     
-    private let emailFieldImage: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "envelope")
-        iv.tintColor = .black
-        return iv
-    }()
+//    private let emailFieldImage: UIImageView = {
+//        let iv = UIImageView()
+//        iv.image = UIImage(systemName: "envelope")
+//        iv.tintColor = .label
+//        return iv
+//    }()
 
     private let passwordField: LinkTextField = {
         let field = LinkTextField()
@@ -56,18 +56,19 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         return field
     }()
     
-    private let passwordFieldImage: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "lock")
-        iv.tintColor = .black
-        return iv
-    }()
+//    private let passwordFieldImage: UIImageView = {
+//        let iv = UIImageView()
+//        iv.image = UIImage(systemName: "lock")
+//        iv.tintColor = .label
+//        return iv
+//    }()
 
 
     private let signInButton: UIButton = {
         let button = UIButton()
         button.setTitle("Sign In", for: .normal)
-        button.backgroundColor = .systemPurple
+        button.backgroundColor = .label
+        button.setTitleColor(.systemBackground, for: .normal)
         button.layer.cornerRadius = 30
         button.layer.masksToBounds = true
         return button
@@ -76,14 +77,14 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     private let forgotButton: UIButton = {
         let button = UIButton()
         button.setTitle("Forgot Password?", for: .normal)
-        button.setTitleColor(.systemPurple, for: .normal)
+        button.setTitleColor(.label, for: .normal)
         return button
     }()
     
     private let titleForNoAccount: UILabel = {
         let title = UILabel()
         title.text = "Don't have an account?"
-        title.textColor = .white
+        title.textColor = .label
         title.alpha = 0.7
         title.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         return title
@@ -91,7 +92,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private let createAccountButton: UIButton = {
         let button = UIButton()
-        button.setTitleColor(.systemPurple, for: .normal)
+        button.setTitleColor(.label, for: .normal)
         button.setTitle("Create Account", for: .normal)
         return button
     }()
@@ -108,6 +109,9 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         passwordField.delegate = self
 
         addButtonActions()
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
+           view.addGestureRecognizer(tap)
     }
 
     override func viewDidLayoutSubviews() {
@@ -117,10 +121,10 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         
         mainTitle.frame = CGRect(x: 25, y: view.height/4, width: view.width-50, height: 60)
         subTitle.frame = CGRect(x: 25, y: mainTitle.bottom+10, width: view.width, height: 50)
-        emailFieldImage.frame = CGRect(x: 25, y: subTitle.bottom+20, width: 50, height: 50)
-        emailField.frame = CGRect(x: emailFieldImage.right+2, y: subTitle.bottom+20, width: view.width-emailFieldImage.width-50, height: 50)
-        passwordFieldImage.frame = CGRect(x: 25, y: emailFieldImage.bottom+10, width: 50, height: 50)
-        passwordField.frame = CGRect(x: passwordFieldImage.right+2, y: emailField.bottom+10, width: view.width-passwordFieldImage.width-50, height: 50)
+//        emailFieldImage.frame = CGRect(x: 25, y: subTitle.bottom+20, width: 50, height: 50)
+        emailField.frame = CGRect(x: 30, y: subTitle.bottom+20, width: view.width-60, height: 50)
+//        passwordFieldImage.frame = CGRect(x: 25, y: emailFieldImage.bottom+10, width: 50, height: 50)
+        passwordField.frame = CGRect(x: 30, y: emailField.bottom+10, width: view.width-60, height: 50)
         signInButton.frame = CGRect(x: (view.width-signInButton.width-200)/2, y: passwordField.bottom+20, width: 200, height: 70)
         forgotButton.frame = CGRect(x: (view.width-forgotButton.width-300)/2, y: signInButton.bottom+10, width: 300, height: 20)
         titleForNoAccount.frame = CGRect(x:(view.width-titleForNoAccount.width-220)/2, y: forgotButton.bottom+50, width: 250, height: 50)
@@ -131,8 +135,8 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     private func addSubviews() {
         view.addSubview(mainTitle)
         view.addSubview(subTitle)
-        view.addSubview(emailFieldImage)
-        view.addSubview(passwordFieldImage)
+//        view.addSubview(emailFieldImage)
+//        view.addSubview(passwordFieldImage)
         view.addSubview(emailField)
         view.addSubview(passwordField)
         view.addSubview(signInButton)
@@ -149,6 +153,10 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     }
 
     // MARK: - Actions
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
 
     @objc func didTapSignIn() {
         emailField.resignFirstResponder()

@@ -197,34 +197,34 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
     private func showEditPhoto(image: UIImage) {
         
         
-        guard let newStoryID = createNewPostID(), let username = UserDefaults.standard.string(forKey: "username") else {
-            return
-        }
-        
+//        guard let newStoryID = createNewPostID(), let username = UserDefaults.standard.string(forKey: "username") else {
+//            return
+//        }
+//
         
         /// add image to storageManager:
         
         
-        StorageManager.shared.uploadStories(data: image.pngData(), id: newStoryID) { url in
-            guard let url = url else {
-                return
-            }
+//        StorageManager.shared.uploadStories(data: image.pngData(), id: newStoryID) { url in
+//            guard let url = url else {
+//                return
+//            }
             
             /// add to database manager
             
            
-            let story = LinkStory(linkStoryUrlString: url.absoluteString,
-                                  isRequest: nil,
-                                  id: newStoryID,
-                                  username: username)
+//            let story = LinkStory(linkStoryUrlString: url.absoluteString,
+//                                  isRequest: nil,
+//                                  id: newStoryID,
+//                                  username: username)
             
-            DatabaseManager.shared.createStories(newStory: story) { success in
-                if success {
-                    let vc = MapsViewController()
-                    self.navigationController?.pushViewController(vc, animated: true)
-                    self.tabBarController?.tabBar.isHidden = false
-                }
-            }
+//            DatabaseManager.shared.createStories(newStory: story) { success in
+//                if success {
+//                    let vc = MapsViewController()
+//                    self.navigationController?.pushViewController(vc, animated: true)
+//                    self.tabBarController?.tabBar.isHidden = false
+//                }
+//            }
             
             
             
@@ -244,6 +244,6 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
 //        }
 //        navigationController?.pushViewController(vc, animated: false)
 
-    }
+//    }
 }
 

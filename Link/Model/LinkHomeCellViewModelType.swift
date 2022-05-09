@@ -8,8 +8,8 @@
 import Foundation
 
 enum LinkHomeCellViewModelType {
-    case poster(viewModel: PosterLinkCollectionViewCellDelegate)
-    case post(viewModel: PostLinkCollectionViewCellViewModel)
+    case poster(viewModel: NameOfLinkCollectionViewCellDelegate)
+    case post(viewModel: MediaPostCollectionViewCellViewModel)
     case actions(viewModel: PostLinkActionCollectionViewCellViewModel)
     case invite(viewModel: PostInviteCollectionViewCellViewModel)
     case info(viewModel: PostInfoCollectionViewCellViewModel)
