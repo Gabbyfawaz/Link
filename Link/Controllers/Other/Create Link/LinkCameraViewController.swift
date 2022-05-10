@@ -101,7 +101,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         stack.axis = .vertical
         stack.alignment = .fill
         stack.distribution = .fillProportionally
-        stack.isHidden = true 
+        stack.isHidden = true
         return stack
     }()
     
@@ -111,6 +111,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         stack.axis = .vertical
         stack.alignment = .fill
         stack.distribution = .fillProportionally
+        stack.isHidden = true
         return stack
     }()
     
@@ -132,6 +133,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         button.setImage(UIImage(systemName: "person.2.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30)),
                         for: .normal)
         button.tintColor = .white
+        button.isHidden = true
         return button
     }()
     
@@ -146,16 +148,17 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         return button
     }()
     
-    private var  stackView: UIStackView = {
-        let stack = UIStackView()
-        stack.layer.masksToBounds = true
-        stack.axis = .horizontal
-        stack.alignment = .fill
-        stack.distribution = .fillEqually
-        stack.isHidden = true
-//        stack.layer.cornerRadius = 17.5
-        return stack
-    }()
+//    private var  stackView: UIStackView = {
+//        let stack = UIStackView()
+//        stack.layer.masksToBounds = true
+//        stack.axis = .horizontal
+//        stack.alignment = .fill
+//        stack.distribution = .fillEqually
+//        stack.isHidden = true
+//        stack.spacing = 10
+////        stack.layer.cornerRadius = 17.5
+//        return stack
+//    }()
     
     
     private let picker: UIDatePicker = {
@@ -244,15 +247,18 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         view.addSubview(blurEffectView)
         view.addSubview(picker)
         view.addSubview(quickLinkSticker)
-        view.addSubview(stackView)
+//        view.addSubview(stackView)
         view.addSubview(mainStackView)
+        view.addSubview(friendsButton)
+        view.addSubview(quickStackView)
         mainStackView.addArrangedSubview(doneButton)
         mainStackView.addArrangedSubview(mainLabel)
         view.addSubview(quickStackView)
         quickStackView.addArrangedSubview(linkButton)
         quickStackView.addArrangedSubview(quickLabel)
-        stackView.addArrangedSubview(friendsButton)
-        stackView.addArrangedSubview(quickStackView)
+        
+//        stackView.addArrangedSubview(friendsButton)
+//        stackView.addArrangedSubview(quickStackView)
     }
 
     // MARK: LAYOUT SUBVIEWS
@@ -264,33 +270,42 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         previewLayer.frame = view.frame
         imageView.frame = view.frame
 
-        let buttonSize: CGFloat = view.width/5
+//        let buttonSize: CGFloat = view.width/5
+//        let buttonSize: CGFloat = 50
         shutterButton.frame = CGRect(
-            x: (view.width-buttonSize)/2,
+            x: (view.width-70)/2,
             y: view.safeAreaInsets.top + view.width + 200,
-            width: buttonSize,
-            height: buttonSize
-        )
-        shutterButton.layer.cornerRadius = buttonSize/2
+            width: 70,
+            height: 70)
+        
+        shutterButton.layer.cornerRadius = 35
 
-        photoPickerButton.frame = CGRect(x: (shutterButton.left - (buttonSize/1.5))/2,
-                                         y: shutterButton.top + ((buttonSize/1.5)/2),
-                                         width: buttonSize/1.5,
-                                         height: buttonSize/1.5)
-        flipCamera.frame = CGRect(x: view.width - (buttonSize/1.5)*2,
-                                         y: shutterButton.top + ((buttonSize/1.5)/2),
-                                         width: buttonSize/1.5,
-                                         height: buttonSize/1.5)
+        photoPickerButton.frame = CGRect(x: 40,
+                                         y: shutterButton.top + 10,
+                                         width: 40,
+                                         height: 40)
+        flipCamera.frame = CGRect(x: view.width-40-40,
+                                         y: shutterButton.top + 10,
+                                         width: 40,
+                                         height: 40)
         
-        mainStackView.frame = CGRect(x: view.width-buttonSize+10,
-                                  y: view.height-buttonSize-20,
-                                  width: buttonSize/1.5,
-                                  height: buttonSize/1.5)
+        mainStackView.frame = CGRect(x: view.width-40-20,
+                                  y: view.height-50-30,
+                                  width: 40,
+                                  height: 50)
         
-        stackView.frame = CGRect(x: 20,
-                                 y: view.height-buttonSize-20,
-                                 width: (buttonSize/1.5)*2,
-                                 height: (buttonSize/1.5))
+        friendsButton.frame = CGRect(x: 20,
+                                 y: view.height-40-30,
+                                 width: 40,
+                                 height: 40)
+        
+        quickStackView.frame = CGRect(x: friendsButton.right+5,
+                                      y: view.height-50-30,
+                                 width: 40,
+                                 height: 50)
+        
+        
+      
       
         quickLinkSticker.frame = CGRect(x: (view.width-160)/2 + xPosition, y: (view.height-140)/2 + yPosition, width: 160, height: 140)
         picker.frame = CGRect(x: (view.width-picker.width)/2, y:  (view.height-picker.height)/2, width: picker.width, height: picker.height)
@@ -629,7 +644,9 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         flipCamera.isHidden = true
         cameraView.isHidden = true
         doneButton.isHidden = false
-        stackView.isHidden = false
+//        stackView.isHidden = false
+        friendsButton.isHidden = false
+        quickStackView.isHidden = false
         mainStackView.isHidden = false
         navigationItem.rightBarButtonItem =  UIBarButtonItem(
             image: UIImage(systemName: "plus.app.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20)),
@@ -649,7 +666,9 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
             imageView.isHidden = true
             quickLinkSticker.isHidden = true
             picker.isHidden = true
-            stackView.isHidden = true
+//            stackView.isHidden = true
+            friendsButton.isHidden = true
+            quickStackView.isHidden = true
             mainStackView.isHidden = true
             photoPickerButton.isHidden = false
             shutterButton.isHidden = false

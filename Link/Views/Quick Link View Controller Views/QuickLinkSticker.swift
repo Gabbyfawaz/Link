@@ -130,12 +130,12 @@ class QuickLinkSticker: UIView {
         timeButton.addTarget(self, action: #selector(didTapTimeButton), for: .touchUpInside)
         peopleButton.addTarget(self, action: #selector(didTapPeopleButton), for: .touchUpInside)
         joinButton.addTarget(self, action: #selector(didTapJoinButton), for: .touchUpInside)
-        self.textHeightConstraint = textfield.heightAnchor.constraint(equalToConstant: 80)
-        self.textHeightConstraint?.isActive = true
-        
-        
-//        adjustUITextViewHeight(arg: textfield)
-        adjustTextViewHeight()
+//        self.textHeightConstraint = textfield.heightAnchor.constraint(equalToConstant: 80)
+//        self.textHeightConstraint?.isActive = true
+//
+//
+////        adjustUITextViewHeight(arg: textfield)
+//        adjustTextViewHeight()
     }
     
     required init?(coder: NSCoder) {
@@ -163,13 +163,13 @@ class QuickLinkSticker: UIView {
         stackView.frame = CGRect(x: 0, y: horizonatlstackView.bottom, width: width, height: 70)
     }
     
-    func adjustTextViewHeight() {
-        let fixedWidth = textfield.frame.size.width
-        let newSize = textfield.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
-        self.textHeightConstraint?.constant = newSize.height
-        self.view.layoutIfNeeded()
-    }
-    
+//    func adjustTextViewHeight() {
+//        let fixedWidth = textfield.frame.size.width
+//        let newSize = textfield.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
+//        self.textHeightConstraint?.constant = newSize.height
+//        self.view.layoutIfNeeded()
+//    }
+//
     @objc func didCancelButton() {
         delegate?.quickLinkStickerDelegateDidTapCancel(self)
     }
@@ -192,12 +192,12 @@ class QuickLinkSticker: UIView {
         configureButton(with: isJoined)
     }
     
-    func adjustUITextViewHeight(arg : UITextView) {
-        arg.translatesAutoresizingMaskIntoConstraints = true
-        arg.sizeToFit()
-        arg.isScrollEnabled = false
-    }
-   
+//    func adjustUITextViewHeight(arg : UITextView) {
+//        arg.translatesAutoresizingMaskIntoConstraints = true
+//        arg.sizeToFit()
+//        arg.isScrollEnabled = false
+//    }
+//
     private func configureButton(with isJoined: Bool) {
         
         if isJoined {
@@ -226,7 +226,7 @@ extension QuickLinkSticker: UITextViewDelegate {
     }
     
     func textViewDidChange(_ textView: UITextView) {
-        self.adjustTextViewHeight()
+//        self.adjustTextViewHeight()
 //        let height = textHeightConstraint
     }
     

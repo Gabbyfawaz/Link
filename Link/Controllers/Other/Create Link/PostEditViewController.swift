@@ -37,7 +37,6 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         image.backgroundColor = UIColor(white: 1, alpha: 0.2)
         image.layer.borderWidth = 1
         image.layer.borderColor = UIColor.label.cgColor
-
         return image
     }()
     
@@ -83,8 +82,8 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     private let filterCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 180, height: 200)
-        layout.minimumInteritemSpacing = 2
+        layout.itemSize = CGSize(width: 140, height: 150)
+        layout.minimumInteritemSpacing = 10
 //        layout.minimumLineSpacing = 10
 //        layout.sectionInset = UIEdgeInsets(top: 1, left: 10, bottom: 1, right: 10)
         let collectionView = UICollectionView(
@@ -101,10 +100,10 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
     public let captionTextField: UITextField = {
         let tf = UITextField()
-        tf.placeholder = "Caption"
+        tf.placeholder = "Enter Caption"
         tf.textColor = .label
         tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 50))
-        tf.translatesAutoresizingMaskIntoConstraints = false
+//        tf.translatesAutoresizingMaskIntoConstraints = false
         tf.font = .systemFont(ofSize: 21, weight: .light)
         return tf
     }()
@@ -158,7 +157,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapImage))
         iconImageView.addGestureRecognizer(tap)
         
-        let tap2 = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
+        let tap2 = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tap2)
         
         tap2.cancelsTouchesInView = false
@@ -191,8 +190,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
-    
+
         
         imageView.frame = CGRect(
             x: 0,
@@ -202,11 +200,11 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         )
         
         rightButton.frame = CGRect(x: view.width-rightButton.width-10,
-                                   y: imageView.top+(imageView.height-rightButton.height)/2,
+                                   y: imageView.top+(view.width)/2,
                                    width: 40,
                                    height: 40)
         leftButton.frame = CGRect(x: imageView.left+5,
-                                   y: imageView.top+(imageView.height-leftButton.height)/2,
+                                   y: imageView.top+(view.width)/2,
                                    width: 40,
                                    height: 40)
         iconImageView.frame = CGRect(x: 20,
@@ -220,7 +218,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
         captionTextField.frame = CGRect(x: iconImageView.right+20,
                                y: imageView.bottom+30,
-                               width: view.width-60-iconImageView.width,
+                               width: view.width-60-70,
                                height: 50)
         captionTextField.addLine(position: .bottom, color: .label, width: 1 )
 //        lineView.frame = CGRect(x: iconImageView.right+20,
@@ -230,9 +228,9 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
 //
         filterCollectionView.frame = CGRect(
             x: 0,
-            y: iconImageView.bottom+30,
+            y: iconImageView.bottom+20,
             width: view.width,
-            height: 200
+            height: 150
         )
         
       
@@ -246,9 +244,9 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         title = "Edit Image"
         view.backgroundColor = .systemBackground
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(didTapNext))
-//        if #available(iOS 14.0, *) {
-//            navigationItem.backButtonDisplayMode = .minimal
-//        }
+        if #available(iOS 14.0, *) {
+            navigationItem.backButtonDisplayMode = .minimal
+        }
     }
     
     //MARK: - AddSubviews
