@@ -82,7 +82,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     private let filterCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 140, height: 150)
+        layout.itemSize = CGSize(width: 140, height: 160)
         layout.minimumInteritemSpacing = 10
 //        layout.minimumLineSpacing = 10
 //        layout.sectionInset = UIEdgeInsets(top: 1, left: 10, bottom: 1, right: 10)
@@ -171,6 +171,9 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         imageView.addGestureRecognizer(swipeLeft)
         imageView.addGestureRecognizer(swipeRight)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+           NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        
 
     }
     
@@ -196,7 +199,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
             x: 0,
             y: view.safeAreaInsets.top,
             width: view.width,
-            height: view.width+40
+            height: view.width+50
         )
         
         rightButton.frame = CGRect(x: view.width-rightButton.width-10,
@@ -230,7 +233,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
             x: 0,
             y: iconImageView.bottom+20,
             width: view.width,
-            height: 150
+            height: 160
         )
         
       
@@ -263,6 +266,26 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     }
     
     //MARK: - Actions
+    
+    @objc func keyboardWillShow(notification: Notification) {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+        
+          
+            if self.view.frame.origin.y == 0{
+                self.view.frame.origin.y -= keyboardSize.height
+            }
+        }
+
+    }
+
+    @objc func keyboardWillHide(notification: Notification) {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            
+            if self.view.frame.origin.y != 0 {
+                self.view.frame.origin.y += keyboardSize.height
+            }
+        }
+    }
     
     
     @objc func didSwipeRight() {
