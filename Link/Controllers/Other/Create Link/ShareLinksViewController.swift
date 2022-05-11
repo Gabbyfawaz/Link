@@ -111,7 +111,8 @@ class ShareLinksViewController: UIViewController {
         })
         
         group.notify(queue: .main){
-            self.results = results
+            let finalResults = Array(Set(results))
+            self.results = finalResults
             self.tableView.reloadData()
         }
 
@@ -184,19 +185,27 @@ extension ShareLinksViewController: UISearchBarDelegate {
         
         self.spinner.dismiss()
 
-        let results: [SearchUser] = users.filter({
-            guard let name = $0["name"]?.lowercased() else {
-                return false
-            }
-
+        let  results: [SearchUser] = results.filter ({
+             let name = $0.name
             return name.hasPrefix(term.lowercased())
-        }).compactMap({
-            guard let name = $0["name"] else {
-                return nil
-            }
-
+        }).compactMap ({
+            let name = $0.name
             return SearchUser(name: name)
         })
+        
+//        let results: [SearchUser] = users.filter({
+//            guard let name = $0["name"]?.lowercased() else {
+//                return false
+//            }
+//
+//            return name.hasPrefix(term.lowercased())
+//        }).compactMap({
+//            guard let name = $0["name"] else {
+//                return nil
+//            }
+//
+//            return SearchUser(name: name)
+//        })
 
         self.results = results
         updateUI()

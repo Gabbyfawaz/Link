@@ -88,7 +88,7 @@ class ShareLinkWithUsersCell: UITableViewCell {
     
     public func configure(with model: SearchUser) {
          
-   
+        userNameLabel.text = model.name
         StorageManager.shared.profilePictureURL(for: model.name) { [weak self] profileUrl in
             guard  let profileURL = profileUrl else {
                 return
@@ -98,7 +98,6 @@ class ShareLinkWithUsersCell: UITableViewCell {
             
             DispatchQueue.main.async {
                 self?.userImageView.sd_setImage(with: profileURL, completed: nil)
-                self?.userNameLabel.text = model.name
             }
         }
         

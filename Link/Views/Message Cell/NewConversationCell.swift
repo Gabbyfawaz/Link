@@ -71,7 +71,7 @@ class NewConversationCell: UITableViewCell {
     
     
     public func configure(with model: SearchUser) {
-
+       userNameLabel.text = model.name
         StorageManager.shared.profilePictureURL(for: model.name) { [weak self] url in
             guard  let profileURL = url else {
                 return
@@ -79,7 +79,6 @@ class NewConversationCell: UITableViewCell {
             }
             DispatchQueue.main.async {
                 self?.userImageView.sd_setImage(with: profileURL, completed: nil)
-                self?.userNameLabel.text = model.name
             }
         }
     }

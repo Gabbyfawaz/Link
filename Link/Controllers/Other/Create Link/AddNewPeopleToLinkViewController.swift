@@ -12,15 +12,10 @@ import CoreLocation
 final class AddNewPeopleToLinkViewController: UIViewController {
 
     public var completion: (([SearchUser]) -> (Void))?
-//    public var completion: (([SearchResults]) -> (Void))?
     private let spinner = JGProgressHUD(style: .dark)
     private var users = [[String: String]]()
-//    private var results = [SearchResult]()
     private var results = [SearchUser]()
-//    private var results2 = [SearchUser]()
-//    private var targetUserDataArray = [SearchResult]()
-//    static var staticTargetUsers = [SearchResult]()
-    
+    private var checkedItems = Set<SearchUser>()
     private var targetUserDataArray = [SearchUser]()
     static var staticTargetUsers = [SearchUser]()
     
@@ -92,12 +87,11 @@ final class AddNewPeopleToLinkViewController: UIViewController {
         searchBar.delegate = self
         searchBar.becomeFirstResponder()
         
-        
 //        navigationController?.navigationBar.topItem?.titleView = searchBar
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next",
                                                             style: .done,
                                                             target: self,
-                                                         action: #selector(dismissSelf))
+                                                         action: #selector(didSelectNext))
     
     }
     
@@ -136,17 +130,14 @@ final class AddNewPeopleToLinkViewController: UIViewController {
        
             
             searchBar.frame = CGRect(x: 0,
-                                     y: 100,
+                                     y: view.safeAreaInsets.top,
                                      width: view.width,
                                      height: 50)
-//            usersAddedToCollectionView.frame = CGRect(x: 0,
-//                                                      y: searchBar.bottom+5,
-//                                                      width: view.width,
-//                                                      height: 100)
+
             tableView.frame = CGRect(x: 0,
                                      y: searchBar.bottom,
                                      width: view.width,
-                                     height: view.height-150)
+                                     height: view.height-50-50)
             noResultsLabel.frame = CGRect(x: view.width/4,
                                           y: (view.height-200)/2,
                                           width: view.width/2,
@@ -156,10 +147,11 @@ final class AddNewPeopleToLinkViewController: UIViewController {
         }
        
     
+    
+    
 
-    @objc private func dismissSelf() {
+    @objc private func didSelectNext() {
 
-//        completion?(self.targetUserDataArray)
         print("The completion value: \(self.targetUserDataArray)")
        
 
@@ -169,7 +161,6 @@ final class AddNewPeopleToLinkViewController: UIViewController {
             present(alert, animated: true, completion: nil)
         } else {
             
-           
             if let vcs = self.navigationController?.viewControllers {
                 let previousVC = vcs[vcs.count - 2]
                 if previousVC is FinalPageCreateLinkViewController {
@@ -178,7 +169,6 @@ final class AddNewPeopleToLinkViewController: UIViewController {
                 } else if previousVC is MapViewController {
                     AddNewPeopleToLinkViewController.staticTargetUsers = targetUserDataArray
                     let vc = FinalPageCreateLinkViewController()
-        //            let vc = FinalPageCreateLinkViewController(arrayOfImage: arrayOfImage, locationTitle: locationTitle, coordinates: coordinates, results: targetUserDataArray, typeOfLink: typeOfLink, iconImage: iconImage, caption: self.caption)
                     navigationController?.pushViewController(vc, animated: true)
                 }
                 
@@ -195,81 +185,54 @@ final class AddNewPeopleToLinkViewController: UIViewController {
 
 extension AddNewPeopleToLinkViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return results.count
+        let resultSet = Array(Set(results))
+        return resultSet.count
     }
     
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let model = results[indexPath.row]
+        tableHeaderView.reloadData()
+        let resultSet = Array(Set(results))
+        let item = resultSet[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: NewConversationCell.identifier,for: indexPath) as! NewConversationCell
-        cell.configure(with: model)
+        cell.configure(with: item)
+        if checkedItems.contains(item) {
+                cell.accessoryType = .checkmark
+            } else {
+                cell.accessoryType = .none
+            }
         return cell
     }
     
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        tableView.deselectRow(at: indexPath, animated: true)
-        // add check mark to user
-        
-        guard let cell = tableView.cellForRow(at: indexPath) else {return}
-        
-        if !cell.isSelected {
-            tableView.deselectRow(at: indexPath, animated: true)
-            cell.accessoryType = .none
+       tableView.deselectRow(at: indexPath, animated: true)
+        let item = results[indexPath.row]
+        let cell = tableView.cellForRow(at: indexPath)
+       
+        if checkedItems.contains(item) {
+                checkedItems.remove(item)
+            cell?.accessoryType = .none
             if self.targetUserDataArray.count > 0 {
                 self.targetUserDataArray.remove(at: indexPath.row)
                self.targetUserDataArray = Array(Set(self.targetUserDataArray))
                 print("A value has been removed: \(self.targetUserDataArray)")
-                tableHeaderView.reloadData()
+//                tableHeaderView.reloadData()
+                tableView.reloadData()
             }
-        } else {
-            tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-            cell.accessoryType = .checkmark
-            self.targetUserDataArray.append(results[indexPath.row])
-            self.targetUserDataArray = Array(Set(self.targetUserDataArray))
-            print("A value has been added: \(self.targetUserDataArray)")
-            tableHeaderView.reloadData()
-        }
-        
-        
-        
-//        if selectedIndexPath == indexPath {
-//            // it was already selected
-//            selectedIndexPath = nil
-//            cell.accessoryType = .none
-//            tableView.deselectRow(at: indexPath, animated: false)
-//            
-//            if self.targetUserDataArray.count > 0 {
-//                self.targetUserDataArray.remove(at: indexPath.row)
-//               self.targetUserDataArray = Array(Set(self.targetUserDataArray))
-//                print("A value has been removed: \(self.targetUserDataArray)")
-//                tableView.reloadData()
-//            }
-//           
-//            
-//        } else {
-//            // wasn't yet selected, so let's remember it
-////            tableView.deselectRow(at: indexPath, animated: false)
-//            tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-////            selectedIndexPath = indexPath
-//            cell.accessoryType = .checkmark
-//            self.targetUserDataArray.append(results[indexPath.row])
-//            self.targetUserDataArray = Array(Set(self.targetUserDataArray))
-//            print("A value has been added: \(self.targetUserDataArray)")
-//            tableView.reloadData()
-//
-//            
-//            
-//        }
-//        
-//       
-        
-        
+            } else {
+                checkedItems.insert(item)
+                cell?.accessoryType = .checkmark
+                self.targetUserDataArray.append(results[indexPath.row])
+                self.targetUserDataArray = Array(Set(self.targetUserDataArray))
+                print("A value has been added: \(self.targetUserDataArray)")
+//                tableHeaderView.reloadData()
+                tableView.reloadData()
+            }
+ 
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        
-
         guard let view = tableView.dequeueReusableHeaderFooterView(withIdentifier: CustomizedHeaderViewForInvites.identifier) as? CustomizedHeaderViewForInvites else {
             fatalError("There was no returned header view here")
         }
@@ -305,7 +268,6 @@ extension AddNewPeopleToLinkViewController: UISearchBarDelegate {
 
         results.removeAll()
         spinner.show(in: view)
-
         searchUsers(query: text)
     }
 
@@ -323,6 +285,7 @@ extension AddNewPeopleToLinkViewController: UISearchBarDelegate {
                     self?.hasFetched = true
                     self?.users = usersCollection
                     self?.filterUsers(with: query)
+                    self?.tableView.reloadData()
                 case .failure(let error):
                     print("Failed to get usres: \(error)")
                 }
@@ -355,41 +318,7 @@ extension AddNewPeopleToLinkViewController: UISearchBarDelegate {
         self.results = results
         updateUI()
     }
-    
-//    func filterUsers(with term: String) {
-//        // update the UI: eitehr show results or show no results label
-//        guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") as? String, hasFetched else {
-//            return
-//        }
-//
-//        let safeEmail = DatabaseManager.safeEmail(emailAddress: currentUserEmail)
-//
-//        self.spinner.dismiss()
-//
-//        let results: [SearchResult] = users.filter({
-//            guard let email = $0["email"], email != safeEmail else {
-//                return false
-//            }
-//
-//            guard let name = $0["name"]?.lowercased() else {
-//                return false
-//            }
-//
-//            return name.hasPrefix(term.lowercased())
-//        }).compactMap({
-//
-//            guard let email = $0["email"],
-//                let name = $0["name"] else {
-//                return nil
-//            }
-//
-//            return SearchResult(name: name, email: email)
-//        })
-//
-//        self.results = results
-//
-//        updateUI()
-//    }
+
 
     func updateUI() {
         if results.isEmpty {

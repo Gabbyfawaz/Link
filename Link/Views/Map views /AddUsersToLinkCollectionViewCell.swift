@@ -22,7 +22,7 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.layer.masksToBounds = true
-        imageView.backgroundColor = .black
+        imageView.backgroundColor = .secondarySystemBackground
         imageView.isUserInteractionEnabled = true
         return imageView
     }()
@@ -81,7 +81,7 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
     }
 
     func configure(with viewModel: SearchUser) {
-//        label.text = viewModel.name
+        label.text = viewModel.name
         self.username = viewModel.name
         
         StorageManager.shared.profilePictureURL(for: viewModel.name) { [weak self] url in
@@ -91,7 +91,6 @@ class AddUsersToLinkCollectionViewCell: UICollectionViewCell {
             }
             DispatchQueue.main.async {
                 self?.imageView.sd_setImage(with: profileURL, completed: nil)
-                self?.label.text = viewModel.name
             }
 //            self?.profileURL = profileURL
         }
