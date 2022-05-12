@@ -33,6 +33,8 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
         return button
     }()
     
+    weak var myCollectionViewHeight: NSLayoutConstraint?
+    
     private let linkModel: LinkModel
     
     private let owner: String
@@ -553,7 +555,6 @@ extension EventViewController: MediaPostCollectionViewCellDelegate {
 
 extension EventViewController: CommentViewControllerDelegate {
     func commentBarViewDidTapDone(_ commentBarView: CommentViewController, withText text: String) {
-        NotificationCenter.default.post(name: .didUpdateComments, object: self)
         guard let currentUsername = UserDefaults.standard.string(forKey: "username") else { return }
         DatabaseManager.shared.createComments(
             comment: Comment(
@@ -565,7 +566,7 @@ extension EventViewController: CommentViewControllerDelegate {
             owner: owner
         ) { success in
             DispatchQueue.main.async {
-                
+                NotificationCenter.default.post(name: .didUpdateComments, object: self)
                 let id = NotificationsManager.newIdentifier()
                 guard let username = UserDefaults.standard.string(forKey: "username") else {
                     return
@@ -734,7 +735,7 @@ extension EventViewController {
 
     private func configureCollectionView() {
         
-        let sectionHeight: CGFloat =  705 + view.width
+        var sectionHeight: CGFloat =  705 + view.width
         
         // mark add 150 if adding back extra info
             let collectionView = UICollectionView(
@@ -859,6 +860,11 @@ extension EventViewController {
         collectionView.backgroundColor = .systemBackground
         collectionView.delegate = self
         collectionView.dataSource = self
+        
+        sectionHeight = collectionView.collectionViewLayout.collectionViewContentSize.height
+        myCollectionViewHeight?.constant = sectionHeight
+        self.view.setNeedsLayout()
+        self.view.layoutIfNeeded()
         
         collectionView.register(
             NameOfLinkCollectionViewCell.self,

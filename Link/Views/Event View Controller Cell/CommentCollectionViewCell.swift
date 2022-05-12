@@ -49,9 +49,9 @@ class CommentCollectionViewCell: UITableViewCell {
         label.sizeToFit()
         
         
-        profileImageView.frame = CGRect(x: 15, y: (contentView.height-profileImageView.height-10)/2, width: 40, height: 40)
+        profileImageView.frame = CGRect(x: 15, y: 5, width: 40, height: 40)
         profileImageView.layer.cornerRadius = 20
-        label.frame = CGRect(x: profileImageView.right+10, y: (contentView.height-profileImageView.height-10)/2, width: contentView.width-15-profileImageView.width, height: contentView.height)
+        label.frame = CGRect(x: profileImageView.right+10, y: 5, width: contentView.width-30-40-10, height: contentView.height)
     }
 
     func configure(with model: Comment) {

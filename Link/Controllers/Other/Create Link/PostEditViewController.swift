@@ -267,6 +267,10 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     
     //MARK: - Actions
     
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     @objc func keyboardWillShow(notification: Notification) {
         if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
         
@@ -387,11 +391,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     }
 
     
-    @objc func dismissKeyboard() {
-        view.endEditing(true)
-    }
-
-  
+   
     //MARK: - CollectionView Delegate/Datasource
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {

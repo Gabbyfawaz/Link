@@ -740,16 +740,17 @@ extension LinkCameraViewController: PHPickerViewControllerDelegate, UINavigation
         spinner.show(in: view)
         results.forEach({ result in
             group.enter()
-            result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self ] reading , error in
+            result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self ] photoItem , error in
                 defer{
                     group.leave()
                 }
                 guard let self = self else {
                     return 
                 }
-                
+               
         
-                guard var image = reading as? UIImage, error == nil else {
+                guard var image = photoItem as? UIImage, error == nil else {
+                    print("error: \(error?.localizedDescription)")
                     fatalError("Could not convert the image")
                 }
                 image = image.fixOrientation()

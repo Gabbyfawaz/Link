@@ -28,6 +28,7 @@ final class NameOfLinkCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 30, weight: .bold)
         label.textAlignment = .left
+        label.numberOfLines = 2
         return label
     }()
     
@@ -68,6 +69,7 @@ final class NameOfLinkCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(typeOfLink)
         contentView.addSubview(requestButton)
         contentView.addSubview(acceptButton)
+        
 //        contentView.insertSubview(contentView, at: 1)
     }
     

@@ -45,11 +45,11 @@ final class CommentViewController: UIViewController, UITextFieldDelegate, UITabl
     private var commentBarView = UIView()
 
     private var commentModel: [Comment]
+    
     public let button: UIButton = {
         let button = UIButton()
-        button.setTitle("Done", for: .normal)
-        button.setTitleColor(.label, for: .normal)
-        
+        button.setImage(UIImage(systemName: "paperplane"), for: .normal)
+        button.tintColor  = .label
         return button
     }()
 
@@ -76,43 +76,48 @@ final class CommentViewController: UIViewController, UITextFieldDelegate, UITabl
         view.addSubview(commentLabel)
         view.addSubview(noCommentsLabel)
         view.insertSubview(field, at: 1)
+        view.addSubview(button)
         view.addSubview(tableView)
         tableView.dataSource = self
         tableView.delegate = self
         field.delegate = self
         button.addTarget(self, action: #selector(didTapComment), for: .touchUpInside)
-        
-        if commentModel.count == 0 {
-            noCommentsLabel.isHidden = false
-        } else {
-            tableView.isHidden = false
-        }
+        updateUI()
         /// add here my g!
         updateObserver = NotificationCenter.default.addObserver(
             forName: .didUpdateComments,
             object: nil,
             queue: .main,
             using: { [weak self] _ in
-//                self?.commentModel.removeAll()
+                self?.commentModel.removeAll()
                 self?.fetchAllComments()
             
         })
+        
+        let tap2 = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tap2)
+        
+        tap2.cancelsTouchesInView = false
+        
        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+           NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        
       
         
-        observeKeyboardChange()
+//        observeKeyboardChange()
         view.backgroundColor = .systemBackground
 
     }
     
-    
+
     init(commentModel: [Comment], linkId: String, username: String) {
         self.commentModel = commentModel
         self.linkId = linkId
         self.username = username
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -122,9 +127,11 @@ final class CommentViewController: UIViewController, UITextFieldDelegate, UITabl
         guard let text = field.text, !text.trimmingCharacters(in: .whitespaces).isEmpty else {
             return
         }
+//        NotificationCenter.default.post(name: .didUpdateComments, object: self)
         delegate?.commentBarViewDidTapDone(self, withText: text)
         field.resignFirstResponder()
         field.text = nil
+//        updateUI()
        
        
     }
@@ -137,75 +144,70 @@ final class CommentViewController: UIViewController, UITextFieldDelegate, UITabl
         noCommentsLabel.sizeToFit()
         noCommentsLabel.frame = CGRect(x: 0, y: commentLabel.bottom+10, width: view.width, height: view.height-100-commentLabel.height)
         
-//        commentBarView.frame = CGRect(x: 0, y: tableView.bottom, width: view.height, height: 50)
-//
-        button.frame = CGRect(x: view.width-button.width-5, y: (commentBarView.height-button.height)/2,
-                              width: button.width, height: button.height)
-//        field.frame = CGRect(x: 10, y: (commentBarView.height-50)/2, width: view.width-button.width-20, height: 50)
-    field.frame = CGRect(x: 10, y: view.height-40-30, width: view.width-button.width-20, height: 40)
+        field.frame = CGRect(x: 10, y: view.height-40-20, width: view.width-40-20-10, height: 40)
+
+        button.frame = CGRect(x: field.right+5, y: view.height-40-20,
+                              width: 40, height: 40)
+       
 
         
     }
     
-
-    private func observeKeyboardChange() {
-        observer = NotificationCenter.default.addObserver(
-            forName: UIResponder.keyboardWillChangeFrameNotification,
-            object: nil,
-            queue: .main
-        ) { notification in
-            guard let userInfo = notification.userInfo,
-                  let height = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.height else {
-                return
-            }
-            UIView.animate(withDuration: 0.2) {
-//                self.field.frame = CGRect(
-//                    x: 0,
-//                    y: self.view.height-height-60,
-//                    width: self.view.width,
-//                    height: 40
-//                )
-                self.field.frame.origin.y = self.view.height-height-50
-            }
+    
+    func updateUI() {
+        if commentModel.isEmpty {
+            noCommentsLabel.isHidden = false
+            tableView.isHidden = true
         }
-
-        hideObserver = NotificationCenter.default.addObserver(
-            forName: UIResponder.keyboardWillHideNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-
-        
-            UIView.animate(withDuration: 0.2) {
-                self.field.frame.origin.y = self.view.height-60
-//                self.view.insertSubview(self.field, aboveSubview: self.tableView)
-//                self.field.frame = CGRect(
-//                    x: 0,
-//                    y: self.view.height-30,
-//                    width: self.view.width,
-//                    height: 40
-//                )
-            }
+        else {
+            noCommentsLabel.isHidden = true
+            tableView.isHidden = false
+            tableView.reloadData()
         }
     }
 
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    @objc func keyboardWillShow(notification: Notification) {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+        
+          
+            if self.view.frame.origin.y == 0{
+                self.view.frame.origin.y -= keyboardSize.height
+            }
+        }
+
+    }
+
+    @objc func keyboardWillHide(notification: Notification) {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            
+            if self.view.frame.origin.y != 0 {
+                self.view.frame.origin.y += keyboardSize.height
+            }
+        }
+    }
+    
     
     func fetchAllComments() {
         DatabaseManager.shared.getComments(postID: linkId, owner: username) { comment in
             self.commentModel = comment
             DispatchQueue.main.async {
-                self.tableView.reloadData()
+                self.updateUI()
+//                self.tableView.reloadData()
             }
             
         }
-        
         
     }
 
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         field.resignFirstResponder()
-        didTapComment()
+//        didTapComment()
         return true
     }
     
