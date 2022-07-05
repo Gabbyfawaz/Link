@@ -8,17 +8,23 @@
 import UIKit
 import Cosmos
 import TinyConstraints
+import EventKit
+import EventKitUI
 
 protocol PostLinkActionsCollectionViewCellDelegate: AnyObject {
     
     func postLinkActionsCollectionViewCellDidTapLike(_ cell: PostLinkActionCollectionViewCell, isLiked: Bool)
     func postLinkActionsCollectionViewCellDidTapComment(_ cell: PostLinkActionCollectionViewCell, comments: [Comment] )
     func postLinkLikesCollectionViewCellDidTapLikeCount(_ cell: PostLinkActionCollectionViewCell, likers: [String])
+    func postLinkLikesCollectionViewCellDidTapBell(_ cell: PostLinkActionCollectionViewCell, date: Date, linkName: String)
 //    func postLinkCollectionViewCellDidTapComments(_ cell: PostLinkActionCollectionViewCell, comments: [Comment] )
 }
 
 
 final class PostLinkActionCollectionViewCell: UICollectionViewCell {
+    
+ 
+    
     static let identifier = "PostActionCollectionViewCell"
 
     private var index = 0
@@ -30,6 +36,10 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
     private var updateCounterObserver: NSObjectProtocol?
     private var likeCounts: Int?
     private var commentModel = [Comment]()
+    private var username: String?
+    private var linkId: String?
+    private var date: Date?
+    private var linkName: String?
     private var horizontalStackView: UIStackView = {
         let stack = UIStackView()
         stack.layer.masksToBounds = true
@@ -57,7 +67,7 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = .lightGray
         label.textAlignment = .center
-        label.text = "81 likes"
+        label.text = "0 likes"
         label.isUserInteractionEnabled = true
         return label
     }()
@@ -145,6 +155,7 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         let view = CosmosView()
         view.settings.starSize = 20
         view.settings.updateOnTouch = true
+        view.rating = 3
         return view
     }()
     
@@ -161,8 +172,11 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
+
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         
         contentView.clipsToBounds = true
         contentView.backgroundColor = .systemBackground
@@ -178,10 +192,11 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         priceStackView.addArrangedSubview(priceImageView)
         priceStackView.addArrangedSubview(priceLabel)
         contentView.addSubview(cosmosView)
+//        contentView.addSubview(starView)
         contentView.addSubview(daysLeftLabel)
        
       
-       
+        didTouchCosmos()
         
         // Gestures
         let tap = UITapGestureRecognizer(target: self,
@@ -196,48 +211,51 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         likeButton.addTarget(self, action: #selector(didTapLike), for: .touchUpInside)
         commentButton.addTarget(self, action: #selector(didTapComment), for: .touchUpInside)
         bellButton.addTarget(self, action: #selector(didTapBell), for: .touchUpInside)
-        
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
         
         observer = NotificationCenter.default.addObserver(
                     forName: .didDoubleTapImage,
                     object: nil,
                     queue: .main
-                ) { [weak self] _ in
+                ) {  _ in
+                    let image = UIImage(systemName: "heart.fill",
+                                        withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
+                    let hasLiked = self.likers.contains(username)
+             
                     
-                    if (self?.likeButton.imageView?.image == UIImage(systemName: "heart",
+                    if (self.likeButton.imageView?.image == UIImage(systemName: "heart",
                                                                     withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))) {
-                        let image = UIImage(systemName: "heart.fill",
-                                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
-                        self?.likeButton.setImage(image, for: .normal)
-//                        let newCount = (self?.likeCounts ?? 0) + 1
-//                        self?.likeLabel.text = "\(newCount) likes"
-//                        self?.likeCounts = newCount
-                        
-                        guard let isLiked = self?.isLiked else {
-                            return
-                        }
-                        self?.delegate?.postLinkActionsCollectionViewCellDidTapLike(self ?? PostLinkActionCollectionViewCell(),
+                       
+                        self.likeButton.setImage(image, for: .normal)
+                        self.likers.append(username)
+                        self.likeLabel.text = "\(self.likers.count) likes"
+                      
+                       
+                     let isLiked = self.isLiked
+                        self.delegate?.postLinkActionsCollectionViewCellDidTapLike(self,
                                                                           isLiked: !isLiked)
-                        self?.isLiked = !(isLiked)
+                        self.isLiked = !(isLiked)
                     }
                    
                 }
         
         
-        updateCounterObserver = NotificationCenter.default.addObserver(
-            forName: .updateLikeCount,
-            object: nil,
-            queue: .main,
-            using: { [weak self] noti in
-                let userInfo = noti.userInfo
-                let value = userInfo?.first?.value
-                guard let likers = value as? [String] else {
-                    return
-                }
-                print("the likers are: \(likers)")
-                self?.likeLabel.text = "\(likers.count) likes"
-                self?.likers = likers
-            })
+//        updateCounterObserver = NotificationCenter.default.addObserver(
+//            forName: .updateLikeCount,
+//            object: nil,
+//            queue: .main,
+//            using: { [weak self] noti in
+//                let userInfo = noti.userInfo
+//                let value = userInfo?.first?.value
+//                guard let likers = value as? [String] else {
+//                    return
+//                }
+//                print("the likers are: \(likers)")
+//                self?.likeLabel.text = "\(likers.count) likes"
+//                self?.likers = likers
+//            })
 
     }
 
@@ -252,26 +270,41 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
 //    }
     
     
+    
     @objc func didTapLabel() {
         delegate?.postLinkLikesCollectionViewCellDidTapLikeCount(self, likers: likers )
     }
 
     @objc func didTapLike() {
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
         if self.isLiked {
             let image = UIImage(systemName: "heart",
                                 withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
             likeButton.setImage(image, for: .normal)
-//            let newCount = (likeCounts ?? 0) - 1
-//            likeLabel.text = "\(newCount) likes"
-//            self.likeCounts = newCount
+
+            if likers.contains(username) {
+                if let index = likers.firstIndex(of: username) {
+                    likers.remove(at: index)
+                }
+                likeLabel.text = "\(likers.count) likes"
+
+            }
+           
         }
         else {
             let image = UIImage(systemName: "heart.fill",
                                 withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
+            
             likeButton.setImage(image, for: .normal)
-//            let newCount = (likeCounts ?? 0) + 1
-//            likeLabel.text = "\(newCount) likes"
+            if !likers.contains(username) {
+                self.likers.append(username)
+                likeLabel.text = "\(likers.count) likes"
+            }
+          
 //            self.likeCounts = newCount
+            
         
         }
 
@@ -287,14 +320,87 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
 
     @objc func didTapBell() {
         /// give a reminder
+        
+        guard let date = date, let linkName = linkName else {
+            return
+        }
+
+        delegate?.postLinkLikesCollectionViewCellDidTapBell(self, date: date, linkName: linkName)
+//
     }
+    
+    
+   
+    
+    private func didCalculateRate(rating: [Double]) {
+        var totalRating = 0.0
+        let count = rating.count
+        
+
+        
+        rating.forEach { rate in
+            totalRating += rate
+        }
+        if count > 0 {
+            let finalRatingValue = totalRating/Double(rating.count)
+            self.cosmosView.rating = (round(finalRatingValue))
+        } else {
+            self.cosmosView.rating = 0.0
+        }
+       
+       
+    }
+
+    
+    
+//    private func didCalculateRate(rating: [Rating]) {
+//        var totalRating = 0.0
+//        let count = rating.count
+//
+//        rating.forEach { rate in
+//            let rateValue = rate
+//            totalRating += rateValue
+//        }
+//        if count > 0 {
+//            let finalRatingValue = totalRating/Double(rating.count)
+//            self.cosmosView.rating = Double(finalRatingValue)
+//        } else {
+//            self.cosmosView.rating = 0.0
+//        }
+//
+//
+//    }
+    
+
+    private func didTouchCosmos() {
+        
+            (cosmosView.didTouchCosmos) = { rating in
+                
+                guard let username = self.username, let linkId = self.linkId else {
+                    return
+                }
+
+                self.cosmosView.rating = rating
+                DatabaseManager.shared.UpdateEventRating(eventUser: username, linkid: linkId, rating: rating) { success in
+                    
+                    if success {
+                        print("Updated rating")
+                        self.cosmosView.isUserInteractionEnabled = false
+                    }
+                }
+            }
+    
+     
+    }
+    
 
     override func layoutSubviews() {
         super.layoutSubviews()
         
         
         cosmosView.leftToSuperview(nil, offset: 20, relation: ConstraintRelation.equal, priority: LayoutPriority.defaultHigh, isActive: true, usingSafeArea: false)
-        
+//
+//        starView.frame = CGRect(x: 20, y: 0, width: 100, height: 20)
         daysLeftLabel.frame = CGRect(x: 20,
                                      y: cosmosView.bottom+10,
                                      width: contentView.width/4.5,
@@ -330,10 +436,24 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
 
     func configure(
         with viewModel: PostLinkActionCollectionViewCellViewModel, index: Int) {
+        
+       
+        didCalculateRate(rating: viewModel.rating)
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+                return }
+            
+            if viewModel.userWhoRated.contains(username) {
+                cosmosView.isUserInteractionEnabled = false
+                print("the user has already rated event")
+            }
         self.index = index
         isLiked = viewModel.isLiked
-            self.commentModel = viewModel.comments
+        self.date = Date(timeIntervalSince1970: viewModel.dateOfLink)
+            self.linkName = viewModel.linkName
+        self.commentModel = viewModel.comments
         //new
+        self.username = viewModel.username
+        self.linkId = viewModel.linkId
         let users = viewModel.likers
         likeLabel.text = "\(users.count) likes"
 //            likeLabel.text = "10 likes"
@@ -357,9 +477,9 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
         let components = Calendar.current.dateComponents([.day], from: dateRangeStart, to: dateRangeEnd)
         let days = components.day ?? 0
             print("The number of days is: \(days)")
-            if days >= 0 {
+            if days > 0 {
 //                daysLeftLabel.text = "\(days) Days Left"
-                daysLeftLabel.text = "5 Days Left"
+                daysLeftLabel.text = "\(days+1) Days Left"
             } else  if days <= 0 {
                 daysLeftLabel.text = "Complete"
             }
@@ -371,6 +491,7 @@ final class PostLinkActionCollectionViewCell: UICollectionViewCell {
     }
 
 }
+
 
 
 

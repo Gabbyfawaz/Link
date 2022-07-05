@@ -22,6 +22,8 @@ final class MediaPostCollectionViewCell: UICollectionViewCell {
     private var index = 0
     private var postStrings = [String]()
     weak var delegate: MediaPostCollectionViewCellDelegate?
+    private var rating =  [Double]()
+    
     
 
     private let imageView: UIImageView = {
@@ -49,6 +51,36 @@ final class MediaPostCollectionViewCell: UICollectionViewCell {
         let image = UIImage(systemName: "ellipsis",
                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
         button.setImage(image, for: .normal)
+        return button
+    }()
+    
+    private var  stackView: UIStackView = {
+        let stack = UIStackView()
+        stack.layer.masksToBounds = true
+        stack.axis = .horizontal
+        stack.alignment = .fill
+        stack.distribution = .fillEqually
+        stack.spacing = 5
+//        stack.backgroundColor = UIColor(white: 0.7, alpha: 0.6)
+        stack.backgroundColor = .systemBackground
+        stack.layer.cornerRadius = 5
+        return stack
+    }()
+    
+    private let label: UILabel = {
+        let label = UILabel()
+        label.textColor = .label
+        label.font = .systemFont(ofSize: 16)
+        return label
+    }()
+    
+    private let rateButton: UIButton = {
+        let button = UIButton()
+        button.tintColor = .systemBackground
+        let image = UIImage(systemName: "star.fill",
+                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 15))
+        button.setImage(image, for: .normal)
+        button.tintColor = .systemOrange
         return button
     }()
     
@@ -111,6 +143,10 @@ final class MediaPostCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(moreButton)
         contentView.addSubview(rightButton)
        contentView.addSubview(leftButton)
+       contentView.addSubview(stackView)
+       stackView.addArrangedSubview(rateButton)
+       stackView.addArrangedSubview(label)
+
 
     }
     
@@ -170,6 +206,23 @@ final class MediaPostCollectionViewCell: UICollectionViewCell {
     }
     
     
+    private func didCalculateRate(rating: [Double]) {
+        var totalRating = 0.0
+        let count = rating.count
+        
+        
+        rating.forEach { rate in
+            totalRating += rate
+        }
+        if count > 0 {
+            let finalRatingValue = totalRating/Double(rating.count)
+            label.text = "\(round(finalRatingValue))"
+        } else {
+            label.text = "0.0"
+        }
+       
+       
+    }
     
     //MARK: - Layout of Subviews
     
@@ -197,6 +250,11 @@ final class MediaPostCollectionViewCell: UICollectionViewCell {
             y: (contentView.height-size)/2,
             width: size+10,
             height: size)
+        
+        stackView.frame = CGRect(x: 5,
+                                  y: 5,
+                                  width: 60,
+                                  height: 30)
     }
 
     //MARK: - Prepare Resuse
@@ -211,7 +269,9 @@ final class MediaPostCollectionViewCell: UICollectionViewCell {
     func configure(with viewModel: MediaPostCollectionViewCellViewModel) {
 //         remember to add index parameter
 //        self.index = index
+        didCalculateRate(rating: viewModel.rating)
         self.postStrings = viewModel.postString
+//        self.rating = viewModel.rating
         imageView.sd_setImage(with: URL(string: postStrings[index]), completed: nil)
         if !(postStrings.count == 1) {
             rightButton.isHidden = false

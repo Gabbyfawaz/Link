@@ -34,16 +34,15 @@ class MyAnnotation: NSObject, MKAnnotation {
 
 
 class BoomingAnnotation: NSObject, MKAnnotation {
-    let title: String?
+//    let title: String?
     let subtitle: String?
     @objc dynamic var coordinate: CLLocationCoordinate2D
 
     var index: Int
-    var people: [SearchUser]
+    var people: [SearchUser]?
 
 
-    init(title: String, subtitle: String, coordinate: CLLocationCoordinate2D, people: [SearchUser], index: Int) {
-        self.title = title
+    init(subtitle: String, people: [SearchUser]?, coordinate: CLLocationCoordinate2D, index: Int) {
         self.subtitle = subtitle
         self.coordinate = coordinate
         self.index = index
@@ -136,6 +135,14 @@ class MapsViewController: UIViewController {
         return button
     }()
     
+    private let refreshButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "goforward", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30)),
+                        for: .normal)
+        button.tintColor = .black
+        return button
+    }()
+    
     private var  stackView: UIStackView = {
         let stack = UIStackView()
         stack.layer.masksToBounds = true
@@ -146,6 +153,14 @@ class MapsViewController: UIViewController {
         stack.layer.cornerRadius = 5
 //        stack.backgroundColor = UIColor(white: 0, alpha: 0.7)
         return stack
+    }()
+
+    private let button: UIButton = {
+        let button = UIButton()
+        button.setTitle("LINK", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.titleLabel?.font =  .systemFont(ofSize: 30, weight: .semibold)
+        return button
     }()
     
     
@@ -159,24 +174,26 @@ class MapsViewController: UIViewController {
 //        AuthManager.shared.signOut { sucess in
 //            //
 //        }
-
+//        boomingView.delegate = self
         getCurrentLocation()
         configureNavigationBar()
         registerMapAnnotationViews()
-        boomingView.delegate = self
         mapView.delegate = self
         view.addSubview(mapView)
         view.addSubview(quickLinkCollectionView)
         view.addSubview(menuButton)
+        view.addSubview(refreshButton)
+        refreshButton.addTarget(self, action: #selector(didTapRefresh), for: .touchUpInside)
+        
         quickLinkCollectionView.delegate = self
         quickLinkCollectionView.dataSource = self
         view.addSubview(stackView)
         stackView.addArrangedSubview(linkButton)
         stackView.addArrangedSubview(pinButton)
-//        DatabaseManager.shared.deleteLinkAfterEventComplete()
      
-        fetchAllLinks()
-        
+      
+//        fetchAllLinks()
+          handleRefresh()
 
 //        fetchPinFromDatabase()
         observer = NotificationCenter.default.addObserver(
@@ -184,13 +201,14 @@ class MapsViewController: UIViewController {
                     object: nil,
                     queue: .main
                 ) { [weak self] _ in
-                   // remove all annotations
-                    guard var allAnnotations = self?.mapView.annotations  else {
-                        fatalError()
-                    }
-                    allAnnotations.removeAll()
-                    self?.fetchAllLinks()
-//                    self?.fetchPinFromDatabase()
+                    self?.handleRefresh()
+//                    guard let allAnnotations = self?.mapView.annotations else {
+//                        return
+//                    }
+//                    self?.mapView.removeAnnotations(allAnnotations)
+//                    self?.allLinks.removeAll()
+//                    self?.quickLinks.removeAll()
+//                    self?.fetchAllLinks()
                 }
         
         pinObserver = NotificationCenter.default.addObserver(
@@ -199,7 +217,11 @@ class MapsViewController: UIViewController {
             queue: .main
         ) { [weak self] _ in
            // remove all annotations
-            self?.fetchPinFromDatabase()
+          
+           
+            DatabaseManager.shared.handleDeletingBoomingPins { _ in
+                self?.fetchPinFromDatabase()
+            }
 //                    self?.fetchPinFromDatabase()
         }
                
@@ -220,9 +242,13 @@ class MapsViewController: UIViewController {
         )
         quickLinkCollectionView.frame = CGRect(x: 5,
                                            y: mapView.bottom-60,
-                                           width: view.width-10,
+                                               width: view.width-10-refreshButton.width,
                                            height: 60)
-//       cz,m
+        refreshButton.frame = CGRect(x: view.width-35,
+                                     y: mapView.bottom-45,
+                                     width: 25,
+                                     height: 25)
+
 //        menuButton.frame = CGRect(x: view.width-50,
 //                                  y: view.safeAreaInsets.top,
 //                                  width: 30,
@@ -234,15 +260,22 @@ class MapsViewController: UIViewController {
     private func configureNavigationBar() {
 
 
-        let titleLabel = UILabel()
-        titleLabel.text = "LINK"
-        titleLabel.textColor = UIColor.black
-        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
-        let leftItem = UIBarButtonItem(customView: titleLabel)
+//        let titleLabel = UILabel()
+//        titleLabel.text = "LINK"
+//        titleLabel.textColor = UIColor.black
+//        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
+//        let button = UIButton()
+//        button.setTitle("LINK", for: .normal)
+//        button.setTitleColor(.black, for: .normal)
+//        button.titleLabel?.font =  .systemFont(ofSize: 30, weight: .semibold)
+        button.addTarget(self, action: #selector(didTapLinkButton), for: .touchUpInside)
+        let leftItem = UIBarButtonItem(customView: button)
         view.backgroundColor = .black
         self.navigationItem.leftBarButtonItem = leftItem
         tabBarController?.tabBar.barTintColor = .black
         navigationController?.navigationBar.tintColor = .black
+        
+        
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(systemName: "paperplane.fill"), style: .done, target: self, action: #selector(didTapMessage)),
             UIBarButtonItem(image: UIImage(systemName: "mappin.and.ellipse"), style: .done, target: self, action: #selector(didTapLocation)),
@@ -260,6 +293,44 @@ class MapsViewController: UIViewController {
     @objc func mainEventDisplay() {
         
     }
+    
+    @objc func didTapLinkButton() {
+        button.setTitleColor(.darkGray, for: .normal)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.button.setTitleColor(.black, for: .normal)
+        }
+        handleRefresh()
+     
+    }
+    @objc func didTapRefresh() {
+       
+        refreshButton.tintColor = .darkGray
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.refreshButton.tintColor = .black
+        }
+        handleRefresh()
+       
+    }
+    
+    private func handleRefresh() {
+        DatabaseManager.shared.handleDeletingLink { _ in
+            DatabaseManager.shared.handleDeletingQuickLink { _ in
+                DatabaseManager.shared.handleDeletingBoomingPins { _ in
+                    let allAnnotations = self.mapView.annotations
+                    self.mapView.removeAnnotations(allAnnotations)
+                    self.allLinks.removeAll()
+                    self.quickLinks.removeAll()
+                    self.fetchAllLinks()
+                    self.fetchPinFromDatabase()
+                    
+                    NotificationCenter.default.post(name: .didPostLinkNotification, object: nil)
+                }
+               
+            }
+        }
+    }
+    
+
     
     @objc func didTapMessage() {
         
@@ -286,6 +357,24 @@ class MapsViewController: UIViewController {
         
     }
     
+    
+//    func ReloadBoomingPinsEveryHour(){
+//
+//        //get calender object
+//        let calender = Calendar.current
+//        //curent date
+//        let now = Date()
+//
+//        let dateOfNextMinute: Date = calender.nextDate(after: now, matching: DateComponents(second: 0), matchingPolicy: .nextTime)!
+//        let timer = Timer(fireAt: dateOfNextMinute, interval: 60.0*60.0, target: self, selector: #selector(handleBoomingPins), userInfo: nil, repeats: true)
+//        RunLoop.main.add(timer, forMode: RunLoop.Mode.common)
+//    }
+//
+//    @objc func handleBoomingPins(){
+//
+//
+//    }
+//
     
     func getCurrentLocation() {
             // Ask for Authorisation from the User.
@@ -332,17 +421,17 @@ class MapsViewController: UIViewController {
             pins.forEach { pin in
                
                 guard let latitude  = pin?.cooordinates.latitude,
-                      let longitude = pin?.cooordinates.longitude,
+                      let longitude = pin?.cooordinates.longitude
 //                      let locationTitle = pin?.locationString,
-                        let people = pin?.people else
-                      {
-                          return
-                      }
+                else {
+                    return
+                    
+                }
                 let coordinates = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
                 
 
-                
-                let pinAnnotation = BoomingAnnotation(title: "", subtitle: "It's Booming", coordinate: coordinates, people: people ,index: index)
+            
+                let pinAnnotation = BoomingAnnotation(subtitle: "It's Booming", people: pin?.people , coordinate: coordinates ,index: index)
                 print("pin annotation: \(index)")
             
                 self.mapView.addAnnotation(pinAnnotation)
@@ -356,7 +445,7 @@ class MapsViewController: UIViewController {
     
     //MARK: - Fetch All Links
    
-    private func createUniqueAnnotation(linkType: String, linkInfo: String, linkTypeImage: String, latitude: CLLocationDegrees, longitude: CLLocationDegrees, linkId: String, index: Int) {
+    private func createUniqueAnnotation(linkType: String, linkInfo: String, linkTypeImage: String, latitude: CLLocationDegrees, longitude: CLLocationDegrees, linkId: String, index: Int, isPrivate: Bool) {
         let coordinates = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         DispatchQueue.global(qos: .background).async {
         
@@ -373,8 +462,11 @@ class MapsViewController: UIViewController {
                         }
                         print("The index id: \(index)")
                       
-                        let annotation = MyAnnotation(title: linkType, subtitle: linkInfo, coordinate: coordinates, index: index, image: image, offset: 0)
-                        self.mapView.addAnnotation(annotation)
+                        if !isPrivate {
+                            let annotation = MyAnnotation(title: linkType, subtitle: linkInfo, coordinate: coordinates, index: index, image: image, offset: 0)
+                            self.mapView.addAnnotation(annotation)
+                        }
+                     
                 }
             
         }
@@ -394,6 +486,7 @@ class MapsViewController: UIViewController {
            let userGroup = DispatchGroup()
            let otherGroup = DispatchGroup()
            let thirdGroup = DispatchGroup()
+           
            userGroup.enter()
 
            var allLinks: [(link: LinkModel, owner: String)] = []
@@ -417,7 +510,7 @@ class MapsViewController: UIViewController {
                        switch results {
                        case .success(let data):
 
-                           if data.count != 0 {
+                           if data.count > 0 {
                                quickLinks.append((quickLinks: data, owner: current))
                                self.quickLinks = quickLinks
                                self.quickLinkCollectionView.reloadData()
@@ -441,7 +534,6 @@ class MapsViewController: UIViewController {
                                    (link: $0, owner: current)
                                }))
                                
-                               
                                var index = 0
                                userGroup.notify(queue: .main) {
                                    otherGroup.notify(queue: .main) {
@@ -463,7 +555,8 @@ class MapsViewController: UIViewController {
                                            latitude: latitude,
                                            longitude: longitude,
                                            linkId: model.link.id,
-                                           index: index)
+                                           index: index,
+                                           isPrivate: model.link.isPrivate)
                                         self.fetchPinFromDatabase()
                                         index += 1
                                        }
@@ -551,12 +644,6 @@ extension MapsViewController: MKMapViewDelegate {
         if let annotation = view.annotation as? BoomingAnnotation {
             
             let index = annotation.index
-          
-//            let coordinate = annotation.coordinate
-//            guard let text = boomingPin?.locationString, let people = boomingPin?.people else {
-//                return
-//            }
-            
             guard let boomingPin = self.boomingPins[index] else {
                 return 
             }
@@ -568,7 +655,7 @@ extension MapsViewController: MKMapViewDelegate {
 //            boomingView.delegate = self
             NotificationCenter.default.post(name: .didTapPin, object: nil, userInfo: ["dict": boomingPin])
             
-            boomingView.configure(pin: boomingPin)
+//            boomingView.configure(pin: boomingPin)
             
         }
 
@@ -644,8 +731,8 @@ extension MapsViewController: MKMapViewDelegate {
             markerAnnotationView.canShowCallout = true
             markerAnnotationView.markerTintColor = UIColor.black
             markerAnnotationView.glyphTintColor = .systemYellow
-//            markerAnnotationView.glyphText = "\(annotation.people.count)"
-            markerAnnotationView.glyphText = "15"
+            markerAnnotationView.glyphText = "\(annotation.people?.count ?? 0)"
+//            markerAnnotationView.glyphText = "15"
             markerAnnotationView.displayPriority = .defaultHigh
             markerAnnotationView.subtitleVisibility = .visible
 
@@ -658,7 +745,7 @@ extension MapsViewController: MKMapViewDelegate {
 //            let people = annotation.people
 //
 //            print("people: \(people) and \(text)")
-//            boomingView.configure(locationString: text, people: people)
+//            boomingView.configure(pin: an)
 //            boomingView.delegate = self
             markerAnnotationView.detailCalloutAccessoryView = boomingView
            
@@ -714,6 +801,7 @@ extension MapsViewController: QuickLinkViewControllerDelegate {
 
 extension MapsViewController: BoomingViewDelegate {
 
+    
     func boomingDidPin(_ view: BoomingView, coordinates: CLLocationCoordinate2D, locationTitle: String) {
         // add new user to database
         

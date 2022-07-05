@@ -8,8 +8,13 @@
 import Foundation
 import CoreLocation
 
-struct LinkModel: Codable {
+struct LinkModel: Codable , Hashable, Equatable {
     
+    static func == (lhs: LinkModel, rhs: LinkModel) -> Bool {
+        return lhs.id == rhs.id
+    }
+   
+       
     let id: String
     let user: String
     let info: String
@@ -26,6 +31,8 @@ struct LinkModel: Codable {
     var isPrivate: Bool
     var linkTypeImage: String
     let extraInformation: String
+    var rating: [Double]
+    var usersWhoRated: [String]
     
 
     var storageReference: String? {
@@ -37,9 +44,13 @@ struct LinkModel: Codable {
 
 }
 
-public struct Coordinates: Codable {
+public struct Coordinates: Codable, Hashable {
     let latitude: CLLocationDegrees?
     let longitude: CLLocationDegrees?
 }
 
 
+//public struct Rating: Codable {
+//    let username: String?
+//    let rating: Double
+//}

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		013AF5AD286F78A2008CF5BC /* TicketViewController .swift in Sources */ = {isa = PBXBuildFile; fileRef = 013AF5AC286F78A2008CF5BC /* TicketViewController .swift */; };
 		015083B227A9262700A4F3F9 /* MapsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015083B127A9262600A4F3F9 /* MapsViewController.swift */; };
 		0152963827F86FDC008C2568 /* MyCustomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0152963727F86FDC008C2568 /* MyCustomCell.swift */; };
 		0163B7D32795C50A004DF582 /* CustomizedHeaderViewForInvites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0163B7D22795C509004DF582 /* CustomizedHeaderViewForInvites.swift */; };
@@ -21,7 +22,8 @@
 		0167CB1027D677630066CA90 /* QuickLinkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0167CB0F27D677630066CA90 /* QuickLinkViewController.swift */; };
 		0167CB1227D79D410066CA90 /* ContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0167CB1127D79D410066CA90 /* ContentViewController.swift */; };
 		017B69B027936694004B35FA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 017B69AF27936694004B35FA /* GoogleService-Info.plist */; };
-		0183F1FB27CD7BAC0063D62E /* LinkStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0183F1FA27CD7BAC0063D62E /* LinkStory.swift */; };
+		017FE447284A4BB800392614 /* LocationSearchTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017FE446284A4BB700392614 /* LocationSearchTable.swift */; };
+		0183F1FB27CD7BAC0063D62E /* QuickLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0183F1FA27CD7BAC0063D62E /* QuickLink.swift */; };
 		0183F1FD27CE055C0063D62E /* QuickLinkSticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0183F1FC27CE055C0063D62E /* QuickLinkSticker.swift */; };
 		0183F1FF27CEC1170063D62E /* ShareLinksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0183F1FE27CEC1170063D62E /* ShareLinksViewController.swift */; };
 		0183F20127CF62D40063D62E /* ShareLinkWithUsersCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0183F20027CF62D40063D62E /* ShareLinkWithUsersCell.swift */; };
@@ -155,6 +157,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		013AF5AC286F78A2008CF5BC /* TicketViewController .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TicketViewController .swift"; sourceTree = "<group>"; };
 		015083B127A9262600A4F3F9 /* MapsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsViewController.swift; sourceTree = "<group>"; };
 		0152963727F86FDC008C2568 /* MyCustomCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCustomCell.swift; sourceTree = "<group>"; };
 		0163B7D22795C509004DF582 /* CustomizedHeaderViewForInvites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizedHeaderViewForInvites.swift; sourceTree = "<group>"; };
@@ -169,7 +172,8 @@
 		0167CB0F27D677630066CA90 /* QuickLinkViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLinkViewController.swift; sourceTree = "<group>"; };
 		0167CB1127D79D410066CA90 /* ContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewController.swift; sourceTree = "<group>"; };
 		017B69AF27936694004B35FA /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
-		0183F1FA27CD7BAC0063D62E /* LinkStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkStory.swift; sourceTree = "<group>"; };
+		017FE446284A4BB700392614 /* LocationSearchTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchTable.swift; sourceTree = "<group>"; };
+		0183F1FA27CD7BAC0063D62E /* QuickLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLink.swift; sourceTree = "<group>"; };
 		0183F1FC27CE055C0063D62E /* QuickLinkSticker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLinkSticker.swift; sourceTree = "<group>"; };
 		0183F1FE27CEC1170063D62E /* ShareLinksViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLinksViewController.swift; sourceTree = "<group>"; };
 		0183F20027CF62D40063D62E /* ShareLinkWithUsersCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLinkWithUsersCell.swift; sourceTree = "<group>"; };
@@ -318,6 +322,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		010D37C32854E94200ED00BD /* BoomingPin */ = {
+			isa = PBXGroup;
+			children = (
+				0165BE6B27EA628D004070BB /* BoomingAnnotationView.swift */,
+				0165BE6D27EB857D004070BB /* BoomingCollectionViewCell.swift */,
+				0165BE6F27F1A058004070BB /* BoomingView.swift */,
+			);
+			path = BoomingPin;
+			sourceTree = "<group>";
+		};
 		0158CE1227E6349B008F0700 /* Create Booming Pin */ = {
 			isa = PBXGroup;
 			children = (
@@ -351,8 +365,8 @@
 			children = (
 				CEF824FD26B594240014334E /* PostFeedCollectionViewCell.swift */,
 				CE030C8A26B5A3090082BF39 /* NameofLinkCollectionView.swift */,
-				CE030C8D26B5A9E20082BF39 /* LocationViewContainer.swift */,
 				CE030C9026B5B40C0082BF39 /* InvitesCollectionView.swift */,
+				CE030C8D26B5A9E20082BF39 /* LocationViewContainer.swift */,
 			);
 			path = "Feed View Controller Cells ";
 			sourceTree = "<group>";
@@ -535,7 +549,7 @@
 				CE8B040626C32DCB007DC164 /* CategoryModel.swift */,
 				CE92819026CD8EC5005C6310 /* Pin.swift */,
 				CE61F406273F32B60007B6C1 /* PlaceAnnotations.swift */,
-				0183F1FA27CD7BAC0063D62E /* LinkStory.swift */,
+				0183F1FA27CD7BAC0063D62E /* QuickLink.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -558,9 +572,7 @@
 				0163B7D22795C509004DF582 /* CustomizedHeaderViewForInvites.swift */,
 				01F961F727E10298002CE601 /* Custom Buttons and Views  */,
 				CE53BE8726D681BE00F1E8BF /* CreateLinkViews */,
-				0165BE6B27EA628D004070BB /* BoomingAnnotationView.swift */,
-				0165BE6D27EB857D004070BB /* BoomingCollectionViewCell.swift */,
-				0165BE6F27F1A058004070BB /* BoomingView.swift */,
+				010D37C32854E94200ED00BD /* BoomingPin */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -685,6 +697,7 @@
 				CE82A47426A9DE0C00146B6C /* PhotoViewerViewController.swift */,
 				CE82A47726A9DE2800146B6C /* VideoPlayerViewerViewController.swift */,
 				CE82A47A26A9DE3C00146B6C /* LocationPickerViewController.swift */,
+				017FE446284A4BB700392614 /* LocationSearchTable.swift */,
 				0165BE7327F7657C004070BB /* LinkPickerViewController.swift */,
 				0152963727F86FDC008C2568 /* MyCustomCell.swift */,
 			);
@@ -700,6 +713,7 @@
 				CE82A48926A9DEDD00146B6C /* PostEditViewController.swift */,
 				CE8B040326C31ECD007DC164 /* CategoryViewController.swift */,
 				CE82A49626A9DF4800146B6C /* AddNewPeopleToLinkViewController.swift */,
+				013AF5AC286F78A2008CF5BC /* TicketViewController .swift */,
 				CE53BF2026D902AC00F1E8BF /* FinalPageCreateLinkViewController.swift */,
 			);
 			path = "Create Link";
@@ -852,6 +866,7 @@
 				CE82A42226A9DA5C00146B6C /* NewConversationCell.swift in Sources */,
 				CE8B040726C32DCB007DC164 /* CategoryModel.swift in Sources */,
 				CE61F407273F32B60007B6C1 /* PlaceAnnotations.swift in Sources */,
+				017FE447284A4BB800392614 /* LocationSearchTable.swift in Sources */,
 				CE92819126CD8EC5005C6310 /* Pin.swift in Sources */,
 				CE8FFE3F26E4D93100F1C99E /* RequestNotificationTableViewCell.swift in Sources */,
 				CE82A40C26A9D98E00146B6C /* PostLinkExtraInfoCollectionViewCell.swift in Sources */,
@@ -860,6 +875,7 @@
 				CE82A3D626A9D76C00146B6C /* HomeMapViewContainer.swift in Sources */,
 				CE92818E26CC6144005C6310 /* GooglePlacesManager.swift in Sources */,
 				CE82A38126A9BF1300146B6C /* PostLogisticCollectionViewCellViewModel.swift in Sources */,
+				013AF5AD286F78A2008CF5BC /* TicketViewController .swift in Sources */,
 				01F961FC27E24B5C002CE601 /* LinkJoinButton.swift in Sources */,
 				CE82A3D126A9D68300146B6C /* LinkHomeCellViewModelType.swift in Sources */,
 				0167CB1027D677630066CA90 /* QuickLinkViewController.swift in Sources */,
@@ -957,7 +973,7 @@
 				0165BE6627E64036004070BB /* SearchPinResultTableViewController.swift in Sources */,
 				CE82A39426A9BFBD00146B6C /* PostLocationCollectionViewCellViewModel.swift in Sources */,
 				CE030C8E26B5A9E20082BF39 /* LocationViewContainer.swift in Sources */,
-				0183F1FB27CD7BAC0063D62E /* LinkStory.swift in Sources */,
+				0183F1FB27CD7BAC0063D62E /* QuickLink.swift in Sources */,
 				CE82A3B926A9D22500146B6C /* UserInfo.swift in Sources */,
 				CE82A38E26A9BF8D00146B6C /* PostLinkActionCollectionViewCellViewModel.swift in Sources */,
 			);

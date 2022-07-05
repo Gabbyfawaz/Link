@@ -11,13 +11,19 @@ import SDWebImage
 import CoreLocation
 import UberRides
 import MapKit
+import EventKit
+import EventKitUI
 
 
 //protocol PostLinkViewControllerDelegate: AnyObject {
 //    func updateLikerState(_ vc: PostLinkViewController, likers: [String] )
 //}
-class EventViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+class EventViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, EKEventEditViewDelegate {
     
+    
+    
+    let eventStore = EKEventStore()
+    var time = Date()
  
     private let buttonTicket: UIButton = {
         let button = UIButton()
@@ -102,10 +108,10 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
         view.addSubview(iconImageView)
         view.addSubview(buttonTicket)
        
-        
+//
         fetchPost()
 //        observeKeyboardChange()
-         Appirater.tryToShowPrompt()
+//         Appirater.tryToShowPrompt()
         
         let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(didTapRight))
         swipeRight.direction = .left
@@ -288,12 +294,12 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
                         let postLinkData: [SingleLinkPostCellViewModelType] = [
 //
                             
-                            .post(viewModel: MediaPostCollectionViewCellViewModel(postString: model.postArrayString, user: model.user)),
+                            .post(viewModel: MediaPostCollectionViewCellViewModel(postString: model.postArrayString, user: model.user, rating: model.rating)),
                             .poster(viewModel:  NameOfLinkCollectionViewCellViewModel(linkType: model.linkTypeName, profilePictureURL: profileLinkTypeImage, userArray: model.pending, actionButton: button)),
-                            .actions(viewModel: PostLinkActionCollectionViewCellViewModel(isLiked: isLiked, likers: model.likers, comments: commentModel, dateOfLink: model.linkDate)),
+                            .actions(viewModel: PostLinkActionCollectionViewCellViewModel(username: model.user, linkId: model.id, isLiked: isLiked, linkName: model.linkTypeName, likers: model.likers, comments: commentModel, dateOfLink: model.linkDate, rating: model.rating, userWhoRated: model.usersWhoRated)),
                             .username(viewModel: PostLinkUsenameCollectionCellViewModel(username: model.user)),
                             .info(viewModel: PostLinkExtraInfoCollectionCellViewModel(username: model.user, extraInfomation: model.extraInformation)),
-                            .invite(viewModel: PostInviteCollectionViewCellViewModel(pendingUsers: model.pending, confirmedUsers: model.pending, requesting: model.requesting)),
+                            .invite(viewModel: PostInviteCollectionViewCellViewModel(pendingUsers: model.pending, confirmedUsers: model.accepted, requesting: model.requesting)),
                             .location(viewModel: PostLocationCollectionViewCellViewModel(location: model.locationTitle, isPrivate: model.isPrivate, coordinates: model.location, user: model.user, postLinkIcon: model.linkTypeImage)),
                             .logistic(viewModel: PostLogisticCollectionViewCellViewModel(date: model.linkDate))
                         ]
@@ -322,6 +328,10 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
         return "\(numberOfComments)"
     }
     
+    func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
+        
+        controller.dismiss(animated: true, completion: nil)
+    }
     
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -441,8 +451,10 @@ extension EventViewController: NameOfLinkCollectionViewCellDelegate {
             state: isAccepted ? .accepted : .accept,
             postID: linkModel.id,
             owner: linkModel.user) { success in
+                
                 if success {
                     // send notification
+                    
                     if !isAccepted {
                         // send notification
                         let id = NotificationsManager.newIdentifier()
@@ -450,7 +462,7 @@ extension EventViewController: NameOfLinkCollectionViewCellDelegate {
                         guard let user = UserDefaults.standard.string(forKey: "username") else {
                             return
                         }
-                        let acceptNoti = LinkNotification(identifer: id, notificationType: 6, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [],isRequesting: [], postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
+                        let acceptNoti = LinkNotification(identifer: id, notificationType: 6, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [nil],isRequesting: [nil], postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
                         //
                         NotificationsManager.shared.create(notification: acceptNoti, for: self.linkModel.user)
         
@@ -510,7 +522,7 @@ extension EventViewController: MediaPostCollectionViewCellDelegate {
                 guard let user = UserDefaults.standard.string(forKey: "username") else {
                     return
                 }
-                let likeNotification = LinkNotification(identifer: id, notificationType: 1, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [],isRequesting: [nil], postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
+                let likeNotification = LinkNotification(identifer: id, notificationType: 1, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [nil],isRequesting: [nil], postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
             
                 NotificationsManager.shared.create(notification: likeNotification, for: self.linkModel.user)
         
@@ -572,7 +584,7 @@ extension EventViewController: CommentViewControllerDelegate {
                     return
                 }
                 if success {
-                    let commentNotification = LinkNotification(identifer: id, notificationType: 2, username: username , dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [], isRequesting: [],postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
+                    let commentNotification = LinkNotification(identifer: id, notificationType: 2, username: username , dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [nil], isRequesting: [nil],postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
                     NotificationsManager.shared.create(notification: commentNotification, for: self.linkModel.user)
                 }
             }
@@ -583,6 +595,36 @@ extension EventViewController: CommentViewControllerDelegate {
 
 
 extension EventViewController: PostLinkActionsCollectionViewCellDelegate {
+    func postLinkLikesCollectionViewCellDidTapBell(_ cell: PostLinkActionCollectionViewCell, date: Date, linkName: String) {
+        
+        let alert = UIAlertController(title: "Reminder", message: "Add Event to Calender", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { _ in
+            self.eventStore.requestAccess( to: EKEntityType.event, completion:{(granted, error) in
+                       DispatchQueue.main.async {
+                           if (granted) && (error == nil) {
+                               let event = EKEvent(eventStore: self.eventStore)
+                               event.title = linkName
+                               event.startDate = date
+//                               event.url = URL(string: "https://apple.com")
+                               event.endDate = date
+                               let eventController = EKEventEditViewController()
+                               eventController.event = event
+                               eventController.eventStore = self.eventStore
+                               eventController.editViewDelegate = self
+                               self.present(eventController, animated: true, completion: nil)
+                               
+                           }
+                       }
+                   })
+           
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert,animated: true)
+    }
+    
+    
+
+    
     
     
     func postLinkActionsCollectionViewCellDidTapLike(_ cell: PostLinkActionCollectionViewCell, isLiked: Bool) {
@@ -602,7 +644,7 @@ extension EventViewController: PostLinkActionsCollectionViewCellDelegate {
                             }
                            
     //                        self.delegate?.updateLikerState(self, likers: likers )
-                            let likeNotification = LinkNotification(identifer: id, notificationType: 1,username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [], isRequesting: [nil],  postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
+                            let likeNotification = LinkNotification(identifer: id, notificationType: 1,username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [nil], isRequesting: [nil],  postId: self.linkModel.id, postUrl: self.linkModel.postArrayString[0])
                         
                             NotificationsManager.shared.create(notification: likeNotification, for: self.linkModel.user)
                         }
@@ -629,8 +671,9 @@ extension EventViewController: PostLinkActionsCollectionViewCellDelegate {
     
     func postLinkLikesCollectionViewCellDidTapLikeCount(_ cell: PostLinkActionCollectionViewCell, likers: [String]) {
         let vc = ListViewController(type: .likers(usernames: likers))
-        vc.modalPresentationStyle = .automatic
-        present(vc, animated: true, completion: nil)
+        let navVC = UINavigationController(rootViewController: vc)
+        navVC.modalPresentationStyle = .automatic
+        present(navVC, animated: true, completion: nil)
 //        navigationController?.pushViewController(vc, animated: true)
     }
     
@@ -685,8 +728,14 @@ extension EventViewController: PostInviteCollectionViewCellDelegate {
 
 extension EventViewController: PostLocationCollectionViewCellDelegate {
     
-    func postLocationCollectionViewCellDidTapUber(_ cell: PostLocationCollectionViewCell, deepLink: RequestDeeplink) {
+    func postLocationCollectionViewCellDidTapUber(_ cell: PostLocationCollectionViewCell, deepLink: RequestDeeplink, isPrivate: Bool) {
         print("Did Tap Uber")
+        
+        if isPrivate {
+            let alert = UIAlertController(title: "Private", message: "This event is private", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Message user for details", style: .cancel, handler: nil))
+            present(alert, animated: true )
+        } else {
         let alert = UIAlertController(title: "Open Uber?", message: "This action will open Uber", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
             deepLink.execute()
@@ -694,10 +743,16 @@ extension EventViewController: PostLocationCollectionViewCellDelegate {
         alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         
         present(alert, animated: true)
+        }
     }
     
-    func postLocationCollectionViewCellDidTapAppleMaps(_ cell: PostLocationCollectionViewCell, options: [String : NSValue], mapItem: MKMapItem) {
+    func postLocationCollectionViewCellDidTapAppleMaps(_ cell: PostLocationCollectionViewCell, options: [String : NSValue], mapItem: MKMapItem, isPrivate: Bool) {
         
+        if isPrivate {
+            let alert = UIAlertController(title: "Private", message: "This event is private", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Message user for details", style: .cancel, handler: nil))
+            present(alert, animated: true )
+        } else {
         let alert = UIAlertController(title: "Open Maps?", message: "This action will open Maps", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
             mapItem.openInMaps(launchOptions: options)
@@ -705,6 +760,7 @@ extension EventViewController: PostLocationCollectionViewCellDelegate {
         alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
        
         present(alert, animated: true)
+        }
     }
     
     

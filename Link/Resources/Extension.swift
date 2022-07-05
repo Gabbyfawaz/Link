@@ -104,7 +104,7 @@ extension String {
 
 extension Notification.Name {
     /// Notification to inform of new post
-    static let didPostNotification = Notification.Name("didPostNotification")
+//    static let didPostNotification = Notification.Name("didPostNotification")
     static let didLoginNotification = Notification.Name("didLoginNotification")
     static let didPostLinkNotification = Notification.Name("didPostLinkNotification")
     static let didPostLinkOnMap = Notification.Name("didPostLinkOnMap")
@@ -283,3 +283,14 @@ extension UIFont {
 }
 
 
+
+extension UIView{
+    func rotate() {
+        let rotation : CABasicAnimation = CABasicAnimation(keyPath: "transform.rotation.z")
+        rotation.toValue = NSNumber(value: Double.pi * 2)
+        rotation.duration = 1
+        rotation.isCumulative = true
+        rotation.repeatCount = Float.greatestFiniteMagnitude
+        self.layer.add(rotation, forKey: "rotationAnimation")
+    }
+}

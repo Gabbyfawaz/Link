@@ -7,11 +7,17 @@
 
 import UIKit
 
+
+
 protocol SearchResultsLinkViewControllerDelegate: AnyObject {
     func searchResultsViewController(_ vc: SearchResultsLinkViewController, didSelectResultWith links: LinkModel)
 }
 
 class SearchResultsLinkViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    
+    private enum CellReuseID: String {
+        case searchResultCell
+    }
 
     public weak var delegate: SearchResultsLinkViewControllerDelegate?
 
@@ -21,24 +27,50 @@ class SearchResultsLinkViewController: UIViewController, UITableViewDelegate, UI
         let tableView = UITableView()
         tableView.isHidden = true
         tableView.register(UITableViewCell.self,
-                           forCellReuseIdentifier: "cell")
+                           forCellReuseIdentifier: CellReuseID.searchResultCell.rawValue)
         return tableView
+    }()
+    
+    private let noResultsLabel: UILabel = {
+        let label = UILabel()
+        label.isHidden = true
+        label.text = "No Links Found"
+        label.textAlignment = .center
+        label.textColor = .label
+        label.font = .systemFont(ofSize: 18, weight: .medium)
+        return label
     }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         view.addSubview(tableView)
-        tableView.frame = view.bounds
+        view.addSubview(noResultsLabel)
+        
         tableView.delegate = self
         tableView.dataSource = self
        
     }
     
     public func update(with results: [LinkModel]) {
-        self.link = results
-        tableView.reloadData()
-        tableView.isHidden = link.isEmpty
+        if results.isEmpty {
+            noResultsLabel.isHidden = false
+            tableView.isHidden = true
+        } else {
+            self.link = results
+            tableView.reloadData()
+            tableView.isHidden = link.isEmpty
+            noResultsLabel.isHidden = true
+        }
+
+    }
+    
+    override func viewDidLayoutSubviews() {
+        tableView.frame = view.bounds
+        noResultsLabel.frame = CGRect(x: view.width/4,
+                                      y: (view.height-200)/2,
+                                      width: view.width/2,
+                                      height: 200)
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -46,8 +78,10 @@ class SearchResultsLinkViewController: UIViewController, UITableViewDelegate, UI
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+//        let cell = tableView.dequeueReusableCell(withIdentifier: CellReuseID.searchResultCell.rawValue, for: indexPath)
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: CellReuseID.searchResultCell.rawValue)
         cell.textLabel?.text = link[indexPath.row].linkTypeName
+        cell.detailTextLabel?.text = link[indexPath.row].user
         return cell
     }
 

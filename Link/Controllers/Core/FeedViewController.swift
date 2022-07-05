@@ -10,10 +10,17 @@ import UberRides
 import CoreLocation
 import MapKit
 
+
+//protocol FeedViewControllerDelegate: AnyObject {
+//    func feedViewControllerDelegateDidTapRecycle(_ vc: FeedViewController, pending: [SearchUser], accepted: [SearchUser])
+//}
+
 class FeedViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchResultsUpdating, SearchResultsLinkViewControllerDelegate {
 
     
     //MARK: - Properties
+    
+//    weak var delegate: FeedViewControllerDelegate?
     
     private var searchVC = UISearchController(searchResultsController: SearchResultsLinkViewController())
 
@@ -30,6 +37,15 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
 //    private var isRequested = false
     private var action = NameOfLinkCollectionCellViewActions.request(isRequested: false)
     
+    private let button: UIButton = {
+        let button = UIButton()
+        button.setTitle("FEED", for: .normal)
+        button.setTitleColor(.label, for: .normal)
+        button.titleLabel?.font =  .systemFont(ofSize: 30, weight: .semibold)
+
+        return button
+    }()
+    
         // MARK: - Lifecycle
     
     override func viewWillAppear(_ animated: Bool) {
@@ -40,26 +56,37 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
             configureNavBar()
             configureCollectionView()
             fetchLinkPosts()
+//            handleRefresh()
             observer = NotificationCenter.default.addObserver(
                 forName: .didPostLinkNotification,
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
+//                self?.handleRefresh()
+                self?.allLinks.removeAll()
                 self?.linkPostViewModels.removeAll()
                 self?.fetchLinkPosts()
-                print("we back babbbby!")
             }
         }
+    
+    
     
     //MARK: - ConfigureUI
     
     private func configureNavBar() {
 
-        let titleLabel = UILabel()
-        titleLabel.text = "FEED"
-        titleLabel.textColor = UIColor.label
-        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
-        let leftItem = UIBarButtonItem(customView: titleLabel)
+//        let titleLabel = UILabel()
+//        titleLabel.text = "FEED"
+//        titleLabel.textColor = UIColor.label
+//        titleLabel.font = .systemFont(ofSize: 30, weight: .semibold)
+//        let leftItem = UIBarButtonItem(customView: titleLabel)
+//        self.navigationItem.leftBarButtonItem = leftItem
+//        let button = UIButton()
+//        button.setTitle("FEED", for: .normal)
+//        button.setTitleColor(.label, for: .normal)
+//        button.titleLabel?.font =  .systemFont(ofSize: 30, weight: .semibold)
+        button.addTarget(self, action: #selector(didTapRefresh), for: .touchUpInside)
+        let leftItem = UIBarButtonItem(customView: button)
         self.navigationItem.leftBarButtonItem = leftItem
         navigationController?.navigationBar.tintColor = .label
         view.backgroundColor = .systemBackground
@@ -129,6 +156,30 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
         let vc = NotificationsViewController()
         navigationController?.pushViewController(vc, animated: true)
     }
+    
+    
+    @objc func didTapRefresh() {
+       
+        button.setTitleColor(.secondaryLabel, for: .normal)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.button.setTitleColor(.label, for: .normal)
+        }
+        handleRefresh()
+       
+    }
+    
+    private func handleRefresh() {
+        DatabaseManager.shared.handleDeletingLink { _ in
+            DatabaseManager.shared.handleDeletingQuickLink { _ in
+                self.allLinks.removeAll()
+                self.linkPostViewModels.removeAll()
+                self.fetchLinkPosts()
+                NotificationCenter.default.post(name: .didPostLinkOnMap, object: nil)
+            }
+        }
+    }
+    
+
      
         //MARK: - FetchPosts for All links
     
@@ -138,6 +189,7 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
                 return
             }
             let userGroup = DispatchGroup()
+            let otherGroup = DispatchGroup()
             userGroup.enter()
     
             var allLinks: [(link: LinkModel, owner: String)] = []
@@ -149,11 +201,11 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
     
                 let users = usernames + [username]
                 for current in users {
-                    userGroup.enter()
+                    otherGroup.enter()
                     DatabaseManager.shared.getAllLinks(for: current) { result in
                         DispatchQueue.main.async {
                             defer {
-                                userGroup.leave()
+                                otherGroup.leave()
                             }
 //
                             switch result {
@@ -171,6 +223,7 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
             }
             
             userGroup.notify(queue: .main) {
+                otherGroup.notify(queue: .main) {
                 let group = DispatchGroup()
                 self.allLinks = allLinks
                 print("allLinks: \(allLinks)")
@@ -195,6 +248,7 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
                 }
             }
         }
+        }
     
          
       //MARK: - Create Model
@@ -206,24 +260,24 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
             completion: @escaping (Bool) -> Void
         ) {
       
-            guard let username = UserDefaults.standard.string(forKey: "username") else {
-                return
-            }
-            let user = SearchUser(name: username)
-            let isPending = model.pending.contains(user)
-            let isAccepted = model.accepted.contains(user)
-            let isRequested = model.requesting.contains(user)
+//            guard let username = UserDefaults.standard.string(forKey: "username") else {
+//                return
+//            }
+//            let user = SearchUser(name: username)
+//            let isPending = model.pending.contains(user)
+//            let isAccepted = model.accepted.contains(user)
+//            let isRequested = model.requesting.contains(user)
            
-            var button = NameOfLinkCollectionCellViewActions.request(isRequested: false)
-            if isPending {
-                button = .accept(isAccepted: false)
-            } else {
-                if isAccepted {
-                    button = .accept(isAccepted: isAccepted)
-                } else {
-                    button = .request(isRequested: isRequested)
-                }
-            }
+//            var button = NameOfLinkCollectionCellViewActions.request(isRequested: false)
+//            if isPending {
+//                button = .accept(isAccepted: false)
+//            } else {
+//                if isAccepted {
+//                    button = .accept(isAccepted: isAccepted)
+//                } else {
+//                    button = .request(isRequested: isRequested)
+//                }
+//            }
             guard let profileLinkTypeImage = URL(string: model.linkTypeImage) else {
               return
             }
@@ -256,8 +310,9 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
                                 confirmedUsers: model.accepted,
                                 isPrivate: model.isPrivate,
                                 coordinates: model.location,
-                                date: model.linkDate,
-                                actionButton: button))
+                                date: model.linkDate
+//                                actionButton: button))
+                                ))
 
                         ]
                         
@@ -292,10 +347,12 @@ class FeedViewController: UIViewController, UICollectionViewDelegate, UICollecti
             switch cellLinkType {
             case .nameOfLink(viewModel: let viewModel):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostFeedCollectionViewCell.identifier, for: indexPath) as? PostFeedCollectionViewCell else {fatalError()}
-                cell.configure(with: viewModel)
+                cell.configure(with: viewModel, index: indexPath.section)
                 cell.nameOfLinkView.delegate = self
                 cell.inviteOfLinkView.delegate = self
                 cell.locationOfLinkView.delegate = self
+                
+
                 return cell
             }
             
@@ -378,6 +435,23 @@ extension FeedViewController: NameofLinkCollectionViewDelegate {
 
 extension FeedViewController: InvitesCollectionViewDelegate {
     
+    func invitesCollectionViewDelegateDidTapReload(_ view: InvitesCollectionView, linkId: String, username: String, index: Int) {
+        
+        DatabaseManager.shared.getLink(with: linkId, from: username) { model in
+            
+//            guard let model = model else {
+//                return
+//            }
+//            NotificationCenter.default.post(name: .didUpdateAcceptButton, object: nil, userInfo: ["model" : model])
+            
+//            self.delegate?.feedViewControllerDelegateDidTapRecycle(self, pending: pending, accepted: accepted)
+           
+        
+            
+        }
+    }
+    
+    
     func invitesCollectionViewDelegateDidTapRequest(_ view: InvitesCollectionView, linkId: String, username: String, isRequesting: Bool) {
         
         DatabaseManager.shared.updateRequestState(state: isRequesting ? .requesting : .request, postID: linkId, owner: username) { success in
@@ -410,8 +484,13 @@ extension FeedViewController: InvitesCollectionViewDelegate {
 
 extension FeedViewController: LocationViewContainerDelegate {
     
-    func locationViewContainerDidTapAppleMaps(_ view: LocationViewContainer, options: [String : NSValue], mapItem: MKMapItem) {
+    func locationViewContainerDidTapAppleMaps(_ view: LocationViewContainer, options: [String : NSValue], mapItem: MKMapItem, isPrivate: Bool) {
         
+        if isPrivate {
+            let alert = UIAlertController(title: "Private", message: "This event is private", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Message user for details", style: .cancel, handler: nil))
+            present(alert, animated: true )
+        } else {
         let alert = UIAlertController(title: "Open Maps?", message: "This action will open Maps", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
             mapItem.openInMaps(launchOptions: options)
@@ -419,21 +498,30 @@ extension FeedViewController: LocationViewContainerDelegate {
         alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
        
         present(alert, animated: true)
+        }
       
     }
     
     
  
     
-    func locationViewContainerDidTapUber(_ view: LocationViewContainer, deepLink: RequestDeeplink) {
-        print("Did Tap Uber")
-        let alert = UIAlertController(title: "Open Uber?", message: "This action will open Uber", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
-            deepLink.execute()
-        }))
-        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
+    func locationViewContainerDidTapUber(_ view: LocationViewContainer, deepLink: RequestDeeplink, isPrivate: Bool) {
         
-        present(alert, animated: true)
+        if isPrivate {
+            let alert = UIAlertController(title: "Private", message: "This event is private", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Message user for details", style: .cancel, handler: nil))
+            present(alert, animated: true )
+        } else {
+            print("Did Tap Uber")
+            let alert = UIAlertController(title: "Open Uber?", message: "This action will open Uber", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
+                deepLink.execute()
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
+            
+            present(alert, animated: true)
+        }
+       
     }
     
     

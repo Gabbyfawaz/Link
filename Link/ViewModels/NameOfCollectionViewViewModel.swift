@@ -26,5 +26,5 @@ struct PostOfFeedCollectionViewModel {
     let isPrivate: Bool
     let coordinates: Coordinates
     let date: TimeInterval
-    let actionButton: NameOfLinkCollectionCellViewActions
+//    let actionButton: NameOfLinkCollectionCellViewActions
 }

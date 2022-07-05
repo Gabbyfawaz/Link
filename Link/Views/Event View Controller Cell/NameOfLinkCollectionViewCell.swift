@@ -44,7 +44,7 @@ final class NameOfLinkCollectionViewCell: UICollectionViewCell {
         return button
     }()
     
-    private var guestInvited:[SearchUser]?
+//    private var guestInvited:[SearchUser]?
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -97,6 +97,7 @@ final class NameOfLinkCollectionViewCell: UICollectionViewCell {
     //MARK: - Actions for buttons
     
     @objc private func didTapAccept() {
+        
         delegate?.posterLinkCollectionViewCellDidTapAccept(self, isAccepted: isAccepted)
         isAccepted = !isAccepted
         acceptButton.configure(for: isAccepted ? .accepted : .accept)
@@ -107,6 +108,7 @@ final class NameOfLinkCollectionViewCell: UICollectionViewCell {
         delegate?.posterLinkCollectionViewCellDidTapRequest(self, isRequested: isRequested)
         isRequested = !isRequested
         requestButton.configure(for: isRequested ? .requesting : .request)
+        
 //        NotificationCenter.default.post(name: .didUpdateRequestButton, object: nil, userInfo: ["isRequesting" : isRequested])
     }
     
@@ -163,7 +165,7 @@ final class NameOfLinkCollectionViewCell: UICollectionViewCell {
     func configure(with viewModel: NameOfLinkCollectionViewCellViewModel) {
         
         typeOfLink.text = viewModel.linkType
-        self.guestInvited = viewModel.userArray
+//        self.guestInvited = viewModel.userArray
 //        print("The number of guests invited is: \(self.guestInvited)")
         configureButtons(viewModel: viewModel)
 

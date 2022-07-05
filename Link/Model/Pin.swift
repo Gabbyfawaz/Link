@@ -9,7 +9,7 @@ import Foundation
 import CoreLocation
 
 struct Pin: Codable {
-    let people: [SearchUser]
+    var people: [SearchUser]
     let cooordinates: Coordinate
     let locationString: String
     let timeStamp: TimeInterval

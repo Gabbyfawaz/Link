@@ -28,6 +28,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     private var index = 0
     private var imageCell: FiltersCollectionViewCell?
     private var keyboardHeight: CGFloat?
+
     
      public var iconImageView: UIImageView = {
         let image = UIImageView()
@@ -178,11 +179,13 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     }
     
     //MARK: - Init
+
     init(arrayOfImage: [UIImage]) {
         self.arrayOfImage = arrayOfImage
         self.orginalArrayOfImages = arrayOfImage
         super.init(nibName: nil, bundle: nil)
     }
+
 
     required init?(coder: NSCoder) {
         fatalError()
@@ -306,6 +309,9 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
         
     }
     
+    
+    
+    
 
     @objc func didSwipeLeft() {
 //        var numberArray = arrayOfImage.count
@@ -325,7 +331,7 @@ class PostEditViewController: UIViewController, UICollectionViewDelegate, UIColl
     }
     
     
-    
+
     @objc func didTapNext() {
         
         

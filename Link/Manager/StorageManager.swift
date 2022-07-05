@@ -62,6 +62,7 @@ final class StorageManager {
         completion: @escaping ([URL]?) -> Void
     ) {
         
+        var index = 0
         var urls = [URL]()
         let group = DispatchGroup()
         guard let username = UserDefaults.standard.string(forKey: "username"),
@@ -73,8 +74,8 @@ final class StorageManager {
         data.forEach({ dataItem in
             group.enter()
             
-        
-            let ref = storage.child("\(username)/linkPosts/\(dataItem)/\(id).png")
+        let stringIndex = String(index)
+            let ref = storage.child("\(username)/linkPosts/\(id+stringIndex).png")
             ref.putData(dataItem, metadata: nil) { _, error in
                 ref.downloadURL { url, _ in
                     
@@ -88,7 +89,7 @@ final class StorageManager {
                  
                     urls.append(postUrl)
 //                            print("postURL: \(postUrl)")
-                    
+                    index += 1
                 }
             }
         })
@@ -278,6 +279,42 @@ extension StorageManager {
             completion(.success(url))
         })
     }
+    
+    public func handleDeletingLinkStorage(urls: [String], url2: String, completion: @escaping (Bool) -> Void) {
+        
+
+        let storage = Storage.storage()
+        
+        let linkIconRef = storage.reference(forURL: url2)
+        linkIconRef.delete { error in
+            
+            if error == nil {
+                
+                urls.forEach { url in
+                    let linkImageRef = storage.reference(forURL: url)
+                   
+                    //Removes image from storage
+                    linkImageRef.delete { error in
+                            if let error = error {
+                                print(error)
+                            } else {
+                                completion(true)
+                                // File deleted successfully
+                        }
+                        
+                    }
+                }
+            } else {
+                completion(false)
+            }
+         
+        }
+     
+        
+     
+    }
+
 
 }
+
 

@@ -72,7 +72,7 @@ class FinalPageCreateLinkViewController: UIViewController {
     
     private let privacyButton: UIButton = {
         let barButton = UIButton()
-        barButton.setImage(UIImage(systemName: "lock.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 35)), for: .normal)
+        barButton.setImage(UIImage(systemName: "lock.open.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 35)), for: .normal)
         barButton.tintColor = .label
         return barButton
     }()
@@ -311,7 +311,9 @@ class FinalPageCreateLinkViewController: UIViewController {
                 
                 isPrivate: self.isLocked,
                 linkTypeImage: linkTypeImageDownloadURL.absoluteString,
-                extraInformation: extraInfo
+                extraInformation: extraInfo,
+                rating: [],
+                usersWhoRated: []
             )
 
                 /// sending a notification to each user!
@@ -333,7 +335,7 @@ class FinalPageCreateLinkViewController: UIViewController {
                  resultsArray.forEach { users in
                     let user = users.name
                     
-                     let inviteNotification = LinkNotification(identifer: id, notificationType: 4, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [], isRequesting: [], postId: newPostID, postUrl: postLinkUrl[0].absoluteString)
+                     let inviteNotification = LinkNotification(identifer: id, notificationType: 4, username: user, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [nil], isRequesting: [nil], postId: newPostID, postUrl: postLinkUrl[0].absoluteString)
                     
                     NotificationsManager.shared.create(notification: inviteNotification, for: user)
                     
@@ -343,7 +345,7 @@ class FinalPageCreateLinkViewController: UIViewController {
                     self?.spinner.dismiss(animated: true)
                     self?.tabBarController?.tabBar.isHidden = false
                     self?.tabBarController?.selectedIndex = 0
-                    NotificationCenter.default.post(name: .didPostNotification,
+                    NotificationCenter.default.post(name: .didPostLinkNotification,
                                                     object: nil)
                     NotificationCenter.default.post(name: .didPostLinkOnMap,
                                                     object: nil)
@@ -378,7 +380,7 @@ class FinalPageCreateLinkViewController: UIViewController {
     
     
     @objc private func didTapLock() {
-        
+        isLocked = !isLocked
         if isLocked {
             privacyButton.setImage(UIImage(systemName: "lock.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 35)), for: .normal)
             print(isLocked)
@@ -389,8 +391,8 @@ class FinalPageCreateLinkViewController: UIViewController {
             print(isLocked)
             
         }
-        isLocked = !isLocked
         
+      
     }
     
     
@@ -495,9 +497,12 @@ extension FinalPageCreateLinkViewController: UITableViewDelegate, UITableViewDat
             navigationItem.rightBarButtonItem?.title = "Done"
             navigationController?.pushViewController(vc, animated: true)
         case "Sponsor Event":
-            break
+            let alert = UIAlertController(title: "Coming Soon...", message: "reach out to mote people", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+            present(alert, animated: true)
         case "Create Ticket":
-            break
+            let vc = TicketViewController()
+            navigationController?.pushViewController(vc, animated: true)
         default:
             break
         }

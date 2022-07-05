@@ -89,7 +89,25 @@ class ConversationTableViewCell: UITableViewCell {
         }
         
         self.userNameLabel.text = model.name
-        self.userMessageLabel.text = model.latestMessage.text
+        
+        if model.latestMessage.text.contains("photo") {
+            self.userMessageLabel.text = "Photo"
+        } else if model.latestMessage.text.contains("video") {
+            self.userMessageLabel.text = "Video"
+        } else if  model.latestMessage.text.contains("location") {
+            self.userMessageLabel.text = "Location"
+        } else  {
+            self.userMessageLabel.text = model.latestMessage.text
+        }
+        
+        let decimalCharacters = CharacterSet.decimalDigits
+        let decimalRange = userMessageLabel.text?.rangeOfCharacter(from: decimalCharacters)
+        if decimalRange != nil {
+            self.userMessageLabel.text = "Location"
+        }
+        
+        
+  
     }
 }
 

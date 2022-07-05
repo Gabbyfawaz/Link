@@ -131,7 +131,7 @@ final class ProfileViewController: UIViewController {
         // used for refershing the page!
         if isCurrentUser {
             observer = NotificationCenter.default.addObserver(
-                forName: .didPostNotification,
+                forName: .didPostLinkNotification,
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
@@ -201,7 +201,7 @@ final class ProfileViewController: UIViewController {
         guard let username = UserDefaults.standard.string(forKey: "username") else {
             return
         }
-        let followNotification = LinkNotification(identifer: id, notificationType: notificationType, username: username, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [false], isRequesting: [], postId: "", postUrl: "")
+        let followNotification = LinkNotification(identifer: id, notificationType: notificationType, username: username, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [false], isRequesting: [nil], postId: "", postUrl: "")
 
         NotificationsManager.shared.create(notification: followNotification, for: user.username)
     }

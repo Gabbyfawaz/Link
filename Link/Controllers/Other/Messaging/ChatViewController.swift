@@ -12,12 +12,17 @@ import SDWebImage
 import AVFoundation
 import AVKit
 import CoreLocation
+import UberRides
+import MapKit
 
 
-internal class ChatViewController: MessagesViewController {
+
+internal class ChatViewController: MessagesViewController, CLLocationManagerDelegate {
 
     private var senderPhotoURL: URL?
     private var otherUserPhotoURL: URL?
+    private let locationManager = CLLocationManager()
+    private var userCoordinates: CLLocationCoordinate2D?
 
     public static let dateFormatter: DateFormatter = {
         let formattre = DateFormatter()
@@ -30,7 +35,7 @@ internal class ChatViewController: MessagesViewController {
     public let otherUserEmail: String
     private var conversationId: String?
     public var isNewConversation = false
-    private var privateLink: PrivateLink?
+//    private var privateLink: PrivateLink?
     private var messages = [Message]()
 
     private var selfSender: Sender? {
@@ -66,6 +71,7 @@ internal class ChatViewController: MessagesViewController {
         messagesCollectionView.messageCellDelegate = self
         messageInputBar.delegate = self
         setupInputButton()
+        getCurrentLocation()
 //
        
         
@@ -95,15 +101,15 @@ internal class ChatViewController: MessagesViewController {
         actionSheet.addAction(UIAlertAction(title: "Video", style: .default, handler: { [weak self]  _ in
             self?.presentVideoInputActionsheet()
         }))
-        actionSheet.addAction(UIAlertAction(title: "Audio", style: .default, handler: {  _ in
-
-        }))
+//        actionSheet.addAction(UIAlertAction(title: "Audio", style: .default, handler: {  _ in
+//
+//        }))
         actionSheet.addAction(UIAlertAction(title: "Location", style: .default, handler: { [weak self]  _ in
             self?.presentLocationPicker()
         }))
-        actionSheet.addAction(UIAlertAction(title: "Link", style: .default, handler: { [weak self]  _ in
-            self?.presentLinkActionsheet()
-        }))
+//        actionSheet.addAction(UIAlertAction(title: "Link", style: .default, handler: { [weak self]  _ in
+//            self?.presentLinkActionsheet()
+//        }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
         present(actionSheet, animated: true)
@@ -112,49 +118,51 @@ internal class ChatViewController: MessagesViewController {
     
 
     
-    private func presentLinkActionsheet() {
-        
-        let vc = LinkPickerViewController()
-        vc.completion = { [weak self] privateLink in
-        
-            guard let strongSelf = self else {
-                return
-            }
-            guard let messageId = strongSelf.createMessageId(),
-                  let conversationId = strongSelf.conversationId,
-                  let name = strongSelf.title,
-                  let selfSender = strongSelf.selfSender else {
-                      return
-                  }
-            
-            let message = Message(sender: selfSender,
-                                  messageId: messageId,
-                                  sentDate: Date(),
-                                  kind: .custom(privateLink),
-                                  type: "custom")
-            
-            DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: strongSelf.otherUserEmail, name: name, newMessage: message, completion: { success in
-                          if success {
-                              print("sent location message")
-                          }
-                          else {
-                              print("failed to send location message")
-                          }
-                      })
+//    private func presentLinkActionsheet() {
 //
-        }
-        vc.modalPresentationStyle = .automatic
-        present(vc, animated: true)
-       
-        
-
-        
+//        let vc = LinkPickerViewController()
+//        vc.completion = { [weak self] privateLink in
 //
-      
-    }
+//            guard let strongSelf = self else {
+//                return
+//            }
+//            guard let messageId = strongSelf.createMessageId(),
+//                  let conversationId = strongSelf.conversationId,
+//                  let name = strongSelf.title,
+//                  let selfSender = strongSelf.selfSender else {
+//                      return
+//                  }
+//
+//            let message = Message(sender: selfSender,
+//                                  messageId: messageId,
+//                                  sentDate: Date(),
+//                                  kind: .custom(privateLink),
+//                                  type: "custom")
+//
+//            DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: strongSelf.otherUserEmail, name: name, newMessage: message, completion: { success in
+//                          if success {
+//                              print("sent location message")
+//                          }
+//                          else {
+//                              print("failed to send location message")
+//                          }
+//                      })
+////
+//        }
+//        vc.modalPresentationStyle = .automatic
+//        present(vc, animated: true)
+//
+//
+//
+//
+////
+//
+//    }
 
     private func presentLocationPicker() {
         let vc = LocationPickerViewController(coordinates: nil)
+        let navVC = UINavigationController(rootViewController: vc)
+        
         vc.title = "Pick Location"
         vc.navigationItem.largeTitleDisplayMode = .never
         vc.completion = { [weak self] selectedCoorindates in
@@ -188,13 +196,15 @@ internal class ChatViewController: MessagesViewController {
             DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: strongSelf.otherUserEmail, name: name, newMessage: message, completion: { success in
                 if success {
                     print("sent location message")
+                    self?.dismiss(animated: true, completion: nil)
                 }
                 else {
                     print("failed to send location message")
                 }
             })
         }
-        navigationController?.pushViewController(vc, animated: true)
+        present(navVC, animated: true)
+//        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func presentPhotoInputActionsheet() {
@@ -290,25 +300,25 @@ internal class ChatViewController: MessagesViewController {
     }
     
     
-    override open func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
-            guard let messagesDataSource = messagesCollectionView.messagesDataSource else {
-                fatalError("Ouch. nil data source for messages")
-            }
-            //before checking the messages check if section is reserved for typing otherwise it will cause IndexOutOfBounds error
-            if isSectionReservedForTypingIndicator(indexPath.section){
-                return super.collectionView(collectionView, cellForItemAt: indexPath)
-            }
-            let message = messagesDataSource.messageForItem(at: indexPath, in: messagesCollectionView)
-            if case .custom = message.kind {
-                
-                let cell = messagesCollectionView.dequeueReusableCell(MyCustomCell.self, for: indexPath)
-                cell.configure(with: message, at: indexPath, and: messagesCollectionView)
-                return cell
-            }
-        
-            return super.collectionView(collectionView, cellForItemAt: indexPath)
-        }
+//    override open func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        
+//            guard let messagesDataSource = messagesCollectionView.messagesDataSource else {
+//                fatalError("Ouch. nil data source for messages")
+//            }
+//            //before checking the messages check if section is reserved for typing otherwise it will cause IndexOutOfBounds error
+//            if isSectionReservedForTypingIndicator(indexPath.section){
+//                return super.collectionView(collectionView, cellForItemAt: indexPath)
+//            }
+//            let message = messagesDataSource.messageForItem(at: indexPath, in: messagesCollectionView)
+//            if case .custom = message.kind {
+//                
+//                let cell = messagesCollectionView.dequeueReusableCell(MyCustomCell.self, for: indexPath)
+//                cell.configure(with: message, at: indexPath, and: messagesCollectionView)
+//                return cell
+//            }
+//        
+//            return super.collectionView(collectionView, cellForItemAt: indexPath)
+//        }
 
 }
 
@@ -434,12 +444,13 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
                 return
         }
 
+        let cleanText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         print("Sending: \(text)")
 
         let message = Message(sender: selfSender,
                                messageId: messageId,
                                sentDate: Date(),
-                              kind: .text(text),
+                              kind: .text(cleanText),
                               type: "text")
 
         // Send Message
@@ -527,6 +538,8 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
             break
         }
     }
+    
+    
 
     func backgroundColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
         let sender = message.sender
@@ -612,16 +625,94 @@ extension ChatViewController: MessageCellDelegate {
         switch message.kind {
         case .location(let locationData):
             let coordinates = locationData.location.coordinate
-            let vc = LocationPickerViewController(coordinates: coordinates)
-            
-            vc.title = "Location"
-            navigationController?.pushViewController(vc, animated: true)
+            let alert = UIAlertController(title: "Uber or Maps", message: "", preferredStyle: .actionSheet)
+            alert.addAction(UIAlertAction(title: "Uber", style: .default, handler: { _ in
+                self.didTapUber(coordinates: coordinates)
+            }))
+            alert.addAction(UIAlertAction(title: "Maps", style: .default, handler: { _ in
+                self.didTapMaps(coordinates: coordinates)
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            present(alert, animated: true)
+//            let vc = LocationPickerViewController(coordinates: coordinates)
+//            vc.title = "Location"
+//            navigationController?.pushViewController(vc, animated: true)
         case .custom(let privateLink):
             break
         default:
             break
         }
     }
+    
+    func didTapMaps(coordinates: CLLocationCoordinate2D) {
+        let latitude = coordinates.latitude
+        let longitude = coordinates.longitude
+
+           let regionDistance:CLLocationDistance = 10000
+           let coordinates = CLLocationCoordinate2DMake(latitude, longitude)
+           let region = MKCoordinateRegion(center: coordinates, latitudinalMeters: regionDistance, longitudinalMeters: regionDistance)
+           let options = [
+               MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: region.center),
+               MKLaunchOptionsMapSpanKey: NSValue(mkCoordinateSpan: region.span)
+           ]
+           let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
+           let mapItem = MKMapItem(placemark: placemark)
+          mapItem.openInMaps(launchOptions: options)
+    }
+    
+    func didTapUber(coordinates: CLLocationCoordinate2D) {
+        
+        let latitude = coordinates.latitude
+        let longitude = coordinates.longitude
+        
+        
+        guard let usersLatitude = self.userCoordinates?.latitude,
+              let userLongitude = self.userCoordinates?.latitude
+              else {
+                  return
+              }
+
+        let builder = RideParametersBuilder()
+        let pickupLocation = CLLocation(latitude: usersLatitude, longitude: userLongitude)
+        let dropoffLocation = CLLocation(latitude: latitude, longitude: longitude)
+        builder.pickupNickname = "Current Location"
+        builder.pickupLocation = pickupLocation
+        builder.dropoffLocation = dropoffLocation
+        builder.dropoffNickname = "Destination"
+        builder.dropoffAddress = "Destination"
+        let rideParameters = builder.build()
+
+        let deeplink = RequestDeeplink(rideParameters: rideParameters, fallbackType: .appStore)
+        deeplink.execute()
+        
+        
+    }
+    
+    func getCurrentLocation() {
+            // Ask for Authorisation from the User.
+            self.locationManager.requestAlwaysAuthorization()
+
+            // For use in foreground
+            self.locationManager.requestWhenInUseAuthorization()
+
+            if CLLocationManager.locationServicesEnabled() {
+                locationManager.delegate = self
+                locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+                locationManager.requestLocation()
+            }
+        }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+
+        let location = locations.last
+        self.userCoordinates = location?.coordinate
+       
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Error: \(error)")
+    }
+    
 
     func didTapImage(in cell: MessageCollectionViewCell) {
         guard let indexPath = messagesCollectionView.indexPath(for: cell) else {

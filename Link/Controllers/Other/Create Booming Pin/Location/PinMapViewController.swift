@@ -95,7 +95,7 @@ class PinMapViewController: UIViewController {
         /// save pin in the database
         
         
-        let timeStamp = Date().timeIntervalSince1970
+        let timeStamp = Date().timeIntervalSince1970 + 6*60*60
         guard let username = UserDefaults.standard.string(forKey: "username"),
               let name =  mapItems?.first?.name,
               let latitude = mapItems?.first?.placemark.coordinate.latitude,

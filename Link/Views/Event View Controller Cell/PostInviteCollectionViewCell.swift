@@ -132,18 +132,17 @@ protocol PostInviteCollectionViewCellDelegate: AnyObject {
     //MARK: ACTIONS FOR BUTTONS
     
     @objc func didTapConfirm() {
-//        DispatchQueue.main.async {
-            self.usersArray = self.confirmedUsers
+        self.usersArray = self.confirmedUsers
+        DispatchQueue.main.async {
             self.peopleCollectionView.reloadData()
-//        }
+        }
     }
 
     @objc func didTapPending() {
-        
-//        DispatchQueue.main.async {
-            self.usersArray = self.pendingUsers
+        self.usersArray = self.pendingUsers
+        DispatchQueue.main.async {
             self.peopleCollectionView.reloadData()
-//        }
+        }
         
     }
 
@@ -151,12 +150,12 @@ protocol PostInviteCollectionViewCellDelegate: AnyObject {
     // MARK: CONFIGUREUI
         
         func configure(with viewModel: PostInviteCollectionViewCellViewModel) {
-//         DispatchQueue.main.async {
-             self.peopleCollectionView.reloadData()
-//        }
+            DispatchQueue.main.async {
+                self.peopleCollectionView.reloadData()
+            }
             self.pendingUsers = viewModel.pendingUsers
             self.confirmedUsers = viewModel.confirmedUsers
-            self.usersArray = pendingUsers  
+            self.usersArray = pendingUsers
         }
     
     //MARK: - CollectionViewDataSource/Delegate

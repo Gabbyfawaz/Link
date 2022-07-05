@@ -126,7 +126,7 @@ final class NotificationsViewController: UIViewController, UITableViewDelegate, 
                     return
                 }
                 
-        
+            
                 viewModels.append(
                     .like(
                         viewModel: LikeNotificationCellViewModel(
@@ -429,7 +429,7 @@ extension NotificationsViewController: LikeNotificationTableViewCellDelegate, Co
                                     return
                                 }
                                 
-                                let acceptedRequest = LinkNotification(identifer: id, notificationType: 6, username: username, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [], isRequesting: [], postId: viewModel.postId, postUrl: linkPost )
+                                let acceptedRequest = LinkNotification(identifer: id, notificationType: 6, username: username, dateString: DateFormatter.formatter.string(from: Date()), isFollowing: [nil], isRequesting: [nil], postId: viewModel.postId, postUrl: linkPost )
                                 
                                 
                                 NotificationsManager.shared.create(notification: acceptedRequest, for: userRequesting)

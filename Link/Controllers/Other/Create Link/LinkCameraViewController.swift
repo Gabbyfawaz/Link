@@ -47,6 +47,15 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
     static var staticPhotoArray = [UIImage]()
     private var xPosition = CGFloat(0)
     private var yPosition = CGFloat(0)
+    private  var playButton: UIButton = {
+        let button = UIButton()
+        return button
+    }()
+    private var playButtonVideoURL: URL?
+    private var selection = [String: PHPickerResult]()
+    private var selectedAssetIdentifiers = [String]()
+    private var selectedAssetIdentifierIterator: IndexingIterator<[String]>?
+    private var currentAssetIdentifier: String?
 
     private let shutterButton: UIButton = {
         let button = UIButton()
@@ -127,15 +136,15 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
     }()
     
     
-    private let friendsButton: UIButton = {
-        let button = UIButton()
-        button.layer.masksToBounds = true
-        button.setImage(UIImage(systemName: "person.2.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30)),
-                        for: .normal)
-        button.tintColor = .white
-        button.isHidden = true
-        return button
-    }()
+//    private let friendsButton: UIButton = {
+//        let button = UIButton()
+//        button.layer.masksToBounds = true
+//        button.setImage(UIImage(systemName: "person.2.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30)),
+//                        for: .normal)
+//        button.tintColor = .white
+//        button.isHidden = true
+//        return button
+//    }()
     
     
     private let linkButton: UIButton = {
@@ -210,7 +219,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         flipCamera.addTarget(self, action: #selector(didFlipCamera), for: .touchUpInside)
 //        segueToLinkEditVC()
 
-        friendsButton.addTarget(self, action: #selector(didTapFriendButton), for: .touchUpInside)
+//        friendsButton.addTarget(self, action: #selector(didTapFriendButton), for: .touchUpInside)
         linkButton.addTarget(self, action: #selector(didTapLinkButton), for: .touchUpInside)
         let panGesture =  UIPanGestureRecognizer(target: self, action: #selector(LinkCameraViewController.draggedView(_:)))
           quickLinkSticker.isUserInteractionEnabled = true
@@ -249,7 +258,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         view.addSubview(quickLinkSticker)
 //        view.addSubview(stackView)
         view.addSubview(mainStackView)
-        view.addSubview(friendsButton)
+//        view.addSubview(friendsButton)
         view.addSubview(quickStackView)
         mainStackView.addArrangedSubview(doneButton)
         mainStackView.addArrangedSubview(mainLabel)
@@ -294,12 +303,12 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
                                   width: 40,
                                   height: 50)
         
-        friendsButton.frame = CGRect(x: 20,
-                                 y: view.height-40-30,
-                                 width: 40,
-                                 height: 40)
+//        friendsButton.frame = CGRect(x: 20,
+//                                 y: view.height-40-30,
+//                                 width: 40,
+//                                 height: 40)
         
-        quickStackView.frame = CGRect(x: friendsButton.right+5,
+        quickStackView.frame = CGRect(x: 20,
                                       y: view.height-50-30,
                                  width: 40,
                                  height: 50)
@@ -356,10 +365,10 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     
-    @objc func didTapFriendButton() {
-        let vc = ShareLinksViewController()
-        present(vc, animated: true, completion: nil)
-    }
+//    @objc func didTapFriendButton() {
+//        let vc = ShareLinksViewController()
+//        present(vc, animated: true, completion: nil)
+//    }
     
     
     private func createNewPostID() -> String? {
@@ -388,7 +397,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         let coordinate = Coordinates(latitude: latitude, longitude: longitude)
         let timeInterval = pickerDate?.timeIntervalSince1970
         let data = imageView.image?.pngData()
-        let date = Date().timeIntervalSinceReferenceDate
+        let date = Date().timeIntervalSince1970 + 24*60*60
         let text = quickLinkSticker.textfield.text
         if text == "Link Title" || text == "" {
             let alert = UIAlertController(title: "Please enter text in sticker", message: "Tap the add button to add sticker", preferredStyle: .alert)
@@ -596,15 +605,9 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         var configuration = PHPickerConfiguration(photoLibrary: .shared())
         configuration.filter = .images
         configuration.preferredAssetRepresentationMode = .current
-//        configuration.filter = .videos
-        configuration.selectionLimit = 5
         configuration.selection = .ordered
-        if #available(iOS 15, *) {
-            configuration.selection = .ordered
-        } else {
-            // Fallback on earlier versions
-        }
-        
+        configuration.selectionLimit = 5
+        configuration.preselectedAssetIdentifiers = selectedAssetIdentifiers
         let picker = PHPickerViewController(configuration: configuration)
         picker.delegate = self
 //        picker.modalPresentationStyle = .fullScreen
@@ -645,7 +648,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
         cameraView.isHidden = true
         doneButton.isHidden = false
 //        stackView.isHidden = false
-        friendsButton.isHidden = false
+//        friendsButton.isHidden = false
         quickStackView.isHidden = false
         mainStackView.isHidden = false
         navigationItem.rightBarButtonItem =  UIBarButtonItem(
@@ -667,7 +670,7 @@ class LinkCameraViewController: UIViewController, UIGestureRecognizerDelegate {
             quickLinkSticker.isHidden = true
             picker.isHidden = true
 //            stackView.isHidden = true
-            friendsButton.isHidden = true
+//            friendsButton.isHidden = true
             quickStackView.isHidden = true
             mainStackView.isHidden = true
             photoPickerButton.isHidden = false
@@ -716,11 +719,8 @@ extension LinkCameraViewController: AVCapturePhotoCaptureDelegate {
             return
         }
         
-        
+      
         let vc = PostEditViewController(arrayOfImage: [resizedImage])
-//        if #available(iOS 14.0, *) {
-//            vc.navigationItem.backButtonDisplayMode = .minimal
-//        }
         navigationController?.pushViewController(vc, animated: false)
 
     }
@@ -729,14 +729,55 @@ extension LinkCameraViewController: AVCapturePhotoCaptureDelegate {
  // MARK: PICKER INFO FROM GALLERY
 
 extension LinkCameraViewController: PHPickerViewControllerDelegate, UINavigationControllerDelegate {
+    
+
+   
+//    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+//        dismiss(animated: true)
+//
+//        spinner.show(in: view)
+//        var images = [UIImage]()
+//        let group = DispatchGroup()
+//
+//
+//        results.forEach { result in
+//            let itemProvider = result.itemProvider
+//                itemProvider.loadObject(ofClass: UIImage.self) { image, error in
+//                    if let image = image as? UIImage {
+//                               defer {
+//                                   group.leave()
+//                               }
+//                               images.append(image)
+//                           }
+//                }
+//
+//            group.notify(queue: .main) {
+//                self.spinner.dismiss(animated: true)
+//                self.PhotoArray = images
+//                LinkCameraViewController.staticPhotoArray = images
+//                if images.count == 1 {
+//                    self.configureViewAfterCameraOuput(image: images[0])
+//                } else  {
+//                    let vc = PostEditViewController(arrayOfImage: images)
+//                    self.navigationController?.pushViewController(vc, animated: true)
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//
+//
+//
+    
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         dismiss(animated: true)
-        
+
+
         let group = DispatchGroup()
-//        self.results = results
         self.PhotoArray = [UIImage]()
         LinkCameraViewController.staticPhotoArray = [UIImage]()
-        
+
         spinner.show(in: view)
         results.forEach({ result in
             group.enter()
@@ -745,57 +786,44 @@ extension LinkCameraViewController: PHPickerViewControllerDelegate, UINavigation
                     group.leave()
                 }
                 guard let self = self else {
-                    return 
+                    return
                 }
-               
-        
+
+
                 guard var image = photoItem as? UIImage, error == nil else {
-                    print("error: \(error?.localizedDescription)")
+
                     fatalError("Could not convert the image")
                 }
                 image = image.fixOrientation()
-                
+
                 self.PhotoArray.append(image)
-                
-//                self.PhotoArray.insert((image: image, indexOf: index), at: index)
-//                print("This is the image: \(self.PhotoArray[index].image) at \(self.PhotoArray[index].indexOf)")
-//                index += 1
-                
-       
+
             }
         })
-     
+
         group.notify(queue: .main) {
             print("The count for this group is: \(self.PhotoArray)")
             self.spinner.dismiss(animated: true)
-//            let reverseImages = Array(self.PhotoArray.reversed())
             let images = self.PhotoArray
             LinkCameraViewController.staticPhotoArray = images
-            
+
+
             if self.PhotoArray.count == 1 {
-                
-//                self.imageView.image = self.PhotoArray[0]
                 self.configureViewAfterCameraOuput(image: self.PhotoArray[0])
-            } else if self.PhotoArray.count>1 {
+            } else if self.PhotoArray.count > 1 {
                 let vc = PostEditViewController(arrayOfImage: images)
                 self.navigationController?.pushViewController(vc, animated: true)
-                print("I'll fix this later")
             }
         }
-  
-        print("Finished all items")
-    
-        
-        
-        
+
+
     }
-    
-    
-    
-    
-    
 
 }
+
+    
+    
+    
 
 extension LinkCameraViewController: QuickLinkStickerDelegate {
     

@@ -12,8 +12,8 @@ import CoreLocation
 
 // MARK: PROTOCOLS 
 protocol PostLocationCollectionViewCellDelegate: AnyObject {
-    func postLocationCollectionViewCellDidTapUber(_ cell: PostLocationCollectionViewCell,deepLink: RequestDeeplink )
-    func postLocationCollectionViewCellDidTapAppleMaps(_ cell: PostLocationCollectionViewCell, options:[String : NSValue], mapItem: MKMapItem)
+    func postLocationCollectionViewCellDidTapUber(_ cell: PostLocationCollectionViewCell, deepLink: RequestDeeplink, isPrivate: Bool)
+    func postLocationCollectionViewCellDidTapAppleMaps(_ cell: PostLocationCollectionViewCell, options:[String : NSValue], mapItem: MKMapItem, isPrivate: Bool)
 
 }
 
@@ -33,6 +33,7 @@ protocol PostLocationCollectionViewCellDelegate: AnyObject {
      private var usersLatitude: CLLocationDegrees?
      private var usersLongitude: CLLocationDegrees?
      private var locationTitle: String?
+     private var isPrivate: Bool?
 
 
      private let userIconImageView: UIImageView = {
@@ -213,7 +214,8 @@ protocol PostLocationCollectionViewCellDelegate: AnyObject {
                let locationTitle = self.locationTitle,
                let usersLatitude = self.usersLatitude,
                let userLongitude = self.usersLongitude,
-               let usersLocationTitle = self.usersLocationTitle else {
+               let usersLocationTitle = self.usersLocationTitle,
+                let isPrivate = self.isPrivate else {
                    return
                }
 
@@ -229,14 +231,14 @@ protocol PostLocationCollectionViewCellDelegate: AnyObject {
 
          let deeplink = RequestDeeplink(rideParameters: rideParameters, fallbackType: .appStore)
          
-         delegate?.postLocationCollectionViewCellDidTapUber(self, deepLink: deeplink)
+         delegate?.postLocationCollectionViewCellDidTapUber(self, deepLink: deeplink, isPrivate: isPrivate)
          
             
      }
      
      @objc func didTapGoogleMaps() {
          
-         guard let latitude = self.latitude, let longitude = self.longitude, let locationTitle = self.locationTitle else {
+         guard let latitude = self.latitude, let longitude = self.longitude, let locationTitle = self.locationTitle,let isPrivate = self.isPrivate else {
              return
          }
          
@@ -250,8 +252,10 @@ protocol PostLocationCollectionViewCellDelegate: AnyObject {
              let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
              let mapItem = MKMapItem(placemark: placemark)
              mapItem.name = "\(locationTitle)"
+             mapItem.openInMaps(launchOptions: options)
+        
          
-         delegate?.postLocationCollectionViewCellDidTapAppleMaps(self, options: options, mapItem: mapItem)
+         delegate?.postLocationCollectionViewCellDidTapAppleMaps(self, options: options, mapItem: mapItem, isPrivate: isPrivate)
      }
      
      @objc func didTapLocationButton() {
@@ -362,8 +366,10 @@ protocol PostLocationCollectionViewCellDelegate: AnyObject {
          switch overlay {
          case let polyline as MKPolyline:
              let renderer = MKPolylineRenderer(polyline: polyline)
+             if self.isPrivate == false {
              renderer.strokeColor =  .black
              renderer.lineWidth = 5
+             }
              return renderer
 
          // you can add more `case`s for other overlay types as needed
@@ -431,7 +437,7 @@ protocol PostLocationCollectionViewCellDelegate: AnyObject {
 
      func configure(with viewModel: PostLocationCollectionViewCellViewModel) {
          
-
+         self.isPrivate = viewModel.isPrivate
          
          if let distance = self.distanceBetweenPoints {
              let distanceAwayInt = Int(distance)
@@ -472,6 +478,24 @@ protocol PostLocationCollectionViewCellDelegate: AnyObject {
          self.latitude = viewModel.coordinates.latitude
          self.longitude = viewModel.coordinates.longitude
          self.locationTitle = viewModel.location
+     }
+     
+     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+         
+         if self.isPrivate == true {
+ //            appleMaps.isUserInteractionEnabled = false
+ //            uberButton.isUserInteractionEnabled = false
+             let coordinate = CLLocationCoordinate2DMake(mapView.region.center.latitude, mapView.region.center.longitude)
+             var span = mapView.region.span
+             if span.latitudeDelta < 0.5 { // MIN LEVEL
+                 span = MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+             } else if span.latitudeDelta > 0.8 { // MAX LEVEL
+                 span = MKCoordinateSpan(latitudeDelta: 0.8, longitudeDelta: 0.8)
+             }
+             let region = MKCoordinateRegion(center: coordinate, span: span)
+             mapView.setRegion(region, animated:true)
+         }
+        
      }
 
 

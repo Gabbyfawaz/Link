@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreAudio
 
 
 class PostFeedCollectionViewCell: UICollectionViewCell {
@@ -19,6 +20,7 @@ class PostFeedCollectionViewCell: UICollectionViewCell {
     public let inviteOfLinkView = InvitesCollectionView()
     public let locationOfLinkView = LocationViewContainer()
     private var viewArray = [UIView]()
+    private var observer: NSObjectProtocol?
     private var index = 0
     
     //MARK: - Lifecycle
@@ -116,13 +118,13 @@ class PostFeedCollectionViewCell: UICollectionViewCell {
     }
     
     
-    public func configure(with viewModel: PostOfFeedCollectionViewModel) {
+    public func configure(with viewModel: PostOfFeedCollectionViewModel, index: Int) {
         
 
         nameOfLinkView.configure(with: viewModel)
         locationOfLinkView.configure(with: viewModel)
-        inviteOfLinkView.configure(with: viewModel)
-        
+        inviteOfLinkView.configure(with: viewModel, index: index)
+                
     }
     
 }

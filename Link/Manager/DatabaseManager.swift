@@ -88,6 +88,43 @@ final class DatabaseManager {
     }
     
     
+    public func addUserToBommingPin(locationTitle: String,completion: @escaping (Bool) -> Void ) {
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+        let user = SearchUser(name: username)
+        let ref = database.collection("pins").document(locationTitle)
+        ref.getDocument { snapshot, error in
+                guard let data = snapshot?.data(),
+                      error == nil else {
+                    completion(false)
+                    return
+                }
+            guard var pin = Pin(with: data) else {
+                return
+            }
+            
+            
+            if !(pin.people.contains(user)) {
+                pin.people.append(user)
+                guard let data = pin.asDictionary() else {
+                    completion(false)
+                    return
+                }
+                ref.setData(data) { error in
+                    completion(error == nil)
+                }
+            } else {
+                completion(false)
+            }
+            
+            
+            
+          
+
+        }
+       
+    }
     public func getAllPins(
         completion: @escaping (Result<[Pin], Error>) -> Void
     ) {
@@ -173,7 +210,7 @@ final class DatabaseManager {
         }
     }
     
-      
+   
     
     public func createQuickLink(quickLink: QuickLink, completion: @escaping(Bool) -> Void) {
 
@@ -279,96 +316,237 @@ final class DatabaseManager {
            
         }
     }
-  
     
-    
-    public func deleteLinkAfterEventComplete() {
+    public func UpdateEventRating(eventUser: String, linkid: String,rating: Double, completion:@escaping (Bool) -> Void) {
         
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+        
+        let ref = database.collection("users")
+            .document(eventUser)
+            .collection("links")
+            .document(linkid)
+        getLink(with: linkid, from: eventUser) { link in
+            guard var link = link else {
+                completion(false)
+                return
+            }
+            
+            
+           
+            if !link.usersWhoRated.contains(username) {
+                link.rating.append(rating)
+                link.usersWhoRated.append(username)
 
-        var users = [String]()
-        let usersRef = database.collection("users")
-        usersRef.addSnapshotListener { snapshot, error in
-            snapshot?.documents.forEach { document in
-                users.append(document.documentID)
+            }
+        
+                
+            guard let data = link.asDictionary() else {
+                completion(false)
+                return
+            }
+            
+            ref.setData(data) { error in
+                completion(error == nil)
             }
             
         }
-        
-            DispatchQueue.global(qos: .background).async {
-            users.forEach({ user in
-                let ref = self.database.collection("users")
-                    .document(user)
-                    .collection("links")
-                // first delete any old links
-                let date = Date().timeIntervalSince1970
-                let query =  ref.whereField("linkDate", isLessThan: date)
-                query.getDocuments { querySnapshot, error in
-                    querySnapshot?.documents.forEach({ document in
-                        document.reference.delete()
-                    })
-
-                }
-            })
-            }
-
     }
+  
+    
+    
+//    public func deleteLinkAfterEventComplete() {
+//
+//
+//        var users = [String]()
+//        let usersRef = database.collection("users")
+//        usersRef.addSnapshotListener { snapshot, error in
+//            snapshot?.documents.forEach { document in
+//                users.append(document.documentID)
+//            }
+//
+//        }
+//
+//            DispatchQueue.global(qos: .background).async {
+//            users.forEach({ user in
+//                let ref = self.database.collection("users")
+//                    .document(user)
+//                    .collection("links")
+//                // first delete any old links
+//                let date = Date().timeIntervalSince1970
+//                let query =  ref.whereField("linkDate", isLessThan: date)
+//                query.getDocuments { querySnapshot, error in
+//                    querySnapshot?.documents.forEach({ document in
+//                        document.reference.delete()
+//                    })
+//
+//                }
+//            })
+//            }
+//
+//    }
+    
+    
+    public func handleDeletingLink(completion: @escaping (Bool) -> Void) {
+        
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+        
+        let ref = self.database.collection("users")
+            .document(username)
+            .collection("links")
+        
+        // first delete any old links
+      
+        let date = Date().timeIntervalSince1970
+//        + 10*24*60*60
+        let query =  ref.whereField("linkDate", isLessThan: date)
+        query.getDocuments { querySnapshot, error in
+            querySnapshot?.documents.forEach({ document in
+                if let link = LinkModel(with: document.data()) {
+                    DispatchQueue.global(qos: .background).async {
+                        StorageManager.shared.handleDeletingLinkStorage(urls: link.postArrayString , url2: link.linkTypeImage) { _ in
+                        print("successfully deleted data from database")
+                    }
+                    }
+                }
+                document.reference.delete()
+                completion(true)
+                print("Link has been deleted")
+            })
+
+        }
+        completion(false)
+
+        
+    }
+    
+    public func handleDeletingQuickLink(completion: @escaping (Bool) -> Void) {
+        
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+        
+        let ref = self.database.collection("users")
+            .document(username)
+            .collection("QuickLinks")
+        
+        // first quicklink after 24hrs
+        let date = Date().timeIntervalSince1970
+        let query = ref.whereField("date", isLessThan: date)
+//        let query =  ref.whereField("date", isLessThan: date)
+        query.getDocuments { querySnapshot, error in
+            querySnapshot?.documents.forEach({ document in
+                document.reference.delete()
+                completion(true)
+                print("QuickLink has been deleted")
+            })
+
+        }
+        completion(false)
+
+        
+    }
+    
+    
+    public func handleDeletingBoomingPins(completion: @escaping (Bool) -> Void) {
+        
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+        
+        let ref = self.database.collection("pins")
+        
+            
+      
+        let date = Date.now.timeIntervalSince1970
+        let query = ref.whereField("timeStamp", isLessThan: date)
+        query.getDocuments { querySnapshot, error in
+            querySnapshot?.documents.forEach({ document in
+                document.reference.delete()
+                completion(true)
+                print("Booming pin has been deleted")
+            })
+
+        }
+        completion(false)
+
+        
+    }
+    
+    
+    func checkBoomingPins()
+    {
+        NSLog("hello World")
+    }
+   
     
     public func findLinks(
         with linkPrefix: String,
         completion: @escaping ([LinkModel]) -> Void
     ) {
   
-        let ref = database.collection("users")
-        ref.getDocuments { snapshot, error in
+        /// get users from the database
+//        let ref = database.collection("users")
+        guard let username = UserDefaults.standard.string(forKey: "username") else {
+            return
+        }
+        var allLinks = [LinkModel]()
+//        let group = DispatchGroup()
+        let otherGroup = DispatchGroup()
+        
+       following(for: username) { usernames in
+            let users =  usernames + [username]
             
-            guard let users = snapshot?.documents.compactMap({ User(with: $0.data()) }),
-                  error == nil else {
-                completion([])
-                return
-            }
-
-            var allLinks: [LinkModel] = []
-            let group = DispatchGroup()
-
+          
             users.forEach { user in
-                group.enter()
-                
-                let username = user.username
+               
+                otherGroup.enter()
                 let postsRef = self.database.collection("users/\(username)/links")
-
                 postsRef.getDocuments { snapshot, error in
-                    
+                  
                     defer {
-                        group.leave()
+                        otherGroup.leave()
                     }
-
+                    
                     guard let links = snapshot?.documents.compactMap({ LinkModel(with: $0.data()) }),
                           error == nil else {
-                        return
-                    }
+                              return
+                          }
                     
-                    allLinks = links
+                     links.forEach { model in
+                        allLinks.append(model)
+                     }
+                    
+                    
+//                    print("all the links : \(links)")
                     
                 }
+                                                        
+            }
+           
+           otherGroup.notify(queue: .main) {
+               let filteredPosts = allLinks.filter({
+                    return  $0.linkTypeName.lowercased().hasPrefix(linkPrefix.lowercased())
+                       })
+                   print("filtered posts: \(filteredPosts)")
+               let finalArray = Array(Set(filteredPosts))
+               completion(finalArray)
+           }
+          
+       }
         
-            }
-            
-            print("all links: \(allLinks)")
-            
-            let filteredPosts = allLinks.filter({
-                $0.linkTypeName.lowercased().hasPrefix(linkPrefix.lowercased())
-//                $0.linkTypeName.lowercased().hasPrefix(linkPrefix.lowercased())
-            })
-            
-            print("filtered posts: \(filteredPosts)")
-            
-            group.notify(queue: .main) {
-                completion(filteredPosts)
-            }
-        }
-
+      
+      
         
     }
+      
+
+        
+        
+ 
 
     
     
@@ -1359,7 +1537,7 @@ final class DatabaseManager {
                 link.likers.removeAll(where: { $0 == currentUsername })
             }
 
-            NotificationCenter.default.post(name: .updateLikeCount, object: nil, userInfo: ["likers": link.likers])
+//            NotificationCenter.default.post(name: .updateLikeCount, object: nil, userInfo: ["likers": link.likers])
             guard let data = link.asDictionary() else {
                 completion(false)
                 return
@@ -1412,10 +1590,6 @@ final class DatabaseManager {
                 return
             }
             
-           
-            ref.setData(data) { error in
-                completion(error == nil)
-            }
         }
     }
     
@@ -1435,6 +1609,7 @@ final class DatabaseManager {
             
             notification.isRequesting.removeAll()
             notification.isRequesting.append(isAccepted)
+            
             guard let data = notification.asDictionary() else {
                 completion(false)
                 return
@@ -1953,10 +2128,11 @@ extension DatabaseManager {
 
                 let latestMmessageObject = LatestMessage(date: date,
                                                          text: message,
-                                                         isRead: isRead)
+                                                         isRead: isRead
+                                                        )
                 return Conversations(id: conversationId,
                                     name: name,
-                                    otherUserEmail: otherUserEmail,
+                                     otherUserEmail: otherUserEmail,
                                     latestMessage: latestMmessageObject)
             })
 
@@ -2022,20 +2198,20 @@ extension DatabaseManager {
                     let location = Location(location: CLLocation(latitude: latitude, longitude: longitude),
                                             size: CGSize(width: 300, height: 300))
                     kind = .location(location)
-                } else if type == "custom" {
-                    let privateLinkComponent = content.components(separatedBy: ",")
-                    let latitude = Double(privateLinkComponent[4])
-                    let longitude = Double(privateLinkComponent[5])
-                    let coordinates = CLLocationCoordinate2D(latitude: latitude ?? 0.0, longitude: longitude ?? 0.0)
-                    let timeInterval = TimeInterval(privateLinkComponent[2])
+//                } else if type == "custom" {
+//                    let privateLinkComponent = content.components(separatedBy: ",")
+//                    let latitude = Double(privateLinkComponent[4])
+//                    let longitude = Double(privateLinkComponent[5])
+//                    let coordinates = CLLocationCoordinate2D(latitude: latitude ?? 0.0, longitude: longitude ?? 0.0)
+//                    let timeInterval = TimeInterval(privateLinkComponent[2])
+//
+////                 let privateLink = PrivateLink(title: privateLinkComponent[0], desciption: privateLinkComponent[1], date: timeInterval, locationTitle: privateLinkComponent[3], coordinates: coordinates)
+////
+////
+////                        print("quicklink: \(privateLink)")
+//                    kind = .custom(privateLink)
 
-                 let privateLink = PrivateLink(title: privateLinkComponent[0], desciption: privateLinkComponent[1], date: timeInterval, locationTitle: privateLinkComponent[3], coordinates: coordinates)
-
-                    
-                        print("quicklink: \(privateLink)")
-                    kind = .custom(privateLink)
-                }
-                else {
+                } else {
                     kind = .text(content)
                 }
 
@@ -2110,11 +2286,13 @@ extension DatabaseManager {
                 break
             case .contact(_):
                 break
-            case .custom(let privatelink):
-                let privatelink = privatelink as? PrivateLink
-                message = "\(privatelink?.title), \(privatelink?.desciption), \(privatelink?.date), \(privatelink?.locationTitle), \(privatelink?.coordinates?.latitude), \(privatelink?.coordinates?.longitude)"
-                break
+//            case .custom(let privatelink):
+//                let privatelink = privatelink as? PrivateLink
+//                message = "\(privatelink?.title), \(privatelink?.desciption), \(privatelink?.date), \(privatelink?.locationTitle), \(privatelink?.coordinates?.latitude), \(privatelink?.coordinates?.longitude)"
+//                break
             case .linkPreview(_):
+                break
+            case .custom(_):
                 break
             }
 

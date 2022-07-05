@@ -155,7 +155,7 @@ final class NameofLinkCollectionView: UIView {
         typeOfLink.frame = CGRect(
             x: imageView.right+10,
             y: height-imageSize,
-            width: typeOfLink.width,
+            width: width-40-height/4,
             height: typeOfLink.height
         )
         

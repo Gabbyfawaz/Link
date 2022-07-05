@@ -13,8 +13,8 @@ import UberRides
 
 
 protocol LocationViewContainerDelegate: AnyObject {
-    func locationViewContainerDidTapAppleMaps(_ view: LocationViewContainer, options:[String : NSValue], mapItem: MKMapItem )
-    func locationViewContainerDidTapUber(_ view: LocationViewContainer, deepLink: RequestDeeplink)
+    func locationViewContainerDidTapAppleMaps(_ view: LocationViewContainer, options:[String : NSValue], mapItem: MKMapItem, isPrivate: Bool)
+    func locationViewContainerDidTapUber(_ view: LocationViewContainer, deepLink: RequestDeeplink, isPrivate: Bool)
 
 }
 
@@ -30,6 +30,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
     private var usersLocationTitle: String?
     private let locationManager = CLLocationManager()
     private var distanceBetweenPoints: CLLocationDistance?
+    private var isPrivate: Bool?
 
     private let userIconImageView: UIImageView = {
         let iv = UIImageView()
@@ -37,9 +38,9 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         iv.layer.masksToBounds = true
         iv.layer.cornerRadius = 22.5
         iv.frame.size = CGSize(width: 45, height: 45)
-//        iv.layer.borderWidth = 2
-//        iv.layer.borderColor = UIColor.white.cgColor
-//        iv.backgroundColor = .secondarySystemBackground
+        iv.layer.borderWidth = 2
+        iv.layer.borderColor = UIColor.white.cgColor
+        iv.backgroundColor = .secondarySystemBackground
         return iv
     }()
     
@@ -49,9 +50,9 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         iv.layer.masksToBounds = true
         iv.layer.cornerRadius = 22.5
         iv.frame.size = CGSize(width: 45, height: 45)
-//        iv.layer.borderWidth = 2
-//        iv.layer.borderColor = UIColor.white.cgColor
-//        iv.backgroundColor = .secondarySystemBackground
+        iv.layer.borderWidth = 2
+        iv.layer.borderColor = UIColor.white.cgColor
+        iv.backgroundColor = .secondarySystemBackground
         return iv
     }()
     
@@ -167,7 +168,6 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         uberButton.addTarget(self, action: #selector(didTapUber), for: .touchUpInside)
       
         
-
     }
     
     required init?(coder: NSCoder) {
@@ -217,7 +217,9 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
               let locationTitle = self.locationTitle,
               let usersLatitude = self.usersLatitude,
               let userLongitude = self.usersLongitude,
-              let usersLocationTitle = self.usersLocationTitle else {
+              let usersLocationTitle = self.usersLocationTitle,
+              let isPrivate = self.isPrivate
+        else {
                   return
               }
 
@@ -233,7 +235,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
 
         let deeplink = RequestDeeplink(rideParameters: rideParameters, fallbackType: .appStore)
 //        deeplink.execute()
-        delegate?.locationViewContainerDidTapUber(self, deepLink: deeplink)
+        delegate?.locationViewContainerDidTapUber(self, deepLink: deeplink, isPrivate:isPrivate)
         
     }
     
@@ -241,7 +243,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         
        
             
-        guard let latitude = self.latitude, let longitude = self.longitude, let locationTitle = self.locationTitle else {
+        guard let latitude = self.latitude, let longitude = self.longitude, let locationTitle = self.locationTitle, let isPrivate = self.isPrivate else {
             return
         }
         
@@ -256,7 +258,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
             let mapItem = MKMapItem(placemark: placemark)
             mapItem.name = "\(locationTitle)"
         
-        delegate?.locationViewContainerDidTapAppleMaps(self, options: options, mapItem: mapItem)
+        delegate?.locationViewContainerDidTapAppleMaps(self, options: options, mapItem: mapItem, isPrivate: isPrivate)
         
         
     }
@@ -357,7 +359,24 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
 
 
     }
-    
+
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        
+        if self.isPrivate == true {
+//            appleMaps.isUserInteractionEnabled = false
+//            uberButton.isUserInteractionEnabled = false
+            let coordinate = CLLocationCoordinate2DMake(mapView.region.center.latitude, mapView.region.center.longitude)
+            var span = mapView.region.span
+            if span.latitudeDelta < 0.5 { // MIN LEVEL
+                span = MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+            } else if span.latitudeDelta > 0.8 { // MAX LEVEL
+                span = MKCoordinateSpan(latitudeDelta: 0.8, longitudeDelta: 0.8)
+            }
+            let region = MKCoordinateRegion(center: coordinate, span: span)
+            mapView.setRegion(region, animated:true)
+        }
+       
+    }
 
     
     
@@ -370,9 +389,12 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         switch overlay {
         case let polyline as MKPolyline:
+            
             let renderer = MKPolylineRenderer(polyline: polyline)
+            if self.isPrivate == false {
             renderer.strokeColor =  .black
             renderer.lineWidth = 5
+            }
             return renderer
 
         // you can add more `case`s for other overlay types as needed
@@ -439,8 +461,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
     
 
     func configure(with viewModel: PostOfFeedCollectionViewModel) {
-        
-
+        self.isPrivate = viewModel.isPrivate
         
         if let distance = self.distanceBetweenPoints {
             let distanceAwayInt = Int(distance)
@@ -450,7 +471,8 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
         
         
         locationlabel.text = "\(viewModel.locationTitle ?? "")"
-        guard let locationString = viewModel.locationTitle else {
+        guard let locationString = viewModel.locationTitle,
+        let linkImage = viewModel.linkTypeImage else {
             return
         }
         
@@ -464,7 +486,7 @@ class LocationViewContainer: UIView, CLLocationManagerDelegate, MKMapViewDelegat
             }
             self.userIconImageView.sd_setImage(with: url, completed: nil)
             
-            self.linkIconImageView.sd_setImage(with: viewModel.linkTypeImage, completed: nil)
+            self.linkIconImageView.sd_setImage(with: linkImage , completed: nil)
         })
         
         

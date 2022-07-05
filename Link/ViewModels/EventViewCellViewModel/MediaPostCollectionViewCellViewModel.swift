@@ -10,4 +10,5 @@ import Foundation
 struct MediaPostCollectionViewCellViewModel {
     let postString: [String]
     let user: String
+    let rating: [Double]
 }
